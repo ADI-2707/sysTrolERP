@@ -16,7 +16,12 @@ def custom_exception_handler(exc, context):
         )
 
     code = getattr(exc, "default_code", "error")
-    if isinstance(exc, exceptions.ValidationError):
+    if isinstance(exc, exceptions.AuthenticationFailed):
+        code = "authentication_failed"
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        message = str(response.data.get("detail", "Authentication failed."))
+        fields = {}
+    elif isinstance(exc, exceptions.ValidationError):
         code = "validation_error"
         message = "Validation failed."
         fields = {}

@@ -8,7 +8,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.accounts.serializers import LoginSerializer, SuperAdminMeSerializer, UserMeSerializer
-from apps.accounts.services import authenticate_principal
+from apps.accounts.services import (
+    authenticate_principal,
+    is_login_locked,
+    record_login_attempt,
+)
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR", "127.0.0.1")
 
 class CsrfCookieView(APIView):
     authentication_classes = []
@@ -28,8 +38,25 @@ class LoginView(APIView):
 
         identifier = serializer.validated_data["identifier"]
         password = serializer.validated_data["password"]
+        ip_address = get_client_ip(request)
 
-        principal = authenticate_principal(identifier, password)
+        if is_login_locked(identifier, ip_address):
+            return Response(
+                {
+                    "code": "account_locked",
+                    "message": "Too many failed login attempts. Account is temporarily locked for 15 minutes.",
+                    "fields": {},
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+        try:
+            principal = authenticate_principal(identifier, password)
+        except AuthenticationFailed:
+            record_login_attempt(identifier, ip_address, successful=False)
+            raise
+
+        record_login_attempt(identifier, ip_address, successful=True)
 
         if isinstance(principal, SuperAdminPrincipal):
             request.session.flush()

@@ -86,3 +86,18 @@ class EmployeeCodeSequence(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.last_number}"
+
+class LoginAttempt(models.Model):
+    identifier = models.CharField(max_length=255, db_index=True)
+    ip_address = models.GenericIPAddressField(db_index=True)
+    attempted_at = models.DateTimeField(default=timezone.now, db_index=True)
+    successful = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Login Attempt"
+        verbose_name_plural = "Login Attempts"
+        ordering = ["-attempted_at"]
+
+    def __str__(self):
+        status_label = "Success" if self.successful else "Failed"
+        return f"{self.identifier} ({self.ip_address}) - {status_label}"

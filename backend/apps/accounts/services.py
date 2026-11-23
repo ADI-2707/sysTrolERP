@@ -1,11 +1,37 @@
+from datetime import timedelta
 import hmac
 import time
 from django.conf import settings
 from django.contrib.auth.hashers import Argon2PasswordHasher, check_password
 from django.db import OperationalError, models, transaction
+from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
-from apps.accounts.models import EmployeeCodeSequence, User
+from apps.accounts.models import EmployeeCodeSequence, LoginAttempt, User
 from apps.accounts.principals import SuperAdminPrincipal
+
+def is_login_locked(identifier: str, ip_address: str, max_attempts: int = 5, lock_minutes: int = 15) -> bool:
+    cutoff = timezone.now() - timedelta(minutes=lock_minutes)
+    failures = LoginAttempt.objects.filter(
+        identifier=identifier.lower().strip(),
+        ip_address=ip_address,
+        successful=False,
+        attempted_at__gte=cutoff,
+    ).count()
+    return failures >= max_attempts
+
+def record_login_attempt(identifier: str, ip_address: str, successful: bool):
+    LoginAttempt.objects.create(
+        identifier=identifier.lower().strip(),
+        ip_address=ip_address,
+        successful=successful,
+        attempted_at=timezone.now(),
+    )
+
+def clear_login_lockout(identifier: str, ip_address: str | None = None):
+    qs = LoginAttempt.objects.filter(identifier=identifier.lower().strip(), successful=False)
+    if ip_address:
+        qs = qs.filter(ip_address=ip_address)
+    qs.delete()
 
 def generate_next_employee_code(prefix: str = "SYS-", padding: int = 4) -> str:
     max_retries = 20
