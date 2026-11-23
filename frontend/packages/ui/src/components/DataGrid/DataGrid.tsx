@@ -130,10 +130,10 @@ export function DataGrid<T>({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       className={[styles["grid-container"], className].filter(Boolean).join(" ")}
-      role="grid"
+      role="region"
       aria-label={ariaLabel}
     >
-      <table className={styles["grid-table"]}>
+      <table className={styles["grid-table"]} role="grid">
         <thead>
           <tr role="row">
             {columns.map((col) => (

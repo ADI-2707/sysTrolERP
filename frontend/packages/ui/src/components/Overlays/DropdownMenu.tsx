@@ -1,4 +1,14 @@
-import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { Portal, computePosition, useClickOutside, useEscape, type Placement } from "../../primitives";
 import styles from "./Overlays.module.css";
 
@@ -80,16 +90,33 @@ export function DropdownMenu({
     }
   };
 
-  return (
-    <>
-      <div
-        ref={triggerRef}
+  const triggerNode = isValidElement(trigger)
+    ? cloneElement(trigger as ReactElement<HTMLAttributes<HTMLElement>>, {
+        "aria-haspopup": "menu",
+        "aria-expanded": isOpen,
+        onClick: (e: MouseEvent<HTMLElement>) => {
+          (trigger as ReactElement<HTMLAttributes<HTMLElement>>).props.onClick?.(e);
+          toggle();
+        },
+      })
+    : (
+      <button
+        type="button"
         onClick={toggle}
-        style={{ display: "inline-flex", cursor: "pointer" }}
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
         {trigger}
+      </button>
+    );
+
+  return (
+    <>
+      <div
+        ref={triggerRef}
+        style={{ display: "inline-flex" }}
+      >
+        {triggerNode}
       </div>
       {isOpen && (
         <Portal>
