@@ -1,12 +1,24 @@
 from pathlib import Path
+import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = "django-insecure-systrol-erp-default-key-change-in-production"
+env = environ.Env(
+    DEBUG=(bool, False),
+    SECRET_KEY=(str, "django-insecure-systrol-erp-default-key-change-in-production"),
+    DATABASE_URL=(str, f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+    COMPANY_TIMEZONE=(str, "Asia/Kolkata"),
+    SUPER_ADMIN_USERNAME=(str, "superadmin"),
+    SUPER_ADMIN_PASSWORD_HASH=(str, ""),
+)
 
-DEBUG = False
+env_file = BASE_DIR.parent / ".env"
+if env_file.exists():
+    environ.Env.read_env(str(env_file))
 
-ALLOWED_HOSTS = ["*"]
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env("DEBUG")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -59,10 +71,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": env.db("DATABASE_URL")
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -73,7 +82,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Asia/Kolkata"
+TIME_ZONE = env("COMPANY_TIMEZONE")
 USE_I18N = True
 USE_TZ = True
 
