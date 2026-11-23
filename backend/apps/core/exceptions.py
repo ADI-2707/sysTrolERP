@@ -1,11 +1,46 @@
+import traceback
 from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+from apps.accounts.principals import SuperAdminPrincipal
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     if response is None:
+        try:
+            from apps.telemetry.models import ErrorLog
+
+            request = context.get("request") if context else None
+            path = request.path if request else ""
+            method = request.method if request else ""
+            request_id = getattr(request, "request_id", "") if request else ""
+            actor_label = "anonymous"
+            if request and hasattr(request, "user") and request.user.is_authenticated:
+                if isinstance(request.user, SuperAdminPrincipal):
+                    actor_label = f"SUPER:{request.user.username}"
+                else:
+                    actor_label = getattr(
+                        request.user,
+                        "employee_code",
+                        getattr(request.user, "email", "authenticated"),
+                    )
+
+            raw_trace = traceback.format_exc()
+            truncated_trace = raw_trace[:10000] if raw_trace else ""
+
+            ErrorLog.objects.create(
+                error_class=exc.__class__.__name__,
+                message=str(exc)[:1000],
+                trace=truncated_trace,
+                request_id=request_id,
+                path=path,
+                method=method,
+                actor_label=actor_label,
+            )
+        except Exception:
+            pass
+
         return Response(
             {
                 "code": "server_error",

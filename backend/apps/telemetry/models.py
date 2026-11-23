@@ -20,3 +20,21 @@ class RequestLog(models.Model):
 
     def __str__(self):
         return f"{self.method} {self.path} {self.status_code} ({self.duration_ms:.1f}ms)"
+
+class ErrorLog(models.Model):
+    error_class = models.CharField(max_length=150, db_index=True)
+    message = models.TextField()
+    trace = models.TextField(blank=True)
+    request_id = models.CharField(max_length=64, blank=True, db_index=True)
+    path = models.CharField(max_length=255, blank=True, db_index=True)
+    method = models.CharField(max_length=10, blank=True)
+    actor_label = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        verbose_name = "Error Log"
+        verbose_name_plural = "Error Logs"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"[{self.created_at}] {self.error_class}: {self.message[:60]}"
