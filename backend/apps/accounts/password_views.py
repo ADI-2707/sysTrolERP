@@ -62,4 +62,14 @@ class PasswordChangeView(APIView):
 
         update_session_auth_hash(request, user)
 
+        from apps.audit import services as audit_services
+        audit_services.record(
+            action="PASSWORD_CHANGE",
+            actor=user,
+            entity_type="User",
+            entity_id=str(user.id),
+            summary=f"User {user.employee_code} changed their password.",
+            request=request,
+        )
+
         return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)

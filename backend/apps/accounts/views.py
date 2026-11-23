@@ -13,6 +13,7 @@ from apps.accounts.services import (
     is_login_locked,
     record_login_attempt,
 )
+from apps.audit import services as audit_services
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
@@ -41,6 +42,13 @@ class LoginView(APIView):
         ip_address = get_client_ip(request)
 
         if is_login_locked(identifier, ip_address):
+            audit_services.record(
+                action="LOGIN_LOCKOUT",
+                entity_type="User",
+                entity_id=identifier,
+                summary=f"Login locked out for identifier: {identifier} from IP {ip_address}",
+                request=request,
+            )
             return Response(
                 {
                     "code": "account_locked",
@@ -54,9 +62,25 @@ class LoginView(APIView):
             principal = authenticate_principal(identifier, password)
         except AuthenticationFailed:
             record_login_attempt(identifier, ip_address, successful=False)
+            audit_services.record(
+                action="LOGIN_FAILURE",
+                entity_type="User",
+                entity_id=identifier,
+                summary=f"Failed login attempt for identifier: {identifier}",
+                request=request,
+            )
             raise
 
         record_login_attempt(identifier, ip_address, successful=True)
+        entity_id = str(getattr(principal, "id", None) or getattr(principal, "username", ""))
+        audit_services.record(
+            action="LOGIN_SUCCESS",
+            actor=principal,
+            entity_type="User",
+            entity_id=entity_id,
+            summary=f"Principal {principal} logged in successfully.",
+            request=request,
+        )
 
         if isinstance(principal, SuperAdminPrincipal):
             request.session.flush()
@@ -75,6 +99,14 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        audit_services.record(
+            action="LOGOUT",
+            actor=request.user,
+            entity_type="User",
+            entity_id=str(getattr(request.user, "id", getattr(request.user, "username", ""))),
+            summary=f"User {request.user} logged out.",
+            request=request,
+        )
         logout(request)
         if hasattr(request, "session"):
             request.session.flush()
