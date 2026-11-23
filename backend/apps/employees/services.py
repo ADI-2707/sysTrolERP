@@ -162,3 +162,31 @@ def restore_employee(
         request=request,
         super_only=(user.role == UserRole.ADMIN),
     )
+
+def reset_employee_password(
+    *,
+    user: User,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> str:
+    if user.role == UserRole.ADMIN and getattr(actor, "role", "") != "SUPER":
+        raise PermissionDenied("Only the super administrator can reset an admin's password.")
+
+    temp_password = generate_temporary_password()
+    user.set_password(temp_password)
+    user.must_change_password = True
+    user.save(update_fields=["password", "must_change_password"])
+
+    terminate_user_sessions(user)
+
+    audit_services.record(
+        action="PASSWORD_RESET_BY_ADMIN",
+        actor=actor,
+        entity_type="User",
+        entity_id=str(user.id),
+        summary=f"Password reset issued for user {user.employee_code} by {actor}",
+        request=request,
+        super_only=(user.role == UserRole.ADMIN),
+    )
+
+    return temp_password

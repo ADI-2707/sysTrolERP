@@ -15,6 +15,7 @@ from apps.employees.serializers import (
 )
 from apps.employees.services import (
     create_employee,
+    reset_employee_password,
     restore_employee,
     revoke_employee,
     update_employee,
@@ -125,3 +126,25 @@ class EmployeeRestoreView(APIView):
         )
 
         return Response({"message": "Employee access restored successfully."}, status=status.HTTP_200_OK)
+
+class EmployeeResetPasswordView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, pk):
+        user = get_employee_by_id(pk)
+        if user is None:
+            raise NotFound("Employee not found.")
+
+        temp_password = reset_employee_password(
+            user=user,
+            actor=request.user,
+            request=request,
+        )
+
+        return Response(
+            {
+                "temporary_password": temp_password,
+                "message": "Temporary password issued successfully.",
+            },
+            status=status.HTTP_200_OK,
+        )
