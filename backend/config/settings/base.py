@@ -142,3 +142,10 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+LOG_RETENTION_DAYS = {
+    "audit": 365,
+    "requests": 30,
+    "errors": 90,
+    "login_attempts": 30,
+}
