@@ -1,0 +1,27 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: check-no-comments
+        name: Check No Comments
+        entry: python scripts/check_no_comments.py
+        language: system
+        types_or: [python, ts, tsx, javascript, jsx, css]
+        pass_filenames: true
+      - id: eslint
+        name: ESLint
+        entry: npx eslint --fix
+        language: system
+        types_or: [javascript, jsx, ts, tsx]
+        pass_filenames: true
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --write --ignore-unknown
+        language: system
+        types_or: [javascript, jsx, ts, tsx, css, json, yaml, markdown]
+        pass_filenames: true
