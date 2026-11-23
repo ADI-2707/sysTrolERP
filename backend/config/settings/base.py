@@ -109,3 +109,10 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ],
 }
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "sysTrol ERP API",
+    "DESCRIPTION": "sysTrol Enterprise Resource Planning API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
