@@ -10,6 +10,7 @@ export * from "./components/Display";
 export * from "./components/Navigation";
 export * from "./components/Table";
 export * from "./components/DataGrid";
+export * from "./components/Stepper";
 export * from "./tokens/colors";
 export * from "./tokens/foundation";
 export * from "./theme/ThemeProvider";
