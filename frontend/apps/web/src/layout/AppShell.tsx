@@ -3,6 +3,8 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
   Topbar,
+  Breadcrumbs,
+  type BreadcrumbItem,
   ThemeToggle,
   ErrorBoundary,
   DropdownMenu,
@@ -46,6 +48,44 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
   }, [collapsed]);
 
   const toggleCollapse = () => setCollapsed((prev) => !prev);
+
+  const segments = location.pathname.split("/").filter(Boolean);
+  const defaultBreadcrumbs = (() => {
+    if (segments.length === 0 || (segments.length === 1 && segments[0] === "timesheets")) {
+      return (
+        <Breadcrumbs
+          items={[
+            { label: "Dashboard", href: "/" },
+            { label: "Timesheets", isCurrent: true },
+          ]}
+        />
+      );
+    }
+
+    const items: BreadcrumbItem[] = [{ label: "Dashboard", href: "/" }];
+    let currentPath = "";
+
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      currentPath += `/${seg}`;
+      const isCurrent = i === segments.length - 1;
+
+      let label = seg.charAt(0).toUpperCase() + seg.slice(1);
+      if (seg === "audit") label = "Audit Logs";
+      if (seg === "projects") label = "Projects";
+      if (seg === "employees") label = "Employees";
+      if (seg === "timesheets") label = "Timesheets";
+      if (seg === "change-password") label = "Change Password";
+
+      items.push({
+        label,
+        isCurrent,
+        ...(isCurrent ? {} : { href: currentPath }),
+      });
+    }
+
+    return <Breadcrumbs items={items} />;
+  })();
 
   const navItems: SidebarItem[] = [];
 
@@ -144,7 +184,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
 
       <div className={styles.mainWrapper}>
         <Topbar
-          breadcrumbs={breadcrumbs}
+          breadcrumbs={breadcrumbs || defaultBreadcrumbs}
           actions={
             <div className={styles.actionsGroup}>
               <ThemeToggle />
