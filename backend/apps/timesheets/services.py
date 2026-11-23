@@ -354,3 +354,114 @@ def close_expired_weeks(*, dry_run: bool = False) -> int:
             )
 
     return count
+
+def approve_timesheet(
+    *,
+    timesheet_id: int,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> Timesheet:
+    with transaction.atomic():
+        try:
+            timesheet = Timesheet.objects.select_for_update().get(pk=timesheet_id)
+        except Timesheet.DoesNotExist:
+            raise ValidationError({"timesheet": ["Timesheet not found."]})
+
+        if timesheet.status != TimesheetWeekStatus.SUBMITTED:
+            raise ValidationError({"status": [f"Cannot approve timesheet in status {timesheet.status}."]})
+
+        if isinstance(actor, User) and actor.id == timesheet.employee_id:
+            raise ValidationError({"timesheet": ["You cannot approve your own timesheet."]})
+
+        old_status = timesheet.status
+        timesheet.status = TimesheetWeekStatus.APPROVED
+        timesheet.approved_at = timezone.now()
+        timesheet.approved_by = actor if isinstance(actor, User) else None
+        timesheet.approved_by_label = (
+            f"SUPER:{actor.username}"
+            if isinstance(actor, SuperAdminPrincipal)
+            else actor.employee_code
+        )
+        timesheet.returned_at = None
+        timesheet.returned_by = None
+        timesheet.returned_by_label = ""
+        timesheet.return_reason = ""
+        timesheet.save(update_fields=[
+            "status",
+            "approved_at",
+            "approved_by",
+            "approved_by_label",
+            "returned_at",
+            "returned_by",
+            "returned_by_label",
+            "return_reason",
+            "updated_at",
+        ])
+
+        audit_services.record(
+            action="TIMESHEET_APPROVE",
+            actor=actor,
+            entity_type="Timesheet",
+            entity_id=str(timesheet.id),
+            summary=f"Approved timesheet {timesheet.id} for {timesheet.employee.employee_code}",
+            changes={"status": [old_status, TimesheetWeekStatus.APPROVED]},
+            request=request,
+        )
+
+        return timesheet
+
+def return_timesheet(
+    *,
+    timesheet_id: int,
+    reason: str,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> Timesheet:
+    with transaction.atomic():
+        try:
+            timesheet = Timesheet.objects.select_for_update().get(pk=timesheet_id)
+        except Timesheet.DoesNotExist:
+            raise ValidationError({"timesheet": ["Timesheet not found."]})
+
+        if timesheet.status != TimesheetWeekStatus.SUBMITTED:
+            raise ValidationError({"status": [f"Cannot return timesheet in status {timesheet.status}."]})
+
+        if isinstance(actor, User) and actor.id == timesheet.employee_id:
+            raise ValidationError({"timesheet": ["You cannot return your own timesheet."]})
+
+        old_status = timesheet.status
+        timesheet.status = TimesheetWeekStatus.RETURNED
+        timesheet.returned_at = timezone.now()
+        timesheet.returned_by = actor if isinstance(actor, User) else None
+        timesheet.returned_by_label = (
+            f"SUPER:{actor.username}"
+            if isinstance(actor, SuperAdminPrincipal)
+            else actor.employee_code
+        )
+        timesheet.return_reason = reason
+        timesheet.approved_at = None
+        timesheet.approved_by = None
+        timesheet.approved_by_label = ""
+        timesheet.save(update_fields=[
+            "status",
+            "returned_at",
+            "returned_by",
+            "returned_by_label",
+            "return_reason",
+            "approved_at",
+            "approved_by",
+            "approved_by_label",
+            "updated_at",
+        ])
+
+        audit_services.record(
+            action="TIMESHEET_RETURN",
+            actor=actor,
+            entity_type="Timesheet",
+            entity_id=str(timesheet.id),
+            summary=f"Returned timesheet {timesheet.id} for {timesheet.employee.employee_code}: {reason}",
+            changes={"status": [old_status, TimesheetWeekStatus.RETURNED], "reason": [None, reason]},
+            request=request,
+        )
+
+        return timesheet

@@ -5,6 +5,7 @@ from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal, 
 from apps.core.pagination import StandardPageNumberPagination
 from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
 from apps.timesheets.selectors import (
+    build_timesheet_detail_for_admin,
     get_own_timesheet,
     get_timesheet_for_admin,
     list_timesheets_for_admin,
@@ -14,13 +15,16 @@ from apps.timesheets.serializers import (
     CellUpsertSerializer,
     TimesheetAdminListSerializer,
     TimesheetPolicySerializer,
+    TimesheetReturnSerializer,
     TimesheetRowCreateSerializer,
     TimesheetSubmitSerializer,
 )
 from apps.timesheets.services import (
+    approve_timesheet,
     bulk_upsert_timesheet_cells,
     create_timesheet_row,
     delete_timesheet_row,
+    return_timesheet,
     submit_own_timesheet,
     update_timesheet_policy,
     upsert_timesheet_cell,
@@ -169,3 +173,31 @@ class AdminPendingTimesheetsView(APIView):
         page = paginator.paginate_queryset(qs, request)
         serializer = TimesheetAdminListSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
+
+class TimesheetApproveView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, pk):
+        timesheet = approve_timesheet(
+            timesheet_id=pk,
+            actor=request.user,
+            request=request,
+        )
+        data = build_timesheet_detail_for_admin(timesheet, current_user=request.user)
+        return Response(data, status=status.HTTP_200_OK)
+
+class TimesheetReturnView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, pk):
+        serializer = TimesheetReturnSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        timesheet = return_timesheet(
+            timesheet_id=pk,
+            reason=serializer.validated_data["reason"],
+            actor=request.user,
+            request=request,
+        )
+        data = build_timesheet_detail_for_admin(timesheet, current_user=request.user)
+        return Response(data, status=status.HTTP_200_OK)

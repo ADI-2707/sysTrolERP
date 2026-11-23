@@ -52,6 +52,15 @@ class TimesheetRowCreateSerializer(serializers.Serializer):
 class TimesheetSubmitSerializer(serializers.Serializer):
     week = serializers.DateField(required=False, default=None)
 
+class TimesheetReturnSerializer(serializers.Serializer):
+    reason = serializers.CharField(max_length=1000, required=True)
+
+    def validate_reason(self, value):
+        val = value.strip()
+        if not val:
+            raise serializers.ValidationError("Return reason cannot be empty.")
+        return val
+
 class TimesheetAdminListSerializer(serializers.ModelSerializer):
     employee = serializers.SerializerMethodField()
     week_end_date = serializers.SerializerMethodField()
