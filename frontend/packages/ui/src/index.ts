@@ -2,6 +2,7 @@ export * from "./components/SampleText";
 export * from "./components/Button";
 export * from "./components/Input";
 export * from "./components/Selection";
+export * from "./components/Select";
 export * from "./tokens/colors";
 export * from "./tokens/foundation";
 export * from "./theme/ThemeProvider";
