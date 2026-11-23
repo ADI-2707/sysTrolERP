@@ -71,4 +71,5 @@ jobs:
           node-version: 22
           cache: 'npm'
       - run: npm ci
-      - run: echo "Frontend tests placeholder"
+      - run: npm test --workspaces
+      - run: python scripts/audit_contrast.py
