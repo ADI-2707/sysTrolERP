@@ -4,14 +4,16 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound, PermissionDenied
 from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal
 from apps.core.pagination import StandardPageNumberPagination
-from apps.projects.models import Project
+from apps.projects.models import Project, ProjectStep
 from apps.projects.selectors import list_projects_for_user
 from apps.projects.serializers import (
     ProjectCreateSerializer,
     ProjectDetailSerializer,
     ProjectListSerializer,
+    ProjectStepDetailSerializer,
+    StepStatusUpdateSerializer,
 )
-from apps.projects.services import create_project
+from apps.projects.services import create_project, update_step_status
 
 class ProjectListCreateView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
@@ -70,3 +72,25 @@ class ProjectDetailView(APIView):
 
         serializer = ProjectDetailSerializer(project)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ProjectStepStatusView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, project_id, step_id):
+        try:
+            step = ProjectStep.objects.select_related("project").get(pk=step_id, project_id=project_id)
+        except ProjectStep.DoesNotExist:
+            raise NotFound("Project step not found.")
+
+        serializer = StepStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        updated_step = update_step_status(
+            step=step,
+            new_status=serializer.validated_data["status"],
+            confirm=serializer.validated_data.get("confirm", False),
+            actor=request.user,
+            request=request,
+        )
+
+        return Response(ProjectStepDetailSerializer(updated_step).data, status=status.HTTP_200_OK)

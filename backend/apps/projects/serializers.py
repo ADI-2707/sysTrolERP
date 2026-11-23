@@ -159,3 +159,7 @@ class ProjectCreateSerializer(serializers.Serializer):
         required=False,
         default=list,
     )
+
+class StepStatusUpdateSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=StepStatus.choices, required=True)
+    confirm = serializers.BooleanField(required=False, default=False)

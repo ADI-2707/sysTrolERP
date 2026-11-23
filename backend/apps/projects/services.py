@@ -7,6 +7,7 @@ from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
 from apps.projects.models import (
     CORE_STEPS,
+    STEP_STATUS_ORDER,
     Project,
     ProjectAssignment,
     ProjectCodeSequence,
@@ -112,3 +113,46 @@ def create_project(
         )
 
     return project
+
+def update_step_status(
+    *,
+    step: ProjectStep,
+    new_status: str,
+    confirm: bool,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> ProjectStep:
+    current_order = STEP_STATUS_ORDER.get(step.status, 0)
+    new_order = STEP_STATUS_ORDER.get(new_status, 0)
+
+    if new_order <= current_order:
+        raise ValidationError({"status": ["Step status can only move forward."]})
+
+    if new_status == StepStatus.COMPLETED and not confirm:
+        raise ValidationError({"confirm": ["Confirmation is required to mark a step as completed."]})
+
+    old_status = step.status
+    step.status = new_status
+
+    if new_status == StepStatus.COMPLETED:
+        step.confirmed_at = timezone.now()
+        step.confirmed_by = actor if isinstance(actor, User) else None
+        step.confirmed_by_label = (
+            f"SUPER:{actor.username}"
+            if isinstance(actor, SuperAdminPrincipal)
+            else actor.employee_code
+        )
+
+    step.save(update_fields=["status", "confirmed_at", "confirmed_by", "confirmed_by_label", "updated_at"])
+
+    audit_services.record(
+        action="STEP_STATUS_CHANGE",
+        actor=actor,
+        entity_type="ProjectStep",
+        entity_id=str(step.id),
+        summary=f"Changed step {step.name} status to {new_status} in project {step.project.code}",
+        changes={"status": [old_status, new_status]},
+        request=request,
+    )
+
+    return step
