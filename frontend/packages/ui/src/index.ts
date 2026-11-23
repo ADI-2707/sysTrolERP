@@ -4,6 +4,7 @@ export * from "./components/Input";
 export * from "./components/Selection";
 export * from "./components/Select";
 export * from "./components/Overlays";
+export * from "./components/Modal";
 export * from "./tokens/colors";
 export * from "./tokens/foundation";
 export * from "./theme/ThemeProvider";
