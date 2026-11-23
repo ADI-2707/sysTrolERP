@@ -34,3 +34,10 @@ class CellUpsertSerializer(serializers.Serializer):
         if value > 0 and (value % step) != 0:
             raise serializers.ValidationError(f"Hours must be a multiple of {step}.")
         return value
+
+class BulkCellSaveSerializer(serializers.Serializer):
+    cells = serializers.ListField(
+        child=CellUpsertSerializer(),
+        allow_empty=False,
+        max_length=100,
+    )

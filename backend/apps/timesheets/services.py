@@ -14,6 +14,7 @@ from apps.timesheets.models import (
     TimesheetRow,
 )
 from apps.timesheets.rules import is_cell_editable
+from apps.timesheets.selectors import get_own_timesheet
 
 def update_timesheet_policy(
     *,
@@ -144,4 +145,35 @@ def upsert_timesheet_cell(
             "row_total": str(row_total),
             "day_total": str(day_total),
             "total_week_hours": str(week_total),
+        }
+
+def bulk_upsert_timesheet_cells(
+    *,
+    user: User,
+    cells: list[dict],
+    request=None,
+) -> dict:
+    if isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER":
+        raise PermissionDenied("Super admin cannot record timesheet entries.")
+
+    with transaction.atomic():
+        updated_dates = set()
+        for cell_data in cells:
+            upsert_timesheet_cell(
+                user=user,
+                project_id=cell_data["project_id"],
+                cell_date=cell_data["date"],
+                hours=cell_data["hours"],
+                note=cell_data.get("note", ""),
+                request=request,
+            )
+            updated_dates.add(cell_data["date"])
+
+        first_date = next(iter(updated_dates)) if updated_dates else None
+        week_str = first_date.isoformat() if first_date else None
+        week_data = get_own_timesheet(user=user, week_str=week_str)
+
+        return {
+            "saved_count": len(cells),
+            "week": week_data,
         }
