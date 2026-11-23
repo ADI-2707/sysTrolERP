@@ -13,6 +13,7 @@ from apps.timesheets.selectors import (
 from apps.timesheets.serializers import (
     BulkCellSaveSerializer,
     CellUpsertSerializer,
+    SuperAdminOverrideSerializer,
     TimesheetAdminListSerializer,
     TimesheetPolicySerializer,
     TimesheetReturnSerializer,
@@ -24,6 +25,7 @@ from apps.timesheets.services import (
     bulk_upsert_timesheet_cells,
     create_timesheet_row,
     delete_timesheet_row,
+    override_timesheet_by_super,
     return_timesheet,
     submit_own_timesheet,
     update_timesheet_policy,
@@ -196,6 +198,24 @@ class TimesheetReturnView(APIView):
         timesheet = return_timesheet(
             timesheet_id=pk,
             reason=serializer.validated_data["reason"],
+            actor=request.user,
+            request=request,
+        )
+        data = build_timesheet_detail_for_admin(timesheet, current_user=request.user)
+        return Response(data, status=status.HTTP_200_OK)
+
+class SuperAdminTimesheetOverrideView(APIView):
+    permission_classes = [IsSuper]
+
+    def put(self, request, pk):
+        serializer = SuperAdminOverrideSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        timesheet = override_timesheet_by_super(
+            timesheet_id=pk,
+            reason=serializer.validated_data["reason"],
+            new_status=serializer.validated_data.get("status"),
+            cells=serializer.validated_data.get("cells"),
             actor=request.user,
             request=request,
         )

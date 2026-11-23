@@ -61,6 +61,33 @@ class TimesheetReturnSerializer(serializers.Serializer):
             raise serializers.ValidationError("Return reason cannot be empty.")
         return val
 
+class SuperAdminOverrideCellSerializer(serializers.Serializer):
+    project_id = serializers.IntegerField(required=True)
+    date = serializers.DateField(required=True)
+    hours = serializers.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        required=True,
+        min_value=Decimal("0.00"),
+        max_value=Decimal("24.00"),
+    )
+    note = serializers.CharField(max_length=500, required=False, allow_blank=True, default="")
+
+class SuperAdminOverrideSerializer(serializers.Serializer):
+    reason = serializers.CharField(max_length=1000, required=True)
+    status = serializers.ChoiceField(choices=TimesheetWeekStatus.choices, required=False, default=None)
+    cells = serializers.ListField(
+        child=SuperAdminOverrideCellSerializer(),
+        required=False,
+        default=list,
+    )
+
+    def validate_reason(self, value):
+        val = value.strip()
+        if not val:
+            raise serializers.ValidationError("Override reason is required.")
+        return val
+
 class TimesheetAdminListSerializer(serializers.ModelSerializer):
     employee = serializers.SerializerMethodField()
     week_end_date = serializers.SerializerMethodField()

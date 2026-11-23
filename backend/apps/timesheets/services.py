@@ -465,3 +465,87 @@ def return_timesheet(
         )
 
         return timesheet
+
+def override_timesheet_by_super(
+    *,
+    timesheet_id: int,
+    reason: str,
+    new_status: str | None = None,
+    cells: list[dict] | None = None,
+    actor: SuperAdminPrincipal,
+    request=None,
+) -> Timesheet:
+    if not (isinstance(actor, SuperAdminPrincipal) or getattr(actor, "role", None) == "SUPER"):
+        raise PermissionDenied("Only super admin can perform timesheet override.")
+
+    with transaction.atomic():
+        try:
+            timesheet = Timesheet.objects.select_for_update().get(pk=timesheet_id)
+        except Timesheet.DoesNotExist:
+            raise ValidationError({"timesheet": ["Timesheet not found."]})
+
+        old_status = timesheet.status
+        changes = {"reason": [None, reason]}
+
+        if new_status and new_status != timesheet.status:
+            timesheet.status = new_status
+            changes["status"] = [old_status, new_status]
+
+        monday = timesheet.week_start_date
+        sunday = monday + datetime.timedelta(days=6)
+
+        if cells:
+            cell_changes = []
+            for c in cells:
+                cell_date = c["date"]
+                if not (monday <= cell_date <= sunday):
+                    raise ValidationError({"cells": [f"Date {cell_date} is outside the timesheet week {monday} to {sunday}."]})
+
+                try:
+                    project = Project.objects.get(pk=c["project_id"])
+                except Project.DoesNotExist:
+                    raise ValidationError({"cells": [f"Project {c['project_id']} not found."]})
+
+                row, _ = TimesheetRow.objects.select_for_update().get_or_create(
+                    timesheet=timesheet,
+                    project=project,
+                )
+
+                hours = c["hours"]
+                note = c.get("note", "")
+
+                old_entry = TimesheetEntry.objects.filter(row=row, date=cell_date).first()
+                old_h = str(old_entry.hours) if old_entry else "0.00"
+
+                if hours == Decimal("0.00"):
+                    if old_entry:
+                        old_entry.delete()
+                else:
+                    TimesheetEntry.objects.update_or_create(
+                        row=row,
+                        date=cell_date,
+                        defaults={"hours": hours, "note": note},
+                    )
+
+                cell_changes.append({
+                    "project_code": project.code,
+                    "date": cell_date.isoformat(),
+                    "hours": [old_h, str(hours)],
+                })
+
+            changes["cells"] = cell_changes
+
+        timesheet.save(update_fields=["status", "updated_at"])
+
+        audit_services.record(
+            action="TIMESHEET_SUPER_OVERRIDE",
+            actor=actor,
+            entity_type="Timesheet",
+            entity_id=str(timesheet.id),
+            summary=f"Super admin override on timesheet {timesheet.id} ({timesheet.employee.employee_code}): {reason}",
+            changes=changes,
+            request=request,
+            super_only=True,
+        )
+
+        return timesheet
