@@ -4,6 +4,7 @@ from apps.timesheets.views import (
     OwnTimesheetCellView,
     OwnTimesheetRowDetailView,
     OwnTimesheetRowManageView,
+    OwnTimesheetSubmitView,
     OwnTimesheetView,
     TimesheetPolicyView,
 )
@@ -14,5 +15,6 @@ urlpatterns = [
     path("me/cells/bulk/", OwnTimesheetBulkCellsView.as_view(), name="own_timesheet_cells_bulk"),
     path("me/rows/", OwnTimesheetRowManageView.as_view(), name="own_timesheet_rows"),
     path("me/rows/<int:pk>/", OwnTimesheetRowDetailView.as_view(), name="own_timesheet_row_detail"),
+    path("me/submit/", OwnTimesheetSubmitView.as_view(), name="own_timesheet_submit"),
     path("policy/", TimesheetPolicyView.as_view(), name="timesheet_policy"),
 ]

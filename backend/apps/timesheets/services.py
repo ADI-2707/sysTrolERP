@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
@@ -12,6 +13,7 @@ from apps.timesheets.models import (
     TimesheetEntry,
     TimesheetPolicy,
     TimesheetRow,
+    TimesheetWeekStatus,
 )
 from apps.timesheets.rules import can_edit_week, is_cell_editable
 from apps.timesheets.selectors import get_own_timesheet
@@ -279,3 +281,76 @@ def delete_timesheet_row(
             raise ValidationError({"week": ["Cannot delete row from a locked or submitted timesheet."]})
 
         row.delete()
+
+def submit_own_timesheet(
+    *,
+    user: User,
+    week_date: datetime.date | None = None,
+    request=None,
+) -> dict:
+    if isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER":
+        raise PermissionDenied("Super admin cannot submit timesheets.")
+
+    if week_date is None:
+        week_date = company_today()
+
+    monday, _ = week_bounds(week_date)
+
+    with transaction.atomic():
+        try:
+            timesheet = Timesheet.objects.select_for_update().get(
+                employee=user,
+                week_start_date=monday,
+            )
+        except Timesheet.DoesNotExist:
+            timesheet = Timesheet.objects.create(
+                employee=user,
+                week_start_date=monday,
+            )
+
+        if timesheet.status not in (TimesheetWeekStatus.OPEN, TimesheetWeekStatus.RETURNED):
+            raise ValidationError({"status": [f"Cannot submit timesheet with status {timesheet.status}."]})
+
+        old_status = timesheet.status
+        timesheet.status = TimesheetWeekStatus.SUBMITTED
+        timesheet.submitted_at = timezone.now()
+        timesheet.save(update_fields=["status", "submitted_at", "updated_at"])
+
+        audit_services.record(
+            action="TIMESHEET_SUBMIT",
+            actor=user,
+            entity_type="Timesheet",
+            entity_id=str(timesheet.id),
+            summary=f"Submitted timesheet for week {timesheet.week_start_date}",
+            changes={"status": [old_status, TimesheetWeekStatus.SUBMITTED]},
+            request=request,
+        )
+
+        return get_own_timesheet(user=user, week_str=monday.isoformat())
+
+def close_expired_weeks(*, dry_run: bool = False) -> int:
+    today = company_today()
+    current_monday, _ = week_bounds(today)
+    expired_qs = Timesheet.objects.filter(
+        status=TimesheetWeekStatus.OPEN,
+        week_start_date__lt=current_monday,
+    )
+    count = expired_qs.count()
+
+    if not dry_run and count > 0:
+        now = timezone.now()
+        for ts in expired_qs:
+            ts.status = TimesheetWeekStatus.SUBMITTED
+            ts.submitted_at = now
+            ts.save(update_fields=["status", "submitted_at", "updated_at"])
+
+            audit_services.record(
+                action="TIMESHEET_AUTO_SUBMIT",
+                actor=None,
+                entity_type="Timesheet",
+                entity_id=str(ts.id),
+                summary=f"Auto-submitted expired timesheet for {ts.employee.employee_code} week {ts.week_start_date}",
+                changes={"status": [TimesheetWeekStatus.OPEN, TimesheetWeekStatus.SUBMITTED]},
+            )
+
+    return count

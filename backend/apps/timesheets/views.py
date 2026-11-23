@@ -9,11 +9,13 @@ from apps.timesheets.serializers import (
     CellUpsertSerializer,
     TimesheetPolicySerializer,
     TimesheetRowCreateSerializer,
+    TimesheetSubmitSerializer,
 )
 from apps.timesheets.services import (
     bulk_upsert_timesheet_cells,
     create_timesheet_row,
     delete_timesheet_row,
+    submit_own_timesheet,
     update_timesheet_policy,
     upsert_timesheet_cell,
 )
@@ -107,3 +109,17 @@ class OwnTimesheetRowDetailView(APIView):
             request=request,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class OwnTimesheetSubmitView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def post(self, request):
+        serializer = TimesheetSubmitSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        result = submit_own_timesheet(
+            user=request.user,
+            week_date=serializer.validated_data.get("week"),
+            request=request,
+        )
+        return Response(result, status=status.HTTP_200_OK)
