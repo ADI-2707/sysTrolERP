@@ -8,6 +8,7 @@ export * from "./components/Modal";
 export * from "./components/Toast";
 export * from "./components/Display";
 export * from "./components/Navigation";
+export * from "./components/Table";
 export * from "./tokens/colors";
 export * from "./tokens/foundation";
 export * from "./theme/ThemeProvider";
