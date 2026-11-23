@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "systrol-backend"
+version = "0.1.0"
+description = "sysTrol ERP Backend"
+requires-python = ">=3.11"
+dependencies = [
+    "django>=5.1.6,<5.3",
+    "djangorestframework>=3.15.2,<3.17",
+    "drf-spectacular>=0.28.0",
+    "argon2-cffi>=23.1.0",
+    "django-environ>=0.12.0",
+    "psycopg[binary]>=3.2.4",
+    "gunicorn>=23.0.0",
+    "whitenoise>=6.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-django>=4.10.0",
+    "factory-boy>=3.3.3",
+    "time-machine>=2.16.0",
+    "coverage>=7.6.12",
+    "ruff>=0.9.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apps*", "config*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+pythonpath = [".", "backend"]
+addopts = "--strict-markers --no-migrations"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = []
+
+[tool.coverage.run]
+source = ["apps"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+]
