@@ -11,14 +11,20 @@ from apps.projects.serializers import (
     ProjectCreateSerializer,
     ProjectDetailSerializer,
     ProjectListSerializer,
+    ProjectMemberAddSerializer,
+    ProjectMemberItemSerializer,
+    ProjectMembersSyncSerializer,
     ProjectStepDetailSerializer,
     StepStatusUpdateSerializer,
     SubStepCreateSerializer,
 )
 from apps.projects.services import (
+    add_project_member,
     create_project,
     delete_custom_step,
     insert_sub_step,
+    remove_project_member,
+    sync_project_members,
     update_custom_step,
     update_step_status,
 )
@@ -140,6 +146,45 @@ class ProjectStepDetailManageView(APIView):
         delete_custom_step(
             project_id=project_id,
             step_id=step_id,
+            actor=request.user,
+            request=request,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ProjectMemberManageView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, project_id):
+        serializer = ProjectMemberAddSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        assignment = add_project_member(
+            project_id=project_id,
+            user_id=serializer.validated_data["user_id"],
+            actor=request.user,
+            request=request,
+        )
+        return Response(ProjectMemberItemSerializer(assignment).data, status=status.HTTP_201_CREATED)
+
+    def put(self, request, project_id):
+        serializer = ProjectMembersSyncSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        assignments = sync_project_members(
+            project_id=project_id,
+            user_ids=serializer.validated_data["user_ids"],
+            actor=request.user,
+            request=request,
+        )
+        return Response(ProjectMemberItemSerializer(assignments, many=True).data, status=status.HTTP_200_OK)
+
+class ProjectMemberDeleteView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def delete(self, request, project_id, user_id):
+        remove_project_member(
+            project_id=project_id,
+            user_id=user_id,
             actor=request.user,
             request=request,
         )

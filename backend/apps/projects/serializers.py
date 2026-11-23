@@ -182,3 +182,20 @@ class CustomStepUpdateSerializer(serializers.Serializer):
         if not val:
             raise serializers.ValidationError("Step name cannot be empty.")
         return val
+
+class ProjectMemberAddSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(required=True)
+
+class ProjectMembersSyncSerializer(serializers.Serializer):
+    user_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+    )
+
+class ProjectMemberItemSerializer(serializers.Serializer):
+    id = serializers.IntegerField(source="employee.id")
+    employee_code = serializers.CharField(source="employee.employee_code")
+    full_name = serializers.CharField(source="employee.full_name")
+    designation = serializers.CharField(source="employee.designation")
+    department = serializers.CharField(source="employee.department")
+    assigned_at = serializers.DateTimeField()

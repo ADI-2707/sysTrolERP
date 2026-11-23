@@ -292,3 +292,134 @@ def delete_custom_step(
             changes={"id": [deleted_id, None], "name": [deleted_name, None], "position": [deleted_pos, None]},
             request=request,
         )
+
+def add_project_member(
+    *,
+    project_id: int,
+    user_id: int,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> ProjectAssignment:
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        raise ValidationError({"project": ["Project not found."]})
+
+    try:
+        employee = User.objects.get(pk=user_id, is_active=True)
+    except User.DoesNotExist:
+        raise ValidationError({"user_id": ["Active employee not found."]})
+
+    assigned_by = actor if isinstance(actor, User) else None
+    assigned_by_label = (
+        f"SUPER:{actor.username}"
+        if isinstance(actor, SuperAdminPrincipal)
+        else actor.employee_code
+    )
+
+    assignment, created = ProjectAssignment.objects.get_or_create(
+        project=project,
+        employee=employee,
+        defaults={
+            "assigned_by": assigned_by,
+            "assigned_by_label": assigned_by_label,
+            "assigned_at": timezone.now(),
+        },
+    )
+    if not created:
+        raise ValidationError({"user_id": ["Employee is already assigned to this project."]})
+
+    audit_services.record(
+        action="PROJECT_MEMBER_ADD",
+        actor=actor,
+        entity_type="ProjectAssignment",
+        entity_id=str(assignment.id),
+        summary=f"Assigned {employee.employee_code} to project {project.code}",
+        changes={"employee_id": [None, employee.id], "project_id": [None, project.id]},
+        request=request,
+    )
+    return assignment
+
+def remove_project_member(
+    *,
+    project_id: int,
+    user_id: int,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> None:
+    try:
+        assignment = ProjectAssignment.objects.select_related("project", "employee").get(
+            project_id=project_id,
+            employee_id=user_id,
+        )
+    except ProjectAssignment.DoesNotExist:
+        raise ValidationError({"user_id": ["Member assignment not found."]})
+
+    assignment_id = assignment.id
+    employee_code = assignment.employee.employee_code
+    project_code = assignment.project.code
+    assignment.delete()
+
+    audit_services.record(
+        action="PROJECT_MEMBER_REMOVE",
+        actor=actor,
+        entity_type="ProjectAssignment",
+        entity_id=str(assignment_id),
+        summary=f"Removed {employee_code} from project {project_code}",
+        changes={"employee_id": [user_id, None], "project_id": [project_id, None]},
+        request=request,
+    )
+
+def sync_project_members(
+    *,
+    project_id: int,
+    user_ids: list[int],
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> list[ProjectAssignment]:
+    with transaction.atomic():
+        try:
+            project = Project.objects.select_for_update().get(pk=project_id)
+        except Project.DoesNotExist:
+            raise ValidationError({"project": ["Project not found."]})
+
+        unique_ids = list(dict.fromkeys(user_ids))
+        valid_users = list(User.objects.filter(id__in=unique_ids, is_active=True))
+        if len(valid_users) != len(unique_ids):
+            found_ids = {u.id for u in valid_users}
+            missing = set(unique_ids) - found_ids
+            raise ValidationError({"user_ids": [f"Active users with IDs {sorted(missing)} not found."]})
+
+        current_assignments = {a.employee_id: a for a in project.assignments.all()}
+        assigned_by = actor if isinstance(actor, User) else None
+        assigned_by_label = (
+            f"SUPER:{actor.username}"
+            if isinstance(actor, SuperAdminPrincipal)
+            else actor.employee_code
+        )
+
+        to_remove = [a for uid, a in current_assignments.items() if uid not in unique_ids]
+        for a in to_remove:
+            a.delete()
+
+        for user in valid_users:
+            if user.id not in current_assignments:
+                ProjectAssignment.objects.create(
+                    project=project,
+                    employee=user,
+                    assigned_by=assigned_by,
+                    assigned_by_label=assigned_by_label,
+                    assigned_at=timezone.now(),
+                )
+
+        audit_services.record(
+            action="PROJECT_MEMBERS_SYNC",
+            actor=actor,
+            entity_type="Project",
+            entity_id=str(project.id),
+            summary=f"Synced members for project {project.code}: {unique_ids}",
+            changes={"members": [list(current_assignments.keys()), unique_ids]},
+            request=request,
+        )
+
+        return list(project.assignments.select_related("employee").all())
