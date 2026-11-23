@@ -1,4 +1,6 @@
+import datetime
 from django.db.models import Q, QuerySet
+from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
@@ -61,3 +63,37 @@ def query_error_logs(
         )
 
     return qs.order_by("-id")
+
+def calculate_metrics_for_window(start_time: datetime.datetime) -> dict:
+    req_qs = RequestLog.objects.filter(created_at__gte=start_time)
+    err_qs = ErrorLog.objects.filter(created_at__gte=start_time)
+
+    total_requests = req_qs.count()
+    error_count = err_qs.count()
+
+    durations = list(req_qs.values_list("duration_ms", flat=True).order_by("duration_ms"))
+
+    if durations:
+        avg_duration = round(sum(durations) / len(durations), 1)
+        p95_idx = int(len(durations) * 0.95)
+        if p95_idx >= len(durations):
+            p95_idx = len(durations) - 1
+        p95_duration = round(durations[p95_idx], 1)
+    else:
+        avg_duration = 0.0
+        p95_duration = 0.0
+
+    return {
+        "total_requests": total_requests,
+        "error_count": error_count,
+        "avg_duration_ms": avg_duration,
+        "p95_duration_ms": p95_duration,
+    }
+
+def get_telemetry_summary() -> dict:
+    now = timezone.now()
+    return {
+        "1h": calculate_metrics_for_window(now - datetime.timedelta(hours=1)),
+        "24h": calculate_metrics_for_window(now - datetime.timedelta(hours=24)),
+        "7d": calculate_metrics_for_window(now - datetime.timedelta(days=7)),
+    }
