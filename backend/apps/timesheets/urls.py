@@ -12,10 +12,12 @@ from apps.timesheets.views import (
     TimesheetApproveView,
     TimesheetPolicyView,
     TimesheetReturnView,
+    TimesheetSummaryView,
 )
 
 urlpatterns = [
     path("", AdminTimesheetListView.as_view(), name="admin_timesheet_list"),
+    path("summary/", TimesheetSummaryView.as_view(), name="timesheet_summary"),
     path("pending/", AdminPendingTimesheetsView.as_view(), name="admin_pending_timesheets"),
     path("<int:pk>/approve/", TimesheetApproveView.as_view(), name="timesheet_approve"),
     path("<int:pk>/return/", TimesheetReturnView.as_view(), name="timesheet_return"),

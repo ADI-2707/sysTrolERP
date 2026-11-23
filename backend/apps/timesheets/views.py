@@ -7,6 +7,7 @@ from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStat
 from apps.timesheets.selectors import (
     build_timesheet_detail_for_admin,
     get_own_timesheet,
+    get_timesheet_dashboard_summary,
     get_timesheet_for_admin,
     list_timesheets_for_admin,
 )
@@ -135,6 +136,14 @@ class OwnTimesheetSubmitView(APIView):
             request=request,
         )
         return Response(result, status=status.HTTP_200_OK)
+
+class TimesheetSummaryView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def get(self, request):
+        week_param = request.query_params.get("week")
+        data = get_timesheet_dashboard_summary(week_str=week_param)
+        return Response(data, status=status.HTTP_200_OK)
 
 class AdminTimesheetListView(APIView):
     permission_classes = [IsAdminOrSuper]

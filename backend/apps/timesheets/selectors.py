@@ -317,3 +317,55 @@ def list_timesheets_for_admin(
             qs = qs.filter(status=status_val)
 
     return qs
+
+def get_timesheet_dashboard_summary(week_str: str | None = None) -> dict:
+    target_date = parse_week_param(week_str)
+    monday, sunday = week_bounds(target_date)
+
+    policy = TimesheetPolicy.get_current()
+    active_employees_count = User.objects.filter(is_active=True).count()
+
+    week_timesheets = list(
+        Timesheet.objects.filter(week_start_date=monday)
+        .select_related("employee")
+        .prefetch_related("rows__entries")
+    )
+
+    submitted_count = sum(1 for ts in week_timesheets if ts.status == TimesheetWeekStatus.SUBMITTED)
+    approved_count = sum(1 for ts in week_timesheets if ts.status == TimesheetWeekStatus.APPROVED)
+    open_count = sum(1 for ts in week_timesheets if ts.status == TimesheetWeekStatus.OPEN)
+    returned_count = sum(1 for ts in week_timesheets if ts.status == TimesheetWeekStatus.RETURNED)
+
+    all_pending_count = Timesheet.objects.filter(status=TimesheetWeekStatus.SUBMITTED).count()
+
+    week_days = [monday + datetime.timedelta(days=i) for i in range(7)]
+
+    total_hours = Decimal("0.00")
+    total_regular = Decimal("0.00")
+    total_overtime = Decimal("0.00")
+
+    for ts in week_timesheets:
+        for d in week_days:
+            day_hours = sum(
+                (e.hours for r in ts.rows.all() for e in r.entries.all() if e.date == d),
+                Decimal("0.00"),
+            )
+            reg = min(day_hours, policy.daily_regular_hours)
+            ot = max(Decimal("0.00"), day_hours - policy.daily_regular_hours)
+            total_hours += day_hours
+            total_regular += reg
+            total_overtime += ot
+
+    return {
+        "week_start_date": monday.isoformat(),
+        "week_end_date": sunday.isoformat(),
+        "active_employees_count": active_employees_count,
+        "pending_approval_count": all_pending_count,
+        "week_submitted_count": submitted_count,
+        "week_approved_count": approved_count,
+        "week_open_count": open_count,
+        "week_returned_count": returned_count,
+        "total_hours": str(total_hours),
+        "total_regular_hours": str(total_regular),
+        "total_overtime_hours": str(total_overtime),
+    }
