@@ -1,10 +1,11 @@
 import secrets
 import string
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
-from apps.accounts.services import generate_next_employee_code
+from apps.accounts.services import generate_next_employee_code, terminate_user_sessions
 from apps.audit import services as audit_services
 
 def generate_temporary_password(length: int = 14) -> str:
@@ -104,3 +105,60 @@ def update_employee(
         )
 
     return user
+
+def revoke_employee(
+    *,
+    user: User,
+    actor: User | SuperAdminPrincipal,
+    reason: str,
+    request=None,
+):
+    if hasattr(actor, "id") and actor.id == user.id:
+        raise PermissionDenied("Self-revocation is not allowed.")
+
+    if user.role == UserRole.ADMIN and getattr(actor, "role", "") != "SUPER":
+        raise PermissionDenied("Only the super administrator can revoke an admin.")
+
+    user.is_active = False
+    user.revoked_at = timezone.now()
+    user.revoked_by = actor if isinstance(actor, User) else None
+    user.save(update_fields=["is_active", "revoked_at", "revoked_by"])
+
+    terminate_user_sessions(user)
+
+    audit_services.record(
+        action="EMPLOYEE_REVOKE",
+        actor=actor,
+        entity_type="User",
+        entity_id=str(user.id),
+        summary=f"Revoked user {user.employee_code} ({user.email}). Reason: {reason}",
+        changes={"is_active": [True, False], "reason": [None, reason]},
+        request=request,
+        super_only=(user.role == UserRole.ADMIN),
+    )
+
+def restore_employee(
+    *,
+    user: User,
+    actor: User | SuperAdminPrincipal,
+    reason: str,
+    request=None,
+):
+    if user.role == UserRole.ADMIN and getattr(actor, "role", "") != "SUPER":
+        raise PermissionDenied("Only the super administrator can restore an admin.")
+
+    user.is_active = True
+    user.revoked_at = None
+    user.revoked_by = None
+    user.save(update_fields=["is_active", "revoked_at", "revoked_by"])
+
+    audit_services.record(
+        action="EMPLOYEE_RESTORE",
+        actor=actor,
+        entity_type="User",
+        entity_id=str(user.id),
+        summary=f"Restored user {user.employee_code} ({user.email}). Reason: {reason}",
+        changes={"is_active": [False, True], "reason": [None, reason]},
+        request=request,
+        super_only=(user.role == UserRole.ADMIN),
+    )

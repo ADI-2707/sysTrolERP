@@ -36,6 +36,9 @@ class EmployeeUpdateSerializer(serializers.Serializer):
     designation = serializers.CharField(max_length=100, required=False, allow_blank=True)
     department = serializers.CharField(max_length=100, required=False, allow_blank=True)
 
+class ReasonSerializer(serializers.Serializer):
+    reason = serializers.CharField(required=True, allow_blank=False, min_length=1)
+
 class EmployeeCreatedResponseSerializer(serializers.ModelSerializer):
     temporary_password = serializers.CharField(read_only=True)
 

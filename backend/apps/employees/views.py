@@ -11,8 +11,14 @@ from apps.employees.serializers import (
     EmployeeDetailSerializer,
     EmployeeListSerializer,
     EmployeeUpdateSerializer,
+    ReasonSerializer,
 )
-from apps.employees.services import create_employee, update_employee
+from apps.employees.services import (
+    create_employee,
+    restore_employee,
+    revoke_employee,
+    update_employee,
+)
 
 class EmployeeListCreateView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -79,3 +85,43 @@ class EmployeeDetailView(APIView):
 
         resp_serializer = EmployeeDetailSerializer(updated_user)
         return Response(resp_serializer.data, status=status.HTTP_200_OK)
+
+class EmployeeRevokeView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, pk):
+        user = get_employee_by_id(pk)
+        if user is None:
+            raise NotFound("Employee not found.")
+
+        serializer = ReasonSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        revoke_employee(
+            user=user,
+            actor=request.user,
+            reason=serializer.validated_data["reason"],
+            request=request,
+        )
+
+        return Response({"message": "Employee access revoked successfully."}, status=status.HTTP_200_OK)
+
+class EmployeeRestoreView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, pk):
+        user = get_employee_by_id(pk)
+        if user is None:
+            raise NotFound("Employee not found.")
+
+        serializer = ReasonSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        restore_employee(
+            user=user,
+            actor=request.user,
+            reason=serializer.validated_data["reason"],
+            request=request,
+        )
+
+        return Response({"message": "Employee access restored successfully."}, status=status.HTTP_200_OK)
