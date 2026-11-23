@@ -213,3 +213,82 @@ def insert_sub_step(
         )
 
         return new_step
+
+def update_custom_step(
+    *,
+    project_id: int,
+    step_id: int,
+    name: str,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> ProjectStep:
+    try:
+        step = ProjectStep.objects.select_related("project").get(pk=step_id, project_id=project_id)
+    except ProjectStep.DoesNotExist:
+        raise ValidationError({"step": ["Step not found."]})
+
+    if not step.is_custom:
+        raise ValidationError({"step": ["Only custom sub-steps can be edited."]})
+
+    if step.status != StepStatus.NOT_STARTED:
+        raise ValidationError({"step": ["Only sub-steps in NOT_STARTED status can be edited."]})
+
+    old_name = step.name
+    step.name = name
+    step.save(update_fields=["name", "updated_at"])
+
+    audit_services.record(
+        action="SUB_STEP_UPDATE",
+        actor=actor,
+        entity_type="ProjectStep",
+        entity_id=str(step.id),
+        summary=f"Updated sub-step {step.id} name to {step.name} in project {step.project.code}",
+        changes={"name": [old_name, step.name]},
+        request=request,
+    )
+
+    return step
+
+def delete_custom_step(
+    *,
+    project_id: int,
+    step_id: int,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> None:
+    with transaction.atomic():
+        try:
+            project = Project.objects.select_for_update().get(pk=project_id)
+        except Project.DoesNotExist:
+            raise ValidationError({"project": ["Project not found."]})
+
+        try:
+            step = project.steps.select_for_update().get(pk=step_id)
+        except ProjectStep.DoesNotExist:
+            raise ValidationError({"step": ["Step not found."]})
+
+        if not step.is_custom:
+            raise ValidationError({"step": ["Only custom sub-steps can be deleted."]})
+
+        if step.status != StepStatus.NOT_STARTED:
+            raise ValidationError({"step": ["Only sub-steps in NOT_STARTED status can be deleted."]})
+
+        deleted_pos = step.position
+        deleted_id = step.id
+        deleted_name = step.name
+        step.delete()
+
+        subsequent_steps = list(project.steps.filter(position__gt=deleted_pos).order_by("position"))
+        for s in subsequent_steps:
+            s.position = s.position - 1
+            s.save(update_fields=["position"])
+
+        audit_services.record(
+            action="SUB_STEP_DELETE",
+            actor=actor,
+            entity_type="ProjectStep",
+            entity_id=str(deleted_id),
+            summary=f"Deleted sub-step {deleted_name} from project {project.code}",
+            changes={"id": [deleted_id, None], "name": [deleted_name, None], "position": [deleted_pos, None]},
+            request=request,
+        )

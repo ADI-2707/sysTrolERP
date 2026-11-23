@@ -7,6 +7,7 @@ from apps.core.pagination import StandardPageNumberPagination
 from apps.projects.models import Project, ProjectStep
 from apps.projects.selectors import list_projects_for_user
 from apps.projects.serializers import (
+    CustomStepUpdateSerializer,
     ProjectCreateSerializer,
     ProjectDetailSerializer,
     ProjectListSerializer,
@@ -16,7 +17,9 @@ from apps.projects.serializers import (
 )
 from apps.projects.services import (
     create_project,
+    delete_custom_step,
     insert_sub_step,
+    update_custom_step,
     update_step_status,
 )
 
@@ -116,3 +119,28 @@ class ProjectSubStepCreateView(APIView):
         )
 
         return Response(ProjectStepDetailSerializer(new_step).data, status=status.HTTP_201_CREATED)
+
+class ProjectStepDetailManageView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def patch(self, request, project_id, step_id):
+        serializer = CustomStepUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        updated_step = update_custom_step(
+            project_id=project_id,
+            step_id=step_id,
+            name=serializer.validated_data["name"],
+            actor=request.user,
+            request=request,
+        )
+        return Response(ProjectStepDetailSerializer(updated_step).data, status=status.HTTP_200_OK)
+
+    def delete(self, request, project_id, step_id):
+        delete_custom_step(
+            project_id=project_id,
+            step_id=step_id,
+            actor=request.user,
+            request=request,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)

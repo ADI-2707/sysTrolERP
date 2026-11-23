@@ -173,3 +173,12 @@ class SubStepCreateSerializer(serializers.Serializer):
         if not val:
             raise serializers.ValidationError("Sub-step name cannot be empty.")
         return val
+
+class CustomStepUpdateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=200, required=True)
+
+    def validate_name(self, value):
+        val = value.strip()
+        if not val:
+            raise serializers.ValidationError("Step name cannot be empty.")
+        return val
