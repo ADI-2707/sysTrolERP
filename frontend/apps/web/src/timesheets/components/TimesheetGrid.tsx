@@ -1,15 +1,26 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { DataGrid, type DataGridColumn } from "@systrol/ui";
 import type { TimesheetData, TimesheetRowData } from "../types";
 import { getDayLabel } from "../utils/dateUtils";
+import { validateQuarterHours, parseClipboardHours } from "../utils/validation";
+import { TimesheetCellEditor } from "./TimesheetCellEditor";
 import styles from "./TimesheetGrid.module.css";
 
 export interface TimesheetGridProps {
   timesheet: TimesheetData;
+  onCellChange?: (projectId: number, date: string, hours: string) => void;
   className?: string;
+  readOnly?: boolean;
 }
 
-export function TimesheetGrid({ timesheet, className }: TimesheetGridProps) {
+export function TimesheetGrid({
+  timesheet,
+  onCellChange,
+  className,
+  readOnly = false,
+}: TimesheetGridProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
   const columns = useMemo<DataGridColumn<TimesheetRowData>[]>(() => {
     const cols: DataGridColumn<TimesheetRowData>[] = [
       {
@@ -41,10 +52,15 @@ export function TimesheetGrid({ timesheet, className }: TimesheetGridProps) {
           </div>
         ),
         width: 100,
+        isEditable: (row: TimesheetRowData) => {
+          if (readOnly || !timesheet.can_edit) return false;
+          const entry = row.entries.find((e) => e.date === dayDate);
+          return entry?.is_editable ?? false;
+        },
         renderCell: (row: TimesheetRowData) => {
           const entry = row.entries.find((e) => e.date === dayDate);
           const hours = entry ? parseFloat(entry.hours).toFixed(1) : "0.0";
-          const isEditable = entry?.is_editable ?? false;
+          const isEditable = !readOnly && timesheet.can_edit && (entry?.is_editable ?? false);
           const hasNote = Boolean(entry?.note);
 
           return (
@@ -57,6 +73,30 @@ export function TimesheetGrid({ timesheet, className }: TimesheetGridProps) {
               <span>{hours}</span>
               {hasNote && <span className={styles.hasNote} aria-label="Has task note" />}
             </div>
+          );
+        },
+        renderEdit: (
+          row: TimesheetRowData,
+          _rIdx: number,
+          _cIdx: number,
+          onCommit: (val: unknown) => void,
+          onCancel: () => void
+        ) => {
+          const entry = row.entries.find((e) => e.date === dayDate);
+          const initialHours = entry ? parseFloat(entry.hours).toFixed(2) : "0.00";
+          const step = parseFloat(timesheet.policy?.hour_step || "0.25");
+
+          return (
+            <TimesheetCellEditor
+              initialValue={initialHours}
+              step={step}
+              onCommit={(val) => {
+                onCommit(val);
+                onCellChange?.(row.project.id, dayDate, val);
+              }}
+              onCancel={onCancel}
+              aria-label={`Hours for ${row.project.code} on ${dayDate}`}
+            />
           );
         },
       });
@@ -75,7 +115,61 @@ export function TimesheetGrid({ timesheet, className }: TimesheetGridProps) {
     });
 
     return cols;
-  }, [timesheet.days]);
+  }, [timesheet.days, timesheet.can_edit, timesheet.policy, readOnly, onCellChange]);
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    if (!onCellChange || readOnly || !timesheet.can_edit) return;
+
+    const text = e.clipboardData.getData("text");
+    if (!text) return;
+
+    const matrix = parseClipboardHours(text);
+    if (matrix.length === 0) return;
+
+    const activeEl = document.activeElement as HTMLElement | null;
+    const targetTd =
+      activeEl?.closest("td") ||
+      wrapperRef.current?.querySelector('td[data-focused="true"]');
+
+    if (!targetTd) return;
+
+    const rIdxAttr = targetTd.closest("tr")?.getAttribute("aria-rowindex");
+    const cIdxAttr = targetTd.getAttribute("aria-colindex");
+
+    if (!rIdxAttr || !cIdxAttr) return;
+
+    const startRowIndex = Number(rIdxAttr) - 1;
+    const startColIndex = Number(cIdxAttr) - 1;
+    const step = parseFloat(timesheet.policy?.hour_step || "0.25");
+    let changedAny = false;
+
+    for (let r = 0; r < matrix.length; r++) {
+      const rowIndex = startRowIndex + r;
+      const row = timesheet.rows[rowIndex];
+      if (!row) continue;
+
+      for (let c = 0; c < matrix[r].length; c++) {
+        let colIndex = startColIndex + c;
+        if (colIndex === 0) colIndex = 1;
+        if (colIndex < 1 || colIndex > timesheet.days.length) continue;
+
+        const dayDate = timesheet.days[colIndex - 1];
+        const entry = row.entries.find((item) => item.date === dayDate);
+        if (!entry || !entry.is_editable) continue;
+
+        const val = matrix[r][c];
+        const res = validateQuarterHours(val, step);
+        if (res.valid && res.normalized !== undefined) {
+          onCellChange(row.project.id, dayDate, res.normalized);
+          changedAny = true;
+        }
+      }
+    }
+
+    if (changedAny) {
+      e.preventDefault();
+    }
+  };
 
   const renderFooter = () => (
     <tr data-testid="timesheet-footer">
@@ -128,7 +222,11 @@ export function TimesheetGrid({ timesheet, className }: TimesheetGridProps) {
   );
 
   return (
-    <div className={[styles.gridWrapper, className].filter(Boolean).join(" ")}>
+    <div
+      ref={wrapperRef}
+      onPaste={handlePaste}
+      className={[styles.gridWrapper, className].filter(Boolean).join(" ")}
+    >
       <DataGrid
         rows={timesheet.rows}
         columns={columns}

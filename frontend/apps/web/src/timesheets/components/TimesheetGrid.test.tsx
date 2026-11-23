@@ -1,5 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { render, screen, within, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import type { TimesheetData } from "../types";
 import { TimesheetGrid } from "./TimesheetGrid";
 
@@ -172,5 +172,58 @@ describe("TimesheetGrid", () => {
 
     expect(within(footer).getByText("40.0")).toBeInTheDocument();
     expect(within(footer).getAllByText("1.0").length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("activates cell editor on cell click and commits valid quarter-hour change", () => {
+    const handleCellChange = vi.fn();
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onCellChange={handleCellChange}
+      />
+    );
+
+    const mondayCell = screen.getByTestId("cell-1-2026-11-23");
+    fireEvent.click(mondayCell);
+
+    const input = screen.getByTestId("cell-editor-input");
+    expect(input).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: "8.75" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-23", "8.75");
+  });
+
+  it("does not activate cell editor on non-editable cell click", () => {
+    render(<TimesheetGrid timesheet={mockTimesheet} />);
+
+    const saturdayCell = screen.getByTestId("cell-1-2026-11-28");
+    fireEvent.click(saturdayCell);
+
+    expect(screen.queryByTestId("cell-editor-input")).not.toBeInTheDocument();
+  });
+
+  it("handles clipboard paste across days", () => {
+    const handleCellChange = vi.fn();
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onCellChange={handleCellChange}
+      />
+    );
+
+    const mondayCell = screen.getByTestId("cell-1-2026-11-23");
+    fireEvent.click(mondayCell);
+
+    const input = screen.getByTestId("cell-editor-input");
+    const pasteData = {
+      getData: (format: string) => (format === "text" ? "7.50\t8.25" : ""),
+    };
+
+    fireEvent.paste(input, { clipboardData: pasteData });
+
+    expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-23", "7.50");
+    expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-24", "8.25");
   });
 });
