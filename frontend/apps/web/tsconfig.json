@@ -18,7 +18,8 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@systrol/ui": ["../../packages/ui/src/index.ts"]
     }
   },
   "include": ["src", "vite.config.ts"]
