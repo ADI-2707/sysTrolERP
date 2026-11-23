@@ -75,3 +75,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.employee_code} - {self.full_name}"
+
+class EmployeeCodeSequence(models.Model):
+    name = models.CharField(max_length=50, unique=True, default="employee_code")
+    last_number = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Employee Code Sequence"
+        verbose_name_plural = "Employee Code Sequences"
+
+    def __str__(self):
+        return f"{self.name}: {self.last_number}"
