@@ -29,6 +29,13 @@ class EmployeeCreateSerializer(serializers.Serializer):
     department = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     role = serializers.ChoiceField(choices=UserRole.choices, default=UserRole.EMPLOYEE)
 
+class EmployeeUpdateSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=False)
+    full_name = serializers.CharField(max_length=150, required=False)
+    phone = serializers.CharField(max_length=30, required=False, allow_blank=True)
+    designation = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    department = serializers.CharField(max_length=100, required=False, allow_blank=True)
+
 class EmployeeCreatedResponseSerializer(serializers.ModelSerializer):
     temporary_password = serializers.CharField(read_only=True)
 

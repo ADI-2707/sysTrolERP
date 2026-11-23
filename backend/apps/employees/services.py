@@ -68,3 +68,39 @@ def create_employee(
         )
 
     return user, temp_password
+
+def update_employee(
+    *,
+    user: User,
+    actor: User | SuperAdminPrincipal,
+    data: dict,
+    request=None,
+) -> User:
+    new_email = data.get("email")
+    if new_email and new_email.lower() != user.email.lower():
+        if User.objects.filter(email__iexact=new_email).exclude(pk=user.pk).exists():
+            raise ValidationError({"email": ["An account with this email already exists."]})
+
+    allowed_fields = ("email", "full_name", "phone", "designation", "department")
+    changes = {}
+    for field in allowed_fields:
+        if field in data:
+            old_val = getattr(user, field)
+            new_val = data[field]
+            if old_val != new_val:
+                changes[field] = [old_val, new_val]
+                setattr(user, field, new_val)
+
+    if changes:
+        user.save(update_fields=list(changes.keys()))
+        audit_services.record(
+            action="EMPLOYEE_UPDATE",
+            actor=actor,
+            entity_type="User",
+            entity_id=str(user.id),
+            summary=f"Updated profile for employee {user.employee_code}",
+            changes=changes,
+            request=request,
+        )
+
+    return user

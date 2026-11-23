@@ -10,8 +10,9 @@ from apps.employees.serializers import (
     EmployeeCreatedResponseSerializer,
     EmployeeDetailSerializer,
     EmployeeListSerializer,
+    EmployeeUpdateSerializer,
 )
-from apps.employees.services import create_employee
+from apps.employees.services import create_employee, update_employee
 
 class EmployeeListCreateView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -60,3 +61,21 @@ class EmployeeDetailView(APIView):
             raise NotFound("Employee not found.")
         serializer = EmployeeDetailSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        user = get_employee_by_id(pk)
+        if user is None:
+            raise NotFound("Employee not found.")
+
+        serializer = EmployeeUpdateSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        updated_user = update_employee(
+            user=user,
+            actor=request.user,
+            data=serializer.validated_data,
+            request=request,
+        )
+
+        resp_serializer = EmployeeDetailSerializer(updated_user)
+        return Response(resp_serializer.data, status=status.HTTP_200_OK)
