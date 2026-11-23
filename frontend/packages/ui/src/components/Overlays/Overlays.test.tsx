@@ -15,8 +15,8 @@ describe("Overlay components", () => {
     const btn = screen.getByRole("button", { name: "Hover me" });
     fireEvent.mouseEnter(btn.parentElement!);
 
-    await new Promise((resolve) => setTimeout(resolve, 10));
-    expect(screen.getByRole("tooltip")).toHaveTextContent("Tooltip info");
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip).toHaveTextContent("Tooltip info");
 
     fireEvent.mouseLeave(btn.parentElement!);
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
