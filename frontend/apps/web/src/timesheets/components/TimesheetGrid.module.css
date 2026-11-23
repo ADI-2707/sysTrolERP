@@ -1,0 +1,141 @@
+.gridWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.projectCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: left;
+  padding: var(--space-1) 0;
+}
+
+.projectHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.projectCode {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-700);
+}
+
+.projectName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projectDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dayHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dayName {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.dayNumber {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.hourCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.nonEditable {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.hasNote {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-brand-500);
+}
+
+.totalCell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  padding-right: var(--space-3);
+}
+
+.footerContainer {
+  display: flex;
+  flex-direction: column;
+  border-top: 2px solid var(--color-border-default);
+  background-color: var(--color-bg-secondary);
+}
+
+.footerRow {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.footerLabel {
+  width: 240px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.footerValues {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr) 90px;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.footerVal {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.footerTotal {
+  font-weight: var(--font-weight-bold);
+  text-align: right;
+  padding-right: var(--space-3);
+}
