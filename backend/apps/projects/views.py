@@ -1,10 +1,16 @@
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import NotFound, PermissionDenied
 from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal
 from apps.core.pagination import StandardPageNumberPagination
+from apps.projects.models import Project
 from apps.projects.selectors import list_projects_for_user
-from apps.projects.serializers import ProjectCreateSerializer, ProjectListSerializer
+from apps.projects.serializers import (
+    ProjectCreateSerializer,
+    ProjectDetailSerializer,
+    ProjectListSerializer,
+)
 from apps.projects.services import create_project
 
 class ProjectListCreateView(APIView):
@@ -48,3 +54,19 @@ class ProjectListCreateView(APIView):
 
         resp_serializer = ProjectListSerializer(project)
         return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+
+class ProjectDetailView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def get(self, request, pk):
+        try:
+            project = Project.objects.prefetch_related("steps", "assignments__employee").get(pk=pk)
+        except Project.DoesNotExist:
+            raise NotFound("Project not found.")
+
+        is_employee = getattr(request.user, "role", "") == "EMPLOYEE"
+        if is_employee and not project.is_active:
+            raise PermissionDenied("Employees can only view active projects.")
+
+        serializer = ProjectDetailSerializer(project)
+        return Response(serializer.data, status=status.HTTP_200_OK)
