@@ -47,3 +47,57 @@ class EmployeeCreatedResponseSerializer(serializers.ModelSerializer):
             "must_change_password",
             "date_joined",
         ]
+
+class EmployeeDetailSerializer(serializers.ModelSerializer):
+    assigned_projects = serializers.SerializerMethodField()
+    recent_activity = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "employee_code",
+            "email",
+            "full_name",
+            "phone",
+            "designation",
+            "department",
+            "role",
+            "is_active",
+            "must_change_password",
+            "revoked_at",
+            "revoked_by",
+            "date_joined",
+            "last_login",
+            "assigned_projects",
+            "recent_activity",
+        ]
+        read_only_fields = fields
+
+    def get_assigned_projects(self, obj):
+        if hasattr(obj, "project_assignments"):
+            return [
+                {
+                    "project_id": a.project.id,
+                    "code": a.project.code,
+                    "name": a.project.name,
+                }
+                for a in obj.project_assignments.select_related("project").all()
+            ]
+        return []
+
+    def get_recent_activity(self, obj):
+        from apps.audit.models import AuditLog
+
+        logs = AuditLog.objects.filter(
+            actor_user=obj
+        ).order_by("-created_at")[:10]
+        return [
+            {
+                "id": log.id,
+                "action": log.action,
+                "summary": log.summary,
+                "created_at": log.created_at,
+            }
+            for log in logs
+        ]

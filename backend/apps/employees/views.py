@@ -3,10 +3,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from apps.accounts.permissions import IsAdminOrSuper
 from apps.core.pagination import StandardPageNumberPagination
-from apps.employees.selectors import list_employees
+from rest_framework.exceptions import NotFound
+from apps.employees.selectors import get_employee_by_id, list_employees
 from apps.employees.serializers import (
     EmployeeCreateSerializer,
     EmployeeCreatedResponseSerializer,
+    EmployeeDetailSerializer,
     EmployeeListSerializer,
 )
 from apps.employees.services import create_employee
@@ -48,3 +50,13 @@ class EmployeeListCreateView(APIView):
         data["temporary_password"] = temp_password
 
         return Response(data, status=status.HTTP_201_CREATED)
+
+class EmployeeDetailView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def get(self, request, pk):
+        user = get_employee_by_id(pk)
+        if user is None:
+            raise NotFound("Employee not found.")
+        serializer = EmployeeDetailSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
