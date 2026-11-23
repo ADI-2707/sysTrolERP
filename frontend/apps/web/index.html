@@ -10,6 +10,16 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#2e7d32" />
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem("systrol_theme");
+          var mql = window.matchMedia("(prefers-color-scheme: dark)");
+          var theme = stored === "dark" || (stored !== "light" && mql.matches) ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
