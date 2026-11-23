@@ -1,6 +1,9 @@
 {
   "name": "systrol-erp",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "workspaces": [
     "frontend/apps/*",
     "frontend/packages/*"
