@@ -5,7 +5,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal
 from apps.core.pagination import StandardPageNumberPagination
 from apps.projects.models import Project, ProjectStep
-from apps.projects.selectors import list_projects_for_user
+from apps.projects.selectors import get_assignment_matrix, list_projects_for_user
 from apps.projects.serializers import (
     CustomStepUpdateSerializer,
     ProjectCreateSerializer,
@@ -189,3 +189,10 @@ class ProjectMemberDeleteView(APIView):
             request=request,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ProjectMatrixView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def get(self, request):
+        matrix_data = get_assignment_matrix()
+        return Response(matrix_data, status=status.HTTP_200_OK)

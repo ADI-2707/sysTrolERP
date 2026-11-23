@@ -1,7 +1,7 @@
 from django.db.models import Count, Q, QuerySet
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
-from apps.projects.models import Project, StepStatus
+from apps.projects.models import Project, ProjectAssignment, StepStatus
 
 def list_projects_for_user(
     user: User | SuperAdminPrincipal,
@@ -24,3 +24,32 @@ def list_projects_for_user(
         )
 
     return qs.order_by("-created_at")
+
+def get_assignment_matrix() -> dict:
+    employees = User.objects.filter(is_active=True).order_by("employee_code")
+    projects = Project.objects.filter(is_active=True).order_by("code")
+    assignments = ProjectAssignment.objects.filter(
+        project__is_active=True,
+        employee__is_active=True,
+    ).values("project_id", "employee_id")
+
+    return {
+        "employees": [
+            {
+                "id": u.id,
+                "code": u.employee_code,
+                "name": u.full_name,
+            }
+            for u in employees
+        ],
+        "projects": [
+            {
+                "id": p.id,
+                "code": p.code,
+                "slug": p.slug,
+                "name": p.name,
+            }
+            for p in projects
+        ],
+        "assignments": list(assignments),
+    }

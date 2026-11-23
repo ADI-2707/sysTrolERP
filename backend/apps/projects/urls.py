@@ -2,6 +2,7 @@ from django.urls import path
 from apps.projects.views import (
     ProjectDetailView,
     ProjectListCreateView,
+    ProjectMatrixView,
     ProjectMemberDeleteView,
     ProjectMemberManageView,
     ProjectStepDetailManageView,
@@ -11,6 +12,7 @@ from apps.projects.views import (
 
 urlpatterns = [
     path("", ProjectListCreateView.as_view(), name="project_list_create"),
+    path("matrix/", ProjectMatrixView.as_view(), name="project_matrix"),
     path("<int:pk>/", ProjectDetailView.as_view(), name="project_detail"),
     path("<int:project_id>/steps/<int:step_id>/status/", ProjectStepStatusView.as_view(), name="project_step_status"),
     path("<int:project_id>/steps/<int:step_id>/", ProjectStepDetailManageView.as_view(), name="project_step_detail_manage"),
