@@ -1,6 +1,8 @@
+import datetime
 from decimal import Decimal
 from rest_framework import serializers
-from apps.timesheets.models import TimesheetPolicy
+from apps.accounts.principals import SuperAdminPrincipal
+from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
 
 class TimesheetPolicySerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,3 +51,55 @@ class TimesheetRowCreateSerializer(serializers.Serializer):
 
 class TimesheetSubmitSerializer(serializers.Serializer):
     week = serializers.DateField(required=False, default=None)
+
+class TimesheetAdminListSerializer(serializers.ModelSerializer):
+    employee = serializers.SerializerMethodField()
+    week_end_date = serializers.SerializerMethodField()
+    total_hours = serializers.SerializerMethodField()
+    can_approve = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Timesheet
+        fields = [
+            "id",
+            "employee",
+            "week_start_date",
+            "week_end_date",
+            "status",
+            "total_hours",
+            "submitted_at",
+            "approved_at",
+            "approved_by_label",
+            "returned_at",
+            "returned_by_label",
+            "return_reason",
+            "can_approve",
+        ]
+
+    def get_employee(self, obj):
+        return {
+            "id": obj.employee.id,
+            "code": obj.employee.employee_code,
+            "name": obj.employee.full_name,
+            "designation": obj.employee.designation,
+            "department": obj.employee.department,
+        }
+
+    def get_week_end_date(self, obj):
+        return (obj.week_start_date + datetime.timedelta(days=6)).isoformat()
+
+    def get_total_hours(self, obj):
+        total = Decimal("0.00")
+        for row in obj.rows.all():
+            for entry in row.entries.all():
+                total += entry.hours
+        return str(total)
+
+    def get_can_approve(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        if not user or obj.status != TimesheetWeekStatus.SUBMITTED:
+            return False
+        if isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER":
+            return True
+        return user.id != obj.employee_id

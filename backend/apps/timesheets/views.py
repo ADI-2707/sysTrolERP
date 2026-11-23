@@ -1,12 +1,18 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from apps.accounts.permissions import IsAuthenticatedPrincipal, IsSuper
-from apps.timesheets.models import TimesheetPolicy
-from apps.timesheets.selectors import get_own_timesheet
+from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal, IsSuper
+from apps.core.pagination import StandardPageNumberPagination
+from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
+from apps.timesheets.selectors import (
+    get_own_timesheet,
+    get_timesheet_for_admin,
+    list_timesheets_for_admin,
+)
 from apps.timesheets.serializers import (
     BulkCellSaveSerializer,
     CellUpsertSerializer,
+    TimesheetAdminListSerializer,
     TimesheetPolicySerializer,
     TimesheetRowCreateSerializer,
     TimesheetSubmitSerializer,
@@ -123,3 +129,43 @@ class OwnTimesheetSubmitView(APIView):
             request=request,
         )
         return Response(result, status=status.HTTP_200_OK)
+
+class AdminTimesheetListView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def get(self, request):
+        employee_param = request.query_params.get("employee")
+        week_param = request.query_params.get("week")
+
+        if employee_param and week_param:
+            data = get_timesheet_for_admin(
+                employee_param=employee_param,
+                week_param=week_param,
+                current_user=request.user,
+            )
+            return Response(data, status=status.HTTP_200_OK)
+
+        qs = list_timesheets_for_admin(
+            employee_filter=employee_param or "",
+            week_filter=week_param or "",
+            status_filter=request.query_params.get("status", ""),
+        )
+        paginator = StandardPageNumberPagination()
+        page = paginator.paginate_queryset(qs, request)
+        serializer = TimesheetAdminListSerializer(page, many=True, context={"request": request})
+        return paginator.get_paginated_response(serializer.data)
+
+class AdminPendingTimesheetsView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def get(self, request):
+        qs = (
+            Timesheet.objects.filter(status=TimesheetWeekStatus.SUBMITTED)
+            .select_related("employee")
+            .prefetch_related("rows__entries")
+            .order_by("submitted_at")
+        )
+        paginator = StandardPageNumberPagination()
+        page = paginator.paginate_queryset(qs, request)
+        serializer = TimesheetAdminListSerializer(page, many=True, context={"request": request})
+        return paginator.get_paginated_response(serializer.data)
