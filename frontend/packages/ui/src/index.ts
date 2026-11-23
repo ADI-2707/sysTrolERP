@@ -1,4 +1,5 @@
 export * from "./components/SampleText";
+export * from "./components/Button";
 export * from "./tokens/colors";
 export * from "./tokens/foundation";
 export * from "./theme/ThemeProvider";
