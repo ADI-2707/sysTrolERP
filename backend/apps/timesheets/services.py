@@ -1,7 +1,19 @@
+import datetime
+from decimal import Decimal
+from django.db import transaction
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
-from apps.timesheets.models import TimesheetPolicy
+from apps.core.timezone import company_today, week_bounds
+from apps.projects.models import Project, ProjectAssignment
+from apps.timesheets.models import (
+    Timesheet,
+    TimesheetEntry,
+    TimesheetPolicy,
+    TimesheetRow,
+)
+from apps.timesheets.rules import is_cell_editable
 
 def update_timesheet_policy(
     *,
@@ -52,3 +64,84 @@ def update_timesheet_policy(
     )
 
     return policy
+
+def upsert_timesheet_cell(
+    *,
+    user: User,
+    project_id: int,
+    cell_date: datetime.date,
+    hours: Decimal,
+    note: str = "",
+    request=None,
+) -> dict:
+    if isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER":
+        raise PermissionDenied("Super admin cannot record timesheet entries.")
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        raise ValidationError({"project_id": ["Project not found."]})
+
+    if not project.is_active:
+        raise ValidationError({"project_id": ["Cannot enter hours for an inactive project."]})
+
+    is_assigned = ProjectAssignment.objects.filter(project=project, employee=user).exists()
+    if not is_assigned:
+        raise ValidationError({"project_id": ["You are not assigned to this project."]})
+
+    monday, _ = week_bounds(cell_date)
+    today = company_today()
+
+    with transaction.atomic():
+        timesheet, _ = Timesheet.objects.select_for_update().get_or_create(
+            employee=user,
+            week_start_date=monday,
+        )
+
+        editable = is_cell_editable(
+            cell_date=cell_date,
+            week_start_date=monday,
+            week_status=timesheet.status,
+            project_is_active=project.is_active,
+            is_assigned=is_assigned,
+            today=today,
+        )
+        if not editable:
+            raise ValidationError({"cell": ["This cell is not editable (past deadline, future day, or locked week)."]})
+
+        row, _ = TimesheetRow.objects.select_for_update().get_or_create(
+            timesheet=timesheet,
+            project=project,
+        )
+
+        old_entry = TimesheetEntry.objects.filter(row=row, date=cell_date).first()
+
+        if hours == Decimal("0.00"):
+            if old_entry:
+                old_entry.delete()
+        else:
+            TimesheetEntry.objects.update_or_create(
+                row=row,
+                date=cell_date,
+                defaults={"hours": hours, "note": note},
+            )
+
+        row_total = sum((e.hours for e in row.entries.all()), Decimal("0.00"))
+        day_total = sum(
+            (e.hours for e in TimesheetEntry.objects.filter(row__timesheet=timesheet, date=cell_date)),
+            Decimal("0.00"),
+        )
+        week_total = sum(
+            (e.hours for e in TimesheetEntry.objects.filter(row__timesheet=timesheet)),
+            Decimal("0.00"),
+        )
+
+        return {
+            "date": cell_date.isoformat(),
+            "hours": str(hours),
+            "note": note,
+            "row_id": row.id,
+            "row_total": str(row_total),
+            "day_total": str(day_total),
+            "total_week_hours": str(week_total),
+        }

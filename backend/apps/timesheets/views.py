@@ -4,8 +4,14 @@ from rest_framework.views import APIView
 from apps.accounts.permissions import IsAuthenticatedPrincipal, IsSuper
 from apps.timesheets.models import TimesheetPolicy
 from apps.timesheets.selectors import get_own_timesheet
-from apps.timesheets.serializers import TimesheetPolicySerializer
-from apps.timesheets.services import update_timesheet_policy
+from apps.timesheets.serializers import (
+    CellUpsertSerializer,
+    TimesheetPolicySerializer,
+)
+from apps.timesheets.services import (
+    update_timesheet_policy,
+    upsert_timesheet_cell,
+)
 
 class TimesheetPolicyView(APIView):
     def get_permissions(self):
@@ -38,3 +44,20 @@ class OwnTimesheetView(APIView):
         week_param = request.query_params.get("week")
         data = get_own_timesheet(user=request.user, week_str=week_param)
         return Response(data, status=status.HTTP_200_OK)
+
+class OwnTimesheetCellView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def put(self, request):
+        serializer = CellUpsertSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        result = upsert_timesheet_cell(
+            user=request.user,
+            project_id=serializer.validated_data["project_id"],
+            cell_date=serializer.validated_data["date"],
+            hours=serializer.validated_data["hours"],
+            note=serializer.validated_data.get("note", ""),
+            request=request,
+        )
+        return Response(result, status=status.HTTP_200_OK)
