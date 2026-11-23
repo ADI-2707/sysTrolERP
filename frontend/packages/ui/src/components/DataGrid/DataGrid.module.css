@@ -1,0 +1,95 @@
+.grid-container {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--color-neutral-60-border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--color-neutral-60-surface);
+  position: relative;
+  max-height: 600px;
+}
+
+.grid-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-60-text-primary);
+}
+
+.grid-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background-color: var(--color-neutral-60-surface-raised);
+  border-bottom: 2px solid var(--color-neutral-60-border-strong);
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
+  padding: var(--space-2) var(--space-3);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.grid-header-cell.is-sticky-col {
+  left: 0;
+  z-index: calc(var(--z-sticky) + 1);
+  text-align: left;
+}
+
+.grid-cell {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
+  text-align: center;
+  background-color: var(--color-neutral-60-surface);
+  position: relative;
+  user-select: none;
+}
+
+.grid-cell.is-sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: var(--color-neutral-60-surface);
+  text-align: left;
+}
+
+.grid-cell.is-focused {
+  outline: 2px solid var(--color-accent-10-focus);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+.grid-cell.is-readonly {
+  background-color: var(--color-neutral-60-surface-subtle);
+  color: var(--color-neutral-60-text-muted);
+}
+
+.grid-cell.is-editing {
+  padding: 0;
+  z-index: 3;
+}
+
+.cell-editor {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: 2px solid var(--color-brand-30-primary);
+  outline-offset: -2px;
+  padding: var(--space-2) var(--space-3);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  background-color: var(--color-neutral-60-surface);
+  color: var(--color-neutral-60-text-primary);
+  text-align: center;
+}
+
+.grid-footer {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--color-neutral-60-surface-raised);
+  border-top: 2px solid var(--color-neutral-60-border-strong);
+  font-weight: var(--font-weight-semibold);
+  z-index: var(--z-sticky);
+}
