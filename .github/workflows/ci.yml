@@ -39,12 +39,28 @@ jobs:
 
   backend-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: systrol_test
+          POSTGRES_USER: systrol
+          POSTGRES_PASSWORD: systrol_password
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: echo "Backend tests placeholder"
+      - run: pip install -e "backend[dev]"
+      - name: Run tests on SQLite
+        run: pytest
+      - name: Run tests on PostgreSQL
+        env:
+          DATABASE_URL: postgres://systrol:systrol_password@localhost:5432/systrol_test
+        run: pytest
 
   frontend-tests:
     runs-on: ubuntu-latest
