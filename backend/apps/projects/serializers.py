@@ -42,7 +42,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         ]
 
     def get_total_steps(self, obj):
-        return obj.steps.count()
+        return len(obj.steps.all())
 
     def get_completed_steps(self, obj):
         return sum(1 for s in obj.steps.all() if s.status == StepStatus.COMPLETED)
@@ -145,7 +145,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         return obj.completion_percentage
 
     def get_total_steps(self, obj):
-        return obj.steps.count()
+        return len(obj.steps.all())
 
     def get_completed_steps(self, obj):
         return sum(1 for s in obj.steps.all() if s.status == StepStatus.COMPLETED)

@@ -59,19 +59,19 @@ class Project(TimestampedModel):
 
     @property
     def status(self) -> str:
-        steps_qs = self.steps.all()
-        total = steps_qs.count()
-        if total > 0 and steps_qs.filter(status=StepStatus.COMPLETED).count() == total:
+        steps = list(self.steps.all())
+        total = len(steps)
+        if total > 0 and sum(1 for s in steps if s.status == StepStatus.COMPLETED) == total:
             return "COMPLETED"
         return "ACTIVE"
 
     @property
     def completion_percentage(self) -> float:
-        steps_qs = self.steps.all()
-        total = steps_qs.count()
+        steps = list(self.steps.all())
+        total = len(steps)
         if total == 0:
             return 0.0
-        completed = steps_qs.filter(status=StepStatus.COMPLETED).count()
+        completed = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
         return round((completed / total) * 100.0, 1)
 
 class ProjectStep(TimestampedModel):
