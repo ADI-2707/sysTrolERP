@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
@@ -156,3 +156,60 @@ def update_step_status(
     )
 
     return step
+
+def insert_sub_step(
+    *,
+    project_id: int,
+    after_step_id: int,
+    name: str,
+    actor: User | SuperAdminPrincipal,
+    request=None,
+) -> ProjectStep:
+    with transaction.atomic():
+        try:
+            project = Project.objects.select_for_update().get(pk=project_id)
+        except Project.DoesNotExist:
+            raise ValidationError({"project": ["Project not found."]})
+
+        try:
+            after_step = project.steps.select_for_update().get(pk=after_step_id)
+        except ProjectStep.DoesNotExist:
+            raise ValidationError({"after_step_id": ["Target step does not exist in this project."]})
+
+        if after_step.key == "AMC":
+            raise ValidationError({"after_step_id": ["Sub-steps cannot be inserted after AMC."]})
+
+        max_completed_pos = (
+            project.steps.filter(status=StepStatus.COMPLETED).aggregate(models.Max("position"))["position__max"]
+        )
+        if max_completed_pos is not None and after_step.position < max_completed_pos:
+            raise ValidationError({"after_step_id": ["Sub-steps cannot be inserted before or among completed steps."]})
+
+        custom_count = project.steps.filter(is_custom=True).count()
+        if custom_count >= 30:
+            raise ValidationError({"non_field_errors": ["Maximum limit of 30 custom sub-steps reached for this project."]})
+
+        shift_steps = list(project.steps.filter(position__gt=after_step.position).order_by("-position"))
+        for s in shift_steps:
+            s.position = s.position + 1
+            s.save(update_fields=["position"])
+
+        new_step = ProjectStep.objects.create(
+            project=project,
+            name=name,
+            position=after_step.position + 1,
+            is_custom=True,
+            status=StepStatus.NOT_STARTED,
+        )
+
+        audit_services.record(
+            action="SUB_STEP_CREATE",
+            actor=actor,
+            entity_type="ProjectStep",
+            entity_id=str(new_step.id),
+            summary=f"Inserted sub-step {new_step.name} at position {new_step.position} in project {project.code}",
+            changes={"name": [None, new_step.name], "position": [None, new_step.position], "after_step_id": [None, after_step.id]},
+            request=request,
+        )
+
+        return new_step

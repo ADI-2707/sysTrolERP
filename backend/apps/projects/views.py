@@ -12,8 +12,13 @@ from apps.projects.serializers import (
     ProjectListSerializer,
     ProjectStepDetailSerializer,
     StepStatusUpdateSerializer,
+    SubStepCreateSerializer,
 )
-from apps.projects.services import create_project, update_step_status
+from apps.projects.services import (
+    create_project,
+    insert_sub_step,
+    update_step_status,
+)
 
 class ProjectListCreateView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
@@ -94,3 +99,20 @@ class ProjectStepStatusView(APIView):
         )
 
         return Response(ProjectStepDetailSerializer(updated_step).data, status=status.HTTP_200_OK)
+
+class ProjectSubStepCreateView(APIView):
+    permission_classes = [IsAdminOrSuper]
+
+    def post(self, request, project_id):
+        serializer = SubStepCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_step = insert_sub_step(
+            project_id=project_id,
+            after_step_id=serializer.validated_data["after_step_id"],
+            name=serializer.validated_data["name"],
+            actor=request.user,
+            request=request,
+        )
+
+        return Response(ProjectStepDetailSerializer(new_step).data, status=status.HTTP_201_CREATED)

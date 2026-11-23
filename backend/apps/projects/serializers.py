@@ -163,3 +163,13 @@ class ProjectCreateSerializer(serializers.Serializer):
 class StepStatusUpdateSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=StepStatus.choices, required=True)
     confirm = serializers.BooleanField(required=False, default=False)
+
+class SubStepCreateSerializer(serializers.Serializer):
+    after_step_id = serializers.IntegerField(required=True)
+    name = serializers.CharField(max_length=200, required=True)
+
+    def validate_name(self, value):
+        val = value.strip()
+        if not val:
+            raise serializers.ValidationError("Sub-step name cannot be empty.")
+        return val
