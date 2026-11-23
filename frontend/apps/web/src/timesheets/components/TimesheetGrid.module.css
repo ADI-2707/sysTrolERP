@@ -16,7 +16,41 @@
 .projectHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
+}
+
+.projectTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.deleteRowBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  background: none;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  line-height: 1;
+}
+
+.deleteRowBtn:hover {
+  color: var(--color-danger-600);
+  background-color: var(--color-danger-50);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
 }
 
 .projectCode {

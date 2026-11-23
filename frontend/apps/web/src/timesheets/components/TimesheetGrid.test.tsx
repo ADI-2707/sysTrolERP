@@ -1,4 +1,4 @@
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import { render, screen, within, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import type { TimesheetData } from "../types";
 import { TimesheetGrid } from "./TimesheetGrid";
@@ -125,12 +125,44 @@ describe("TimesheetGrid", () => {
           },
         ],
       },
+      {
+        id: 102,
+        project: {
+          id: 2,
+          code: "PRJ-0002",
+          name: "Robotics Cell",
+          is_active: true,
+        },
+        description: "Drafting",
+        row_total: "0.00",
+        entries: [
+          {
+            entry_id: 208,
+            date: "2026-11-23",
+            hours: "0.00",
+            note: "",
+            is_editable: true,
+          },
+        ],
+      },
     ],
     assigned_projects: [
       {
         id: 1,
         code: "PRJ-0001",
         name: "Automation Plant",
+        is_active: true,
+      },
+      {
+        id: 2,
+        code: "PRJ-0002",
+        name: "Robotics Cell",
+        is_active: true,
+      },
+      {
+        id: 3,
+        code: "PRJ-0003",
+        name: "Conveyor Line",
         is_active: true,
       },
     ],
@@ -225,5 +257,52 @@ describe("TimesheetGrid", () => {
 
     expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-23", "7.50");
     expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-24", "8.25");
+  });
+
+  it("opens add project row modal and adds row on submit", async () => {
+    const handleAddRow = vi.fn().mockResolvedValue(undefined);
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onAddRow={handleAddRow}
+      />
+    );
+
+    const addBtn = screen.getByTestId("add-project-row-btn");
+    fireEvent.click(addBtn);
+
+    const modal = screen.getByRole("dialog");
+    expect(within(modal).getByText("Add Project Row")).toBeInTheDocument();
+
+    const input = screen.getByTestId("project-combobox-input");
+    fireEvent.focus(input);
+
+    const option = screen.getByTestId("project-option-3");
+    fireEvent.click(option);
+
+    const submitBtn = screen.getByTestId("add-row-submit-button");
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(handleAddRow).toHaveBeenCalledWith(3, "");
+    });
+  });
+
+  it("renders delete button on empty row and triggers onDeleteRow", () => {
+    const handleDeleteRow = vi.fn();
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onDeleteRow={handleDeleteRow}
+      />
+    );
+
+    const deleteBtn = screen.getByTestId("delete-row-102");
+    expect(deleteBtn).toBeInTheDocument();
+
+    fireEvent.click(deleteBtn);
+    expect(handleDeleteRow).toHaveBeenCalledWith(102);
+
+    expect(screen.queryByTestId("delete-row-101")).not.toBeInTheDocument();
   });
 });

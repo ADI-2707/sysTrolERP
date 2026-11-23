@@ -37,6 +37,8 @@ export interface AssignedProject {
   is_active: boolean;
 }
 
+export type ProjectSummary = AssignedProject;
+
 export interface TimesheetData {
   id: number;
   week_start_date: string;

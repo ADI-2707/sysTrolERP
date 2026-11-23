@@ -1,14 +1,17 @@
-import { useMemo, useRef } from "react";
-import { DataGrid, type DataGridColumn } from "@systrol/ui";
+import { useState, useMemo, useRef } from "react";
+import { DataGrid, Button, type DataGridColumn } from "@systrol/ui";
 import type { TimesheetData, TimesheetRowData } from "../types";
 import { getDayLabel } from "../utils/dateUtils";
 import { validateQuarterHours, parseClipboardHours } from "../utils/validation";
 import { TimesheetCellEditor } from "./TimesheetCellEditor";
+import { AddProjectRowModal } from "./AddProjectRowModal";
 import styles from "./TimesheetGrid.module.css";
 
 export interface TimesheetGridProps {
   timesheet: TimesheetData;
   onCellChange?: (projectId: number, date: string, hours: string) => void;
+  onAddRow?: (projectId: number, description: string) => Promise<void> | void;
+  onDeleteRow?: (rowId: number) => Promise<void> | void;
   className?: string;
   readOnly?: boolean;
 }
@@ -16,10 +19,32 @@ export interface TimesheetGridProps {
 export function TimesheetGrid({
   timesheet,
   onCellChange,
+  onAddRow,
+  onDeleteRow,
   className,
   readOnly = false,
 }: TimesheetGridProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const [isAddRowOpen, setIsAddRowOpen] = useState(false);
+  const [isAddingRow, setIsAddingRow] = useState(false);
+
+  const existingProjectIds = useMemo(
+    () => timesheet.rows.map((r) => r.project.id),
+    [timesheet.rows]
+  );
+
+  const canEdit = !readOnly && timesheet.can_edit;
+
+  const handleAddRow = async (projectId: number, description: string) => {
+    if (!onAddRow) return;
+    try {
+      setIsAddingRow(true);
+      await onAddRow(projectId, description);
+      setIsAddRowOpen(false);
+    } finally {
+      setIsAddingRow(false);
+    }
+  };
 
   const columns = useMemo<DataGridColumn<TimesheetRowData>[]>(() => {
     const cols: DataGridColumn<TimesheetRowData>[] = [
@@ -28,15 +53,32 @@ export function TimesheetGrid({
         header: "Project",
         width: 240,
         sticky: true,
-        renderCell: (row: TimesheetRowData) => (
-          <div className={styles.projectCell}>
-            <div className={styles.projectHeader}>
-              <span className={styles.projectCode}>{row.project.code}</span>
-              <span className={styles.projectName}>{row.project.name}</span>
+        renderCell: (row: TimesheetRowData) => {
+          const isEmptyRow = parseFloat(row.row_total || "0") === 0;
+
+          return (
+            <div className={styles.projectCell}>
+              <div className={styles.projectHeader}>
+                <div className={styles.projectTitleGroup}>
+                  <span className={styles.projectCode}>{row.project.code}</span>
+                  <span className={styles.projectName}>{row.project.name}</span>
+                </div>
+                {canEdit && onDeleteRow && isEmptyRow && (
+                  <button
+                    type="button"
+                    className={styles.deleteRowBtn}
+                    onClick={() => onDeleteRow(row.id)}
+                    aria-label={`Delete row for ${row.project.code}`}
+                    data-testid={`delete-row-${row.id}`}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              {row.description && <span className={styles.projectDesc}>{row.description}</span>}
             </div>
-            {row.description && <span className={styles.projectDesc}>{row.description}</span>}
-          </div>
-        ),
+          );
+        },
       },
     ];
 
@@ -53,14 +95,14 @@ export function TimesheetGrid({
         ),
         width: 100,
         isEditable: (row: TimesheetRowData) => {
-          if (readOnly || !timesheet.can_edit) return false;
+          if (!canEdit) return false;
           const entry = row.entries.find((e) => e.date === dayDate);
           return entry?.is_editable ?? false;
         },
         renderCell: (row: TimesheetRowData) => {
           const entry = row.entries.find((e) => e.date === dayDate);
           const hours = entry ? parseFloat(entry.hours).toFixed(1) : "0.0";
-          const isEditable = !readOnly && timesheet.can_edit && (entry?.is_editable ?? false);
+          const isEditable = canEdit && (entry?.is_editable ?? false);
           const hasNote = Boolean(entry?.note);
 
           return (
@@ -115,10 +157,10 @@ export function TimesheetGrid({
     });
 
     return cols;
-  }, [timesheet.days, timesheet.can_edit, timesheet.policy, readOnly, onCellChange]);
+  }, [timesheet.days, canEdit, timesheet.policy, onCellChange, onDeleteRow]);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    if (!onCellChange || readOnly || !timesheet.can_edit) return;
+    if (!onCellChange || !canEdit) return;
 
     const text = e.clipboardData.getData("text");
     if (!text) return;
@@ -227,6 +269,19 @@ export function TimesheetGrid({
       onPaste={handlePaste}
       className={[styles.gridWrapper, className].filter(Boolean).join(" ")}
     >
+      {canEdit && onAddRow && (
+        <div className={styles.toolbar}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setIsAddRowOpen(true)}
+            data-testid="add-project-row-btn"
+          >
+            Add Project Row
+          </Button>
+        </div>
+      )}
+
       <DataGrid
         rows={timesheet.rows}
         columns={columns}
@@ -234,6 +289,17 @@ export function TimesheetGrid({
         renderFooter={renderFooter}
         aria-label={`Timesheet grid for week starting ${timesheet.week_start_date}`}
       />
+
+      {onAddRow && (
+        <AddProjectRowModal
+          isOpen={isAddRowOpen}
+          onClose={() => setIsAddRowOpen(false)}
+          onAddRow={handleAddRow}
+          assignedProjects={timesheet.assigned_projects}
+          existingProjectIds={existingProjectIds}
+          isLoading={isAddingRow}
+        />
+      )}
     </div>
   );
 }
