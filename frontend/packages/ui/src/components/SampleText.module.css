@@ -1,0 +1,4 @@
+.sample {
+  color: var(--color-primary-text, #111827);
+  font-family: inherit;
+}
