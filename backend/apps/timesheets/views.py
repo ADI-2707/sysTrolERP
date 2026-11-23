@@ -8,9 +8,12 @@ from apps.timesheets.serializers import (
     BulkCellSaveSerializer,
     CellUpsertSerializer,
     TimesheetPolicySerializer,
+    TimesheetRowCreateSerializer,
 )
 from apps.timesheets.services import (
     bulk_upsert_timesheet_cells,
+    create_timesheet_row,
+    delete_timesheet_row,
     update_timesheet_policy,
     upsert_timesheet_cell,
 )
@@ -77,3 +80,30 @@ class OwnTimesheetBulkCellsView(APIView):
             request=request,
         )
         return Response(result, status=status.HTTP_200_OK)
+
+class OwnTimesheetRowManageView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def post(self, request):
+        serializer = TimesheetRowCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        row_data = create_timesheet_row(
+            user=request.user,
+            project_id=serializer.validated_data["project_id"],
+            week_date=serializer.validated_data.get("week"),
+            description=serializer.validated_data.get("description", ""),
+            request=request,
+        )
+        return Response(row_data, status=status.HTTP_201_CREATED)
+
+class OwnTimesheetRowDetailView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def delete(self, request, pk):
+        delete_timesheet_row(
+            user=request.user,
+            row_id=pk,
+            request=request,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)

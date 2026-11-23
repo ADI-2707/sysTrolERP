@@ -41,3 +41,8 @@ class BulkCellSaveSerializer(serializers.Serializer):
         allow_empty=False,
         max_length=100,
     )
+
+class TimesheetRowCreateSerializer(serializers.Serializer):
+    project_id = serializers.IntegerField(required=True)
+    week = serializers.DateField(required=False, default=None)
+    description = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")

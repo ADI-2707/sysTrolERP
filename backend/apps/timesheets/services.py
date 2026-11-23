@@ -13,7 +13,7 @@ from apps.timesheets.models import (
     TimesheetPolicy,
     TimesheetRow,
 )
-from apps.timesheets.rules import is_cell_editable
+from apps.timesheets.rules import can_edit_week, is_cell_editable
 from apps.timesheets.selectors import get_own_timesheet
 
 def update_timesheet_policy(
@@ -177,3 +177,105 @@ def bulk_upsert_timesheet_cells(
             "saved_count": len(cells),
             "week": week_data,
         }
+
+def create_timesheet_row(
+    *,
+    user: User,
+    project_id: int,
+    week_date: datetime.date | None = None,
+    description: str = "",
+    request=None,
+) -> dict:
+    if isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER":
+        raise PermissionDenied("Super admin cannot have timesheet rows.")
+
+    try:
+        project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        raise ValidationError({"project_id": ["Project not found."]})
+
+    if not project.is_active:
+        raise ValidationError({"project_id": ["Cannot add row for inactive project."]})
+
+    if not ProjectAssignment.objects.filter(project=project, employee=user).exists():
+        raise ValidationError({"project_id": ["You are not assigned to this project."]})
+
+    if week_date is None:
+        week_date = company_today()
+
+    monday, _ = week_bounds(week_date)
+    today = company_today()
+
+    with transaction.atomic():
+        timesheet, _ = Timesheet.objects.select_for_update().get_or_create(
+            employee=user,
+            week_start_date=monday,
+        )
+
+        if not can_edit_week(week_start_date=monday, status=timesheet.status, today=today):
+            raise ValidationError({"week": ["This timesheet week is not editable."]})
+
+        if TimesheetRow.objects.filter(timesheet=timesheet, project=project).exists():
+            raise ValidationError({"project_id": ["A row for this project already exists in this timesheet."]})
+
+        row = TimesheetRow.objects.create(
+            timesheet=timesheet,
+            project=project,
+            description=description,
+        )
+
+        week_days = [monday + datetime.timedelta(days=i) for i in range(7)]
+        row_entries = []
+        for d in week_days:
+            editable = is_cell_editable(
+                cell_date=d,
+                week_start_date=monday,
+                week_status=timesheet.status,
+                project_is_active=True,
+                is_assigned=True,
+                today=today,
+            )
+            row_entries.append({
+                "entry_id": None,
+                "date": d.isoformat(),
+                "hours": "0.00",
+                "note": "",
+                "is_editable": editable,
+            })
+
+        return {
+            "id": row.id,
+            "project": {
+                "id": project.id,
+                "code": project.code,
+                "name": project.name,
+                "slug": project.slug,
+                "is_active": project.is_active,
+            },
+            "description": row.description,
+            "row_total": "0.00",
+            "entries": row_entries,
+        }
+
+def delete_timesheet_row(
+    *,
+    user: User,
+    row_id: int,
+    request=None,
+) -> None:
+    if isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER":
+        raise PermissionDenied("Super admin cannot modify timesheet rows.")
+
+    today = company_today()
+
+    with transaction.atomic():
+        try:
+            row = TimesheetRow.objects.select_related("timesheet").get(pk=row_id, timesheet__employee=user)
+        except TimesheetRow.DoesNotExist:
+            raise ValidationError({"row_id": ["Timesheet row not found."]})
+
+        timesheet = row.timesheet
+        if not can_edit_week(week_start_date=timesheet.week_start_date, status=timesheet.status, today=today):
+            raise ValidationError({"week": ["Cannot delete row from a locked or submitted timesheet."]})
+
+        row.delete()
