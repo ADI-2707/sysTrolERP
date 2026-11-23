@@ -5,9 +5,35 @@ from django.conf import settings
 from django.contrib.auth.hashers import Argon2PasswordHasher, check_password
 from django.db import OperationalError, models, transaction
 from django.utils import timezone
+from django.contrib.sessions.models import Session
 from rest_framework.exceptions import AuthenticationFailed
 from apps.accounts.models import EmployeeCodeSequence, LoginAttempt, User
 from apps.accounts.principals import SuperAdminPrincipal
+
+def terminate_user_sessions(user: User):
+    user_id_str = str(user.id)
+    now = timezone.now()
+    active_sessions = Session.objects.filter(expire_date__gte=now)
+    sessions_to_delete = []
+    for session in active_sessions:
+        try:
+            data = session.get_decoded()
+            if data.get("_auth_user_id") == user_id_str:
+                sessions_to_delete.append(session.session_key)
+        except Exception:
+            continue
+    if sessions_to_delete:
+        Session.objects.filter(session_key__in=sessions_to_delete).delete()
+
+def revoke_user(user: User, revoked_by: User | SuperAdminPrincipal | None = None, reason: str = ""):
+    user.is_active = False
+    user.revoked_at = timezone.now()
+    if isinstance(revoked_by, User):
+        user.revoked_by = revoked_by
+    else:
+        user.revoked_by = None
+    user.save(update_fields=["is_active", "revoked_at", "revoked_by"])
+    terminate_user_sessions(user)
 
 def is_login_locked(identifier: str, ip_address: str, max_attempts: int = 5, lock_minutes: int = 15) -> bool:
     cutoff = timezone.now() - timedelta(minutes=lock_minutes)
