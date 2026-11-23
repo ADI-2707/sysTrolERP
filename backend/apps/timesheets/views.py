@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from apps.accounts.permissions import IsAuthenticatedPrincipal, IsSuper
 from apps.timesheets.models import TimesheetPolicy
+from apps.timesheets.selectors import get_own_timesheet
 from apps.timesheets.serializers import TimesheetPolicySerializer
 from apps.timesheets.services import update_timesheet_policy
 
@@ -29,3 +30,11 @@ class TimesheetPolicyView(APIView):
 
     def patch(self, request):
         return self.put(request)
+
+class OwnTimesheetView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def get(self, request):
+        week_param = request.query_params.get("week")
+        data = get_own_timesheet(user=request.user, week_str=week_param)
+        return Response(data, status=status.HTTP_200_OK)
