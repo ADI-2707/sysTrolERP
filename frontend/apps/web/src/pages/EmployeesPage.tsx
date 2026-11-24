@@ -5,6 +5,7 @@ import { fetchEmployees, createEmployee } from "../api/employees";
 import type { EmployeeListItem, CreateEmployeePayload, EmployeeCreatedResponse } from "../employees/types";
 import { CreateEmployeeModal } from "../employees/components/CreateEmployeeModal";
 import { TemporaryPasswordModal } from "../employees/components/TemporaryPasswordModal";
+import { EmployeeDetailDrawer } from "../employees/components/EmployeeDetailDrawer";
 import styles from "./EmployeesPage.module.css";
 
 export function EmployeesPage() {
@@ -18,6 +19,7 @@ export function EmployeesPage() {
 
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
   const [createdEmployee, setCreatedEmployee] = useState<EmployeeCreatedResponse | null>(null);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
 
   const [search, setSearch] = useState<string>("");
   const [roleFilter, setRoleFilter] = useState<string>("");
@@ -279,6 +281,7 @@ export function EmployeesPage() {
               sortColumn={sortColumn}
               sortDirection={sortDirection}
               onSort={handleSort}
+              onRowClick={(emp) => setSelectedEmployeeId(emp.id)}
             />
             <div className={styles.paginationFooter} data-testid="employees-pagination-footer">
               <span className={styles.paginationMeta} data-testid="employees-pagination-meta">
@@ -314,6 +317,14 @@ export function EmployeesPage() {
           role={createdEmployee.role}
         />
       )}
+
+      <EmployeeDetailDrawer
+        isOpen={selectedEmployeeId !== null}
+        onClose={() => setSelectedEmployeeId(null)}
+        employeeId={selectedEmployeeId}
+        canManage={canManage}
+        isSuperAdmin={isSuperAdmin}
+      />
     </div>
   );
 }
