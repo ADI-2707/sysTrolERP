@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
+import { ToastProvider } from "@systrol/ui";
 import { ProjectsPage } from "./ProjectsPage";
 import * as authModule from "../auth";
 import * as projectsApi from "../api/projects";
@@ -24,6 +25,8 @@ vi.mock("../api/projects", () => ({
   createProject: vi.fn(),
   fetchActiveEmployees: vi.fn(),
   fetchAssignmentMatrix: vi.fn(),
+  addProjectMember: vi.fn(),
+  removeProjectMember: vi.fn(),
 }));
 
 describe("ProjectsPage", () => {
@@ -112,10 +115,18 @@ describe("ProjectsPage", () => {
       results: mockProjects,
     });
 
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValue({
+      employees: [],
+      projects: [],
+      assignments: [],
+    });
+
     render(
-      <MemoryRouter>
-        <ProjectsPage />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <ProjectsPage />
+        </MemoryRouter>
+      </ToastProvider>
     );
 
     await waitFor(() => {
@@ -154,10 +165,18 @@ describe("ProjectsPage", () => {
       results: mockProjects,
     });
 
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValue({
+      employees: [],
+      projects: [],
+      assignments: [],
+    });
+
     render(
-      <MemoryRouter>
-        <ProjectsPage />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <ProjectsPage />
+        </MemoryRouter>
+      </ToastProvider>
     );
 
     await waitFor(() => {
@@ -201,10 +220,18 @@ describe("ProjectsPage", () => {
       results: [mockProjects[0]],
     });
 
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValue({
+      employees: [],
+      projects: [],
+      assignments: [],
+    });
+
     render(
-      <MemoryRouter>
-        <ProjectsPage />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <ProjectsPage />
+        </MemoryRouter>
+      </ToastProvider>
     );
 
     await waitFor(() => {
@@ -255,10 +282,18 @@ describe("ProjectsPage", () => {
       results: [mockProjects[0]],
     });
 
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValue({
+      employees: [],
+      projects: [],
+      assignments: [],
+    });
+
     render(
-      <MemoryRouter>
-        <ProjectsPage />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <ProjectsPage />
+        </MemoryRouter>
+      </ToastProvider>
     );
 
     await waitFor(() => {
@@ -299,10 +334,18 @@ describe("ProjectsPage", () => {
       results: [],
     });
 
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValue({
+      employees: [],
+      projects: [],
+      assignments: [],
+    });
+
     render(
-      <MemoryRouter>
-        <ProjectsPage />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <ProjectsPage />
+        </MemoryRouter>
+      </ToastProvider>
     );
 
     await waitFor(() => {
@@ -346,10 +389,18 @@ describe("ProjectsPage", () => {
     });
     vi.mocked(projectsApi.createProject).mockResolvedValue(mockProjects[0]);
 
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValue({
+      employees: [],
+      projects: [],
+      assignments: [],
+    });
+
     render(
-      <MemoryRouter>
-        <ProjectsPage />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter>
+          <ProjectsPage />
+        </MemoryRouter>
+      </ToastProvider>
     );
 
     await waitFor(() => {

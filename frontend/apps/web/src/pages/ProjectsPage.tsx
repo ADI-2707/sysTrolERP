@@ -7,6 +7,7 @@ import type { ProjectListItem } from "../projects/types";
 import { ProjectCard } from "../projects/components/ProjectCard";
 import { ProjectListToolbar } from "../projects/components/ProjectListToolbar";
 import { CreateProjectModal } from "../projects/components/CreateProjectModal";
+import { AssignmentMatrix } from "../projects/components/AssignmentMatrix";
 import styles from "./ProjectsPage.module.css";
 
 export function ProjectsPage() {
@@ -150,9 +151,7 @@ export function ProjectsPage() {
           className={styles.tabPanel}
           data-testid="assignments-matrix-panel"
         >
-          <div className={styles.loadingContainer}>
-            <span>Assignments matrix view</span>
-          </div>
+          <AssignmentMatrix />
         </div>
       )}
 
