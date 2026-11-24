@@ -1,14 +1,23 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Badge, Button, Table, Pagination, EmptyState, Spinner, type TableColumn } from "@systrol/ui";
-import { fetchEmployees } from "../api/employees";
-import type { EmployeeListItem } from "../employees/types";
+import { useAuth } from "../auth";
+import { fetchEmployees, createEmployee } from "../api/employees";
+import type { EmployeeListItem, CreateEmployeePayload, EmployeeCreatedResponse } from "../employees/types";
+import { CreateEmployeeModal } from "../employees/components/CreateEmployeeModal";
+import { TemporaryPasswordModal } from "../employees/components/TemporaryPasswordModal";
 import styles from "./EmployeesPage.module.css";
 
 export function EmployeesPage() {
+  const { isSuperAdmin, isAdmin } = useAuth();
+  const canManage = isSuperAdmin || isAdmin;
+
   const [employees, setEmployees] = useState<EmployeeListItem[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
+  const [createdEmployee, setCreatedEmployee] = useState<EmployeeCreatedResponse | null>(null);
 
   const [search, setSearch] = useState<string>("");
   const [roleFilter, setRoleFilter] = useState<string>("");
@@ -51,6 +60,13 @@ export function EmployeesPage() {
     setSortColumn(columnKey);
     setSortDirection(direction);
     setPage(1);
+  };
+
+  const handleCreateSubmit = async (payload: CreateEmployeePayload) => {
+    const res = await createEmployee(payload);
+    setCreatedEmployee(res);
+    loadEmployees();
+    return res;
   };
 
   const columns: TableColumn<EmployeeListItem>[] = useMemo(
@@ -170,6 +186,15 @@ export function EmployeesPage() {
             Manage staff accounts, credentials, and access roles.
           </p>
         </div>
+        {canManage && (
+          <Button
+            variant="primary"
+            onClick={() => setIsCreateOpen(true)}
+            data-testid="add-employee-btn"
+          >
+            Add Employee
+          </Button>
+        )}
       </div>
 
       <div className={styles.toolbar} data-testid="employees-toolbar">
@@ -269,6 +294,26 @@ export function EmployeesPage() {
           </>
         )}
       </div>
+
+      <CreateEmployeeModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSubmit={handleCreateSubmit}
+        isSuperAdmin={isSuperAdmin}
+      />
+
+      {createdEmployee && (
+        <TemporaryPasswordModal
+          isOpen={true}
+          onClose={() => setCreatedEmployee(null)}
+          title="Account Created Successfully"
+          temporaryPassword={createdEmployee.temporary_password}
+          employeeName={createdEmployee.full_name}
+          employeeCode={createdEmployee.employee_code}
+          email={createdEmployee.email}
+          role={createdEmployee.role}
+        />
+      )}
     </div>
   );
 }

@@ -5,9 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "@systrol/ui";
 import { EmployeesPage } from "./EmployeesPage";
 import * as employeesApi from "../api/employees";
+import * as authModule from "../auth";
 import type { EmployeeListItem } from "../employees/types";
 
 vi.mock("../api/employees");
+vi.mock("../auth", () => ({
+  useAuth: vi.fn(),
+}));
 
 const mockEmployees: EmployeeListItem[] = [
   {
@@ -63,6 +67,25 @@ function renderEmployeesPage() {
 describe("EmployeesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(authModule.useAuth).mockReturnValue({
+      user: {
+        id: 1,
+        employee_code: "SYS-0001",
+        email: "admin@systrol.local",
+        full_name: "Admin User",
+        role: "ADMIN",
+        must_change_password: false,
+      },
+      isLoading: false,
+      isAuthenticated: true,
+      mustChangePassword: false,
+      isSuperAdmin: false,
+      isAdmin: true,
+      isEmployee: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
   });
 
   it("renders employee table with code, name, email, designation, department, role, status, joined and login", async () => {

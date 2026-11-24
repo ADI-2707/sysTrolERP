@@ -67,7 +67,7 @@ export interface EmployeeCreatedResponse {
   designation: string;
   department: string;
   role: EmployeeRole;
-  temporary_password?: string;
+  temporary_password: string;
   must_change_password: boolean;
   date_joined: string;
 }
