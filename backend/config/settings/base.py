@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "apps.audit.middleware.RequestIdMiddleware",
     "apps.telemetry.middleware.RequestLoggingMiddleware",
+    "apps.core.middleware.SecurityHeadersMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -52,6 +53,13 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self';"
+PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(), payment=()"
 
 ROOT_URLCONF = "config.urls"
 
