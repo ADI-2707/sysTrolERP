@@ -36,7 +36,13 @@ export function SettingsPage() {
         />
       </div>
 
-      <div className={styles.contentCard} data-testid="settings-tab-content">
+      <div
+        className={styles.contentCard}
+        id={`tabpanel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+        data-testid="settings-tab-content"
+      >
         {activeTab === "profile" && (
           <div data-testid="settings-profile-panel">
             <ProfileSection />

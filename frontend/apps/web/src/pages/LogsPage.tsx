@@ -140,7 +140,12 @@ export function LogsPage() {
         />
       )}
 
-      <div className={styles.panelContainer}>
+      <div
+        className={styles.panelContainer}
+        id={`tabpanel-${activeTab}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${activeTab}`}
+      >
         {activeTab === "audit" && (
           <div data-testid="audit-tab-panel">
             <AuditTableView
