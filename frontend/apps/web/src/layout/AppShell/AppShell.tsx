@@ -124,6 +124,13 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     });
   }
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {}
+    navigate("/login");
+  };
+
   const userMenuItems: DropdownMenuItem[] = [];
 
   userMenuItems.push({
@@ -147,12 +154,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     label: "Sign Out",
     icon: <IconLogout size={16} />,
     danger: true,
-    onClick: async () => {
-      try {
-        await logout();
-      } catch {}
-      navigate("/login");
-    },
+    onClick: handleLogout,
   });
 
   const roleBadgeVariant = isSuperAdmin ? "brand" : isAdmin ? "info" : "default";
@@ -188,6 +190,18 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
           </Link>
         }
         items={navItems}
+        bottomSlot={
+          <button
+            type="button"
+            onClick={handleLogout}
+            className={styles.sidebarLogoutBtn}
+            aria-label="Sidebar Sign Out"
+            title="Sign Out"
+          >
+            <IconLogout size={16} />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        }
       />
 
       <div className={styles.mainWrapper}>
@@ -196,6 +210,15 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
           actions={
             <div className={styles.actionsGroup}>
               <ThemeToggle />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.topbarLogoutBtn}
+                title="Sign Out"
+                aria-label="Quick Sign Out"
+              >
+                <IconLogout size={18} />
+              </button>
             </div>
           }
           userMenu={<DropdownMenu trigger={userMenuTrigger} items={userMenuItems} />}
