@@ -171,6 +171,8 @@ describe("TimesheetGrid", () => {
   it("renders project rows and day headers", () => {
     render(<TimesheetGrid timesheet={mockTimesheet} />);
 
+    expect(screen.getByTestId("timesheet-status-banner")).toBeInTheDocument();
+    expect(screen.getByTestId("timesheet-status-badge")).toHaveTextContent("OPEN");
     expect(screen.getByText("PRJ-0001")).toBeInTheDocument();
     expect(screen.getByText("Automation Plant")).toBeInTheDocument();
     expect(screen.getByText("PLC programming and diagnostics")).toBeInTheDocument();

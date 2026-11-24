@@ -7,6 +7,7 @@ import { validateQuarterHours, parseClipboardHours } from "../utils/validation";
 import { TimesheetCellEditor } from "./TimesheetCellEditor";
 import { AddProjectRowModal } from "./AddProjectRowModal";
 import { CellNotePopover } from "./CellNotePopover";
+import { TimesheetStatusBanner } from "./TimesheetStatusBanner";
 import styles from "./TimesheetGrid.module.css";
 
 export interface TimesheetGridProps {
@@ -15,6 +16,7 @@ export interface TimesheetGridProps {
   onNoteChange?: (projectId: number, date: string, note: string) => void;
   onAddRow?: (projectId: number, description: string) => Promise<void> | void;
   onDeleteRow?: (rowId: number) => Promise<void> | void;
+  onSubmitTimesheet?: () => Promise<void> | void;
   cellStatuses?: Record<string, CellSaveStatus>;
   globalStatus?: CellSaveStatus;
   className?: string;
@@ -27,6 +29,7 @@ export function TimesheetGrid({
   onNoteChange,
   onAddRow,
   onDeleteRow,
+  onSubmitTimesheet,
   cellStatuses,
   globalStatus,
   className,
@@ -359,6 +362,19 @@ export function TimesheetGrid({
       onPaste={handlePaste}
       className={[styles.gridWrapper, className].filter(Boolean).join(" ")}
     >
+      <TimesheetStatusBanner
+        status={timesheet.status}
+        canSubmit={timesheet.can_submit}
+        submittedAt={timesheet.submitted_at}
+        approvedAt={timesheet.approved_at}
+        approvedByLabel={timesheet.approved_by_label}
+        returnedAt={timesheet.returned_at}
+        returnedByLabel={timesheet.returned_by_label}
+        returnReason={timesheet.return_reason}
+        weekStartDate={timesheet.week_start_date}
+        onSubmit={onSubmitTimesheet}
+      />
+
       <div className={styles.toolbar}>
         {canEdit && onAddRow && (
           <Button
