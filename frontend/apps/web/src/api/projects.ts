@@ -107,3 +107,17 @@ export async function deleteSubStep(
 ): Promise<void> {
   return apiClient.delete<void>(`/api/projects/${projectId}/steps/${stepId}/`);
 }
+
+export async function addProjectMember(
+  projectId: number | string,
+  userId: number
+): Promise<void> {
+  return apiClient.post<void>(`/api/projects/${projectId}/members/`, { user_id: userId });
+}
+
+export async function removeProjectMember(
+  projectId: number | string,
+  userId: number
+): Promise<void> {
+  return apiClient.delete<void>(`/api/projects/${projectId}/members/${userId}/`);
+}

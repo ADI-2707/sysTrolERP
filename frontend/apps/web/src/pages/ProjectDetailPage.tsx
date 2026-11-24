@@ -12,6 +12,7 @@ import {
   FormField,
   useToast,
   IconChevronLeft,
+  IconTrash,
   type StepperItem,
   type StepStatus,
 } from "@systrol/ui";
@@ -22,8 +23,12 @@ import {
   insertSubStep,
   updateSubStep,
   deleteSubStep,
+  addProjectMember,
+  removeProjectMember,
+  fetchActiveEmployees,
+  type EmployeeSummary,
 } from "../api/projects";
-import type { ProjectDetailData, ProjectStepDetail, StepStatusType } from "../projects/types";
+import type { ProjectDetailData, ProjectStepDetail, ProjectMemberDetail, StepStatusType } from "../projects/types";
 import styles from "./ProjectDetailPage.module.css";
 
 const nextStatusMap: Record<StepStatusType, StepStatusType> = {
@@ -59,6 +64,16 @@ export function ProjectDetailPage() {
 
   const [stepToDelete, setStepToDelete] = useState<ProjectStepDetail | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState<boolean>(false);
+  const [availableEmployees, setAvailableEmployees] = useState<EmployeeSummary[]>([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState<boolean>(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [isAddingMember, setIsAddingMember] = useState<boolean>(false);
+  const [addMemberError, setAddMemberError] = useState<string | null>(null);
+
+  const [memberToRemove, setMemberToRemove] = useState<ProjectMemberDetail | null>(null);
+  const [isRemovingMember, setIsRemovingMember] = useState<boolean>(false);
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -298,6 +313,95 @@ export function ProjectDetailPage() {
     }
   };
 
+  const handleOpenAddMemberModal = async () => {
+    if (!canManage) return;
+    setIsAddMemberOpen(true);
+    setSelectedUserId(null);
+    setAddMemberError(null);
+    setIsLoadingEmployees(true);
+    try {
+      const res = await fetchActiveEmployees();
+      setAvailableEmployees(res.results || []);
+    } catch {
+      setAddMemberError("Failed to load employees list.");
+    } finally {
+      setIsLoadingEmployees(false);
+    }
+  };
+
+  const handleCloseAddMemberModal = () => {
+    if (isAddingMember) return;
+    setIsAddMemberOpen(false);
+    setSelectedUserId(null);
+    setAddMemberError(null);
+  };
+
+  const handleConfirmAddMember = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!project || !selectedUserId) return;
+    setIsAddingMember(true);
+    setAddMemberError(null);
+    try {
+      await addProjectMember(project.id, selectedUserId);
+      const addedEmp = availableEmployees.find((emp) => emp.id === selectedUserId);
+      addToast({
+        type: "success",
+        title: "Member added",
+        description: addedEmp ? `Assigned ${addedEmp.full_name} to project.` : "Member assigned to project.",
+      });
+      handleCloseAddMemberModal();
+      await loadDetail();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to assign member.";
+      setAddMemberError(msg);
+      addToast({
+        type: "error",
+        title: "Add failed",
+        description: msg,
+      });
+    } finally {
+      setIsAddingMember(false);
+    }
+  };
+
+  const handleOpenRemoveMemberModal = (member: ProjectMemberDetail) => {
+    if (!canManage) return;
+    setMemberToRemove(member);
+  };
+
+  const handleCloseRemoveMemberModal = () => {
+    if (isRemovingMember) return;
+    setMemberToRemove(null);
+  };
+
+  const handleConfirmRemoveMember = async () => {
+    if (!project || !memberToRemove) return;
+    setIsRemovingMember(true);
+    try {
+      await removeProjectMember(project.id, memberToRemove.id);
+      addToast({
+        type: "success",
+        title: "Member removed",
+        description: `Removed ${memberToRemove.full_name} from project.`,
+      });
+      handleCloseRemoveMemberModal();
+      await loadDetail();
+    } catch (err: unknown) {
+      addToast({
+        type: "error",
+        title: "Remove failed",
+        description: err instanceof Error ? err.message : "Failed to remove member.",
+      });
+    } finally {
+      setIsRemovingMember(false);
+    }
+  };
+
+  const assignableEmployees = useMemo(() => {
+    if (!project) return [];
+    return availableEmployees.filter((emp) => !project.members.some((m) => m.id === emp.id));
+  }, [availableEmployees, project]);
+
   const stepperItems: StepperItem[] = useMemo(() => {
     if (!project) return [];
     return project.steps.map((s) => ({
@@ -458,15 +562,32 @@ export function ProjectDetailPage() {
       </div>
 
       <div className={styles.sectionContainer}>
-        <h2 className={styles.sectionTitle}>
-          Assigned Members ({project.members.length})
-        </h2>
+        <div className={styles.sectionHeaderRow}>
+          <h2 className={styles.sectionTitle}>
+            Assigned Members ({project.members.length})
+          </h2>
+          {canManage && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleOpenAddMemberModal}
+              data-testid="open-add-member-modal-btn"
+            >
+              Add Member
+            </Button>
+          )}
+        </div>
+
         {project.members.length === 0 ? (
           <p className={styles.description}>No team members currently assigned.</p>
         ) : (
           <div className={styles.membersGrid} data-testid="project-members-grid">
             {project.members.map((member) => (
-              <div key={member.id} className={styles.memberCard}>
+              <div
+                key={member.id}
+                className={styles.memberCard}
+                data-testid={`member-card-${member.id}`}
+              >
                 <Avatar name={member.full_name} size="md" />
                 <div className={styles.memberDetails}>
                   <span className={styles.memberName}>{member.full_name}</span>
@@ -475,6 +596,18 @@ export function ProjectDetailPage() {
                     {member.designation ? ` • ${member.designation}` : ""}
                   </span>
                 </div>
+                {canManage && (
+                  <button
+                    type="button"
+                    className={styles.removeMemberBtn}
+                    onClick={() => handleOpenRemoveMemberModal(member)}
+                    data-testid={`remove-member-btn-${member.id}`}
+                    aria-label={`Remove ${member.full_name} from project`}
+                    title={`Remove ${member.full_name}`}
+                  >
+                    <IconTrash size={14} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -648,6 +781,110 @@ export function ProjectDetailPage() {
               loading={isDeleting}
             >
               Delete Sub-Step
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isAddMemberOpen}
+        onClose={handleCloseAddMemberModal}
+        title="Add Team Member"
+        size="md"
+      >
+        <form onSubmit={handleConfirmAddMember} data-testid="add-member-modal">
+          <p className={styles.modalText}>
+            Assign an employee to <strong>{project.name}</strong>.
+          </p>
+          {isLoadingEmployees ? (
+            <div className={styles.loadingContainer} data-testid="loading-employees">
+              <Spinner size="md" />
+              <span>Loading employees...</span>
+            </div>
+          ) : assignableEmployees.length === 0 ? (
+            <p className={styles.description} data-testid="no-assignable-employees">
+              All active employees are already assigned to this project.
+            </p>
+          ) : (
+            <FormField
+              id="select-member-dropdown"
+              label="Select Employee"
+              required
+              error={addMemberError || undefined}
+            >
+              <select
+                id="select-member-dropdown"
+                className={styles.selectInput}
+                value={selectedUserId || ""}
+                onChange={(e) => {
+                  setSelectedUserId(e.target.value ? Number(e.target.value) : null);
+                  if (addMemberError) setAddMemberError(null);
+                }}
+                data-testid="select-member-dropdown"
+                disabled={isAddingMember}
+              >
+                <option value="">-- Choose an employee --</option>
+                {assignableEmployees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.full_name} ({emp.employee_code})
+                    {emp.designation ? ` - ${emp.designation}` : ""}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          )}
+
+          <div className={styles.modalFooter} style={{ marginTop: "var(--space-5)" }}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseAddMemberModal}
+              data-testid="cancel-add-member-btn"
+              disabled={isAddingMember}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              data-testid="confirm-add-member-btn"
+              loading={isAddingMember}
+              disabled={!selectedUserId || isAddingMember}
+            >
+              Assign Member
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={!!memberToRemove}
+        onClose={handleCloseRemoveMemberModal}
+        title="Remove Team Member"
+        size="sm"
+      >
+        <div data-testid="remove-member-modal">
+          <p className={styles.modalText}>
+            Are you sure you want to remove &ldquo;{memberToRemove?.full_name}&rdquo; ({memberToRemove?.employee_code}) from this project?
+          </p>
+          <div className={styles.modalFooter}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseRemoveMemberModal}
+              data-testid="cancel-remove-member-btn"
+              disabled={isRemovingMember}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={handleConfirmRemoveMember}
+              data-testid="confirm-remove-member-btn"
+              loading={isRemovingMember}
+            >
+              Remove Member
             </Button>
           </div>
         </div>
