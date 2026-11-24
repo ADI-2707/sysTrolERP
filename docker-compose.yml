@@ -1,0 +1,55 @@
+name: systrol-erp
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: systrol-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: systrol
+      POSTGRES_USER: systrol
+      POSTGRES_PASSWORD: systrol_secure_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U systrol -d systrol"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/backend.Dockerfile
+    container_name: systrol-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://systrol:systrol_secure_password@postgres:5432/systrol
+      SECRET_KEY: django-insecure-prod-key-please-replace-in-env-file
+      DEBUG: "False"
+      ALLOWED_HOSTS: "*"
+      COMPANY_TIMEZONE: Asia/Kolkata
+      SUPER_ADMIN_USERNAME: superadmin
+      SUPER_ADMIN_PASSWORD_HASH: "$argon2id$v=19$m=65536,t=3,p=4$placeholder"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - staticfiles:/app/staticfiles
+    expose:
+      - "8000"
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web.Dockerfile
+    container_name: systrol-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  staticfiles:
