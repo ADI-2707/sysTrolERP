@@ -8,6 +8,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { TimesheetsDashboardPage } from "./pages/TimesheetsDashboardPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
+import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { AppShell, SessionExpiryWatcher } from "./layout";
 import { ComponentGallery } from "./gallery/ComponentGallery";
@@ -27,6 +28,7 @@ export function AppContent() {
             <Route path="/" element={<Navigate to="/timesheets" replace />} />
             <Route path="/timesheets" element={<TimesheetsDashboardPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route element={<RequireRole allowedRoles={["ADMIN", "SUPER"]} />}>
               <Route path="/employees" element={<div data-testid="employees-view">Employees View</div>} />
               <Route path="/audit" element={<div data-testid="audit-view">Audit Logs View</div>} />

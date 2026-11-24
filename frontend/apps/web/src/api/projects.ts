@@ -2,6 +2,7 @@ import { apiClient } from "./client";
 import type { PaginatedResponse } from "./types";
 import type {
   ProjectListItem,
+  ProjectDetailData,
   AssignmentMatrixData,
 } from "../projects/types";
 
@@ -52,4 +53,10 @@ export async function fetchActiveEmployees(): Promise<PaginatedResponse<Employee
 
 export async function fetchAssignmentMatrix(): Promise<AssignmentMatrixData> {
   return apiClient.get<AssignmentMatrixData>("/api/projects/matrix/");
+}
+
+export async function fetchProjectDetail(
+  idOrSlug: string | number
+): Promise<ProjectDetailData> {
+  return apiClient.get<ProjectDetailData>(`/api/projects/${idOrSlug}/`);
 }

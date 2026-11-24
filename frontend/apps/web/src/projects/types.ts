@@ -33,6 +33,49 @@ export interface ProjectListItem {
   created_at: string;
 }
 
+export interface ProjectStepDetail {
+  id: number;
+  key: string;
+  name: string;
+  position: number;
+  is_custom: boolean;
+  status: StepStatusType;
+  confirmed_at: string | null;
+  confirmed_by_label: string | null;
+}
+
+export interface ProjectMemberDetail {
+  id: number;
+  employee_code: string;
+  full_name: string;
+  designation?: string;
+  department?: string;
+}
+
+export interface ProjectCreator {
+  id: number | null;
+  employee_code: string | null;
+  full_name: string | null;
+}
+
+export interface ProjectDetailData {
+  id: number;
+  code: string;
+  name: string;
+  slug: string;
+  client_name: string;
+  description: string;
+  is_active: boolean;
+  status: string;
+  creator: ProjectCreator | null;
+  created_at: string;
+  completion_percentage: number;
+  total_steps: number;
+  completed_steps: number;
+  steps: ProjectStepDetail[];
+  members: ProjectMemberDetail[];
+}
+
 export interface AssignmentMatrixEmployee {
   id: number;
   code: string;
