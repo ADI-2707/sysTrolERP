@@ -11,6 +11,7 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { EmployeesPage } from "./pages/EmployeesPage";
 import { LogsPage } from "./pages/LogsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { AppShell, SessionExpiryWatcher } from "./layout";
 import { ComponentGallery } from "./gallery/ComponentGallery";
@@ -37,6 +38,7 @@ export function AppContent() {
               <Route path="/logs" element={<Navigate to="/audit" replace />} />
             </Route>
             <Route path="/gallery" element={<ComponentGallery />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>

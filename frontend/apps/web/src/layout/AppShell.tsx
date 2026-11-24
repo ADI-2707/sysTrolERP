@@ -76,6 +76,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       if (seg === "employees") label = "Employees";
       if (seg === "timesheets") label = "Timesheets";
       if (seg === "change-password") label = "Change Password";
+      if (seg === "settings") label = "Settings";
 
       items.push({
         label,
@@ -124,6 +125,13 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
   }
 
   const userMenuItems: DropdownMenuItem[] = [];
+
+  userMenuItems.push({
+    key: "settings",
+    label: "Settings",
+    icon: <IconSettings size={16} />,
+    onClick: () => navigate("/settings"),
+  });
 
   if (!isSuperAdmin) {
     userMenuItems.push({
