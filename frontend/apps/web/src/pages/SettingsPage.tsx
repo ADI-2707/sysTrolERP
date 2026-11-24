@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Tabs, type TabItem } from "@systrol/ui";
 import { useAuth } from "../auth";
 import { ChangePasswordForm } from "../settings/components/ChangePasswordForm";
+import { AppearanceSettings } from "../settings/components/AppearanceSettings";
 import styles from "./SettingsPage.module.css";
 
 export function SettingsPage() {
@@ -10,6 +11,7 @@ export function SettingsPage() {
 
   const tabs: TabItem[] = [
     { id: "security", label: "Security & Password" },
+    { id: "appearance", label: "Appearance" },
   ];
 
   return (
@@ -40,6 +42,12 @@ export function SettingsPage() {
             ) : (
               <ChangePasswordForm />
             )}
+          </div>
+        )}
+
+        {activeTab === "appearance" && (
+          <div data-testid="settings-appearance-panel">
+            <AppearanceSettings />
           </div>
         )}
       </div>
