@@ -10,6 +10,7 @@ import { TimesheetsDashboardPage } from "./pages/TimesheetsDashboardPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { EmployeesPage } from "./pages/EmployeesPage";
+import { LogsPage } from "./pages/LogsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { AppShell, SessionExpiryWatcher } from "./layout";
 import { ComponentGallery } from "./gallery/ComponentGallery";
@@ -32,7 +33,8 @@ export function AppContent() {
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route element={<RequireRole allowedRoles={["ADMIN", "SUPER"]} />}>
               <Route path="/employees" element={<EmployeesPage />} />
-              <Route path="/audit" element={<div data-testid="audit-view">Audit Logs View</div>} />
+              <Route path="/audit" element={<LogsPage />} />
+              <Route path="/logs" element={<Navigate to="/audit" replace />} />
             </Route>
             <Route path="/gallery" element={<ComponentGallery />} />
             <Route path="*" element={<NotFoundPage />} />
