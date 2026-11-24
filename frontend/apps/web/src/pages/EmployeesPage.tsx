@@ -1,13 +1,30 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Badge, Button, Table, Pagination, EmptyState, Spinner, useToast, type TableColumn } from "@systrol/ui";
 import { useAuth } from "../auth";
-import { fetchEmployees, createEmployee, updateEmployee, revokeEmployee, restoreEmployee, resetEmployeePassword } from "../api/employees";
-import type { EmployeeListItem, CreateEmployeePayload, EmployeeCreatedResponse, EmployeeDetailData, UpdateEmployeePayload } from "../employees/types";
+import {
+  fetchEmployees,
+  createEmployee,
+  updateEmployee,
+  revokeEmployee,
+  restoreEmployee,
+  resetEmployeePassword,
+  superResetAdminPassword,
+  superRestoreAccount,
+  superClearLockout,
+} from "../api/employees";
+import type {
+  EmployeeListItem,
+  CreateEmployeePayload,
+  EmployeeCreatedResponse,
+  EmployeeDetailData,
+  UpdateEmployeePayload,
+} from "../employees/types";
 import { CreateEmployeeModal } from "../employees/components/CreateEmployeeModal";
 import { TemporaryPasswordModal } from "../employees/components/TemporaryPasswordModal";
 import { EmployeeDetailDrawer } from "../employees/components/EmployeeDetailDrawer";
 import { EditEmployeeModal } from "../employees/components/EditEmployeeModal";
 import { ActionReasonModal } from "../employees/components/ActionReasonModal";
+import { ClearLockoutModal } from "../employees/components/ClearLockoutModal";
 import styles from "./EmployeesPage.module.css";
 
 export function EmployeesPage() {
@@ -40,6 +57,13 @@ export function EmployeesPage() {
     email: string;
     role: string;
   } | null>(null);
+  const [clearLockoutModal, setClearLockoutModal] = useState<{
+    isOpen: boolean;
+    defaultIdentifier: string;
+  }>({
+    isOpen: false,
+    defaultIdentifier: "",
+  });
 
   const [search, setSearch] = useState<string>("");
   const [roleFilter, setRoleFilter] = useState<string>("");
@@ -142,6 +166,39 @@ export function EmployeesPage() {
     }
   };
 
+  const handleSuperResetAdmin = async (emp: EmployeeDetailData) => {
+    try {
+      const res = await superResetAdminPassword(emp.id);
+      setTemporaryResetPassword({
+        temporaryPassword: res.temporary_password,
+        employeeName: emp.full_name,
+        employeeCode: emp.employee_code,
+        email: emp.email,
+        role: emp.role,
+      });
+      addToast({
+        title: "Admin Password Reset",
+        description: `One-time password generated for administrator ${emp.employee_code}.`,
+        type: "success",
+      });
+    } catch (err: unknown) {
+      addToast({
+        title: "Reset Failed",
+        description: err instanceof Error ? err.message : "Failed to reset admin password.",
+        type: "error",
+      });
+    }
+  };
+
+  const handleClearLockoutSubmit = async (identifier: string, ip?: string) => {
+    await superClearLockout(identifier, ip);
+    addToast({
+      title: "Lockout Cleared",
+      description: `Login lockout records cleared for ${identifier}.`,
+      type: "success",
+    });
+  };
+
   const handleActionReasonSubmit = async (reason: string) => {
     const emp = actionReasonState.employee;
     if (!emp) return;
@@ -154,7 +211,11 @@ export function EmployeesPage() {
         type: "warning",
       });
     } else {
-      await restoreEmployee(emp.id, reason);
+      if (isSuperAdmin && emp.role === "ADMIN") {
+        await superRestoreAccount(emp.id, reason);
+      } else {
+        await restoreEmployee(emp.id, reason);
+      }
       addToast({
         title: "Account Restored",
         description: `Access for ${emp.employee_code} has been restored.`,
@@ -282,15 +343,26 @@ export function EmployeesPage() {
             Manage staff accounts, credentials, and access roles.
           </p>
         </div>
-        {canManage && (
-          <Button
-            variant="primary"
-            onClick={() => setIsCreateOpen(true)}
-            data-testid="add-employee-btn"
-          >
-            Add Employee
-          </Button>
-        )}
+        <div className={styles.headerActions}>
+          {isSuperAdmin && (
+            <Button
+              variant="secondary"
+              onClick={() => setClearLockoutModal({ isOpen: true, defaultIdentifier: "" })}
+              data-testid="super-clear-lockout-toolbar-btn"
+            >
+              Clear Lockout
+            </Button>
+          )}
+          {canManage && (
+            <Button
+              variant="primary"
+              onClick={() => setIsCreateOpen(true)}
+              data-testid="add-employee-btn"
+            >
+              Add Employee
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className={styles.toolbar} data-testid="employees-toolbar">
@@ -422,6 +494,8 @@ export function EmployeesPage() {
         onRevokeAccess={handleRevokeClick}
         onRestoreAccess={handleRestoreClick}
         onResetPassword={handleResetPasswordClick}
+        onSuperResetAdmin={handleSuperResetAdmin}
+        onSuperClearLockout={(emp) => setClearLockoutModal({ isOpen: true, defaultIdentifier: emp.email })}
       />
 
       <EditEmployeeModal
@@ -460,6 +534,13 @@ export function EmployeesPage() {
           role={temporaryResetPassword.role}
         />
       )}
+
+      <ClearLockoutModal
+        isOpen={clearLockoutModal.isOpen}
+        onClose={() => setClearLockoutModal({ isOpen: false, defaultIdentifier: "" })}
+        defaultIdentifier={clearLockoutModal.defaultIdentifier}
+        onSubmit={handleClearLockoutSubmit}
+      />
     </div>
   );
 }
