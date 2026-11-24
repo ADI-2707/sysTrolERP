@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import type { TimesheetData } from "../timesheets/types";
+import type { TimesheetData, DashboardSummaryData } from "../timesheets/types";
 
 export interface UpsertCellPayload {
   project_id: number;
@@ -11,6 +11,11 @@ export interface UpsertCellPayload {
 export async function fetchOwnTimesheet(weekDate?: string): Promise<TimesheetData> {
   const query = weekDate ? `?week=${weekDate}` : "";
   return apiClient.get<TimesheetData>(`/api/timesheets/me/${query}`);
+}
+
+export async function fetchTimesheetSummary(weekDate?: string): Promise<DashboardSummaryData> {
+  const query = weekDate ? `?week=${weekDate}` : "";
+  return apiClient.get<DashboardSummaryData>(`/api/timesheets/summary/${query}`);
 }
 
 export async function upsertCell(payload: UpsertCellPayload): Promise<unknown> {

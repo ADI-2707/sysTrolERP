@@ -39,6 +39,20 @@ export interface AssignedProject {
 
 export type ProjectSummary = AssignedProject;
 
+export interface DashboardSummaryData {
+  week_start_date: string;
+  week_end_date: string;
+  active_employees_count: number;
+  pending_approval_count: number;
+  week_submitted_count: number;
+  week_approved_count: number;
+  week_open_count: number;
+  week_returned_count: number;
+  total_hours: string;
+  total_regular_hours: string;
+  total_overtime_hours: string;
+}
+
 export interface TimesheetData {
   id: number;
   week_start_date: string;
