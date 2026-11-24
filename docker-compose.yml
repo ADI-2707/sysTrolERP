@@ -28,6 +28,7 @@ services:
       SECRET_KEY: django-insecure-prod-key-please-replace-in-env-file
       DEBUG: "False"
       ALLOWED_HOSTS: "*"
+      SECURE_SSL_REDIRECT: "False"
       COMPANY_TIMEZONE: Asia/Kolkata
       SUPER_ADMIN_USERNAME: superadmin
       SUPER_ADMIN_PASSWORD_HASH: "$$argon2id$$v=19$$m=65536,t=3,p=4$$placeholder"
