@@ -21,6 +21,7 @@
     "test:frontend": "npm run test --workspaces",
     "test:e2e": "playwright test",
     "audit": "npm audit --omit=dev --audit-level=high",
+    "smoke:deploy": "python scripts/smoke_test_deploy.py",
     "lint": "python scripts/check_no_comments.py",
     "seed": "python backend/manage.py seed_demo",
     "seed:fresh": "python backend/manage.py seed_demo --clear",

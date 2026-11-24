@@ -30,6 +30,9 @@ audit:
     npm audit --omit=dev --audit-level=high
     pip-audit
 
+smoke-deploy:
+    python scripts/smoke_test_deploy.py
+
 seed:
     python backend/manage.py seed_demo
 
