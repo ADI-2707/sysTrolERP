@@ -4,17 +4,19 @@ import { ThemeProvider, ToastProvider } from "@systrol/ui";
 import { queryClient } from "./query/queryClient";
 import { AuthProvider } from "./auth";
 import { RequireAnonymous, RequireAuth, RequireRole } from "./routes";
-import { LoginPage } from "./pages/LoginPage";
-import { ChangePasswordPage } from "./pages/ChangePasswordPage";
-import { TimesheetsDashboardPage } from "./pages/TimesheetsDashboardPage";
-import { ProjectsPage } from "./pages/ProjectsPage";
-import { ProjectDetailPage } from "./pages/ProjectDetailPage";
-import { EmployeesPage } from "./pages/EmployeesPage";
-import { LogsPage } from "./pages/LogsPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
+import {
+  LoginPage,
+  ChangePasswordPage,
+  TimesheetsDashboardPage,
+  ProjectsPage,
+  ProjectDetailPage,
+  EmployeesPage,
+  LogsPage,
+  SettingsPage,
+  NotFoundPage,
+} from "./pages";
 import { AppShell, SessionExpiryWatcher } from "./layout";
-import { ComponentGallery } from "./gallery/ComponentGallery";
+import { ComponentGallery } from "./gallery";
 
 export function AppContent() {
   return (

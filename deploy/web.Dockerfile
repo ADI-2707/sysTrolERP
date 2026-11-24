@@ -3,14 +3,12 @@ FROM node:22-slim AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-COPY frontend/packages/ui/package.json ./frontend/packages/ui/
 COPY frontend/apps/web/package.json ./frontend/apps/web/
 
 RUN npm ci
 
-COPY frontend/ ./frontend/
+COPY frontend/apps/web/ ./frontend/apps/web/
 
-RUN npm run build --workspace=@systrol/ui
 RUN npm run build --workspace=@systrol/web
 
 FROM nginx:1.27-alpine

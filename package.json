@@ -5,8 +5,7 @@
     "node": ">=22.0.0"
   },
   "workspaces": [
-    "frontend/apps/*",
-    "frontend/packages/*"
+    "frontend/apps/*"
   ],
   "scripts": {
     "prepare": "husky",
@@ -14,7 +13,6 @@
     "dev:backend": "python backend/manage.py runserver 0.0.0.0:8000",
     "dev:frontend": "npm run dev --workspace=@systrol/web",
     "build": "npm run build --workspaces",
-    "build:ui": "npm run build --workspace=@systrol/ui",
     "build:web": "npm run build --workspace=@systrol/web",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && coverage run -m pytest && coverage report --fail-under=85",
