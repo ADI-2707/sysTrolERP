@@ -2,12 +2,15 @@ import { useState, useMemo } from "react";
 import { Button } from "@systrol/ui";
 import type { TeamTimesheetItem, TimesheetStatus } from "../types";
 import { ReturnTimesheetModal } from "./ReturnTimesheetModal";
+import { SuperAdminOverrideModal } from "./SuperAdminOverrideModal";
 import styles from "./TeamTimesheetReviewGrid.module.css";
 
 export interface TeamTimesheetReviewGridProps {
   timesheets: TeamTimesheetItem[];
   onApprove: (id: number) => Promise<void> | void;
   onReturn: (id: number, reason: string) => Promise<void> | void;
+  onOverride?: (id: number, payload: { reason: string; status: TimesheetStatus }) => Promise<void> | void;
+  isSuper?: boolean;
   isLoading?: boolean;
   isProcessingId?: number | null;
   className?: string;
@@ -17,6 +20,8 @@ export function TeamTimesheetReviewGrid({
   timesheets,
   onApprove,
   onReturn,
+  onOverride,
+  isSuper = false,
   isLoading = false,
   isProcessingId = null,
   className,
@@ -24,6 +29,7 @@ export function TeamTimesheetReviewGrid({
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [returnItem, setReturnItem] = useState<TeamTimesheetItem | null>(null);
+  const [overrideItem, setOverrideItem] = useState<TeamTimesheetItem | null>(null);
 
   const filteredTimesheets = useMemo(() => {
     return timesheets.filter((ts) => {
@@ -46,6 +52,12 @@ export function TeamTimesheetReviewGrid({
     if (!returnItem) return;
     await onReturn(returnItem.id, reason);
     setReturnItem(null);
+  };
+
+  const handleOverrideConfirm = async (payload: { reason: string; status: TimesheetStatus }) => {
+    if (!overrideItem || !onOverride) return;
+    await onOverride(overrideItem.id, payload);
+    setOverrideItem(null);
   };
 
   return (
@@ -162,37 +174,51 @@ export function TeamTimesheetReviewGrid({
                     </td>
 
                     <td className={styles.td}>
-                      {canAction ? (
-                        <div className={styles.actionsGroup}>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            loading={isProcessing}
-                            onClick={() => onApprove(ts.id)}
-                            data-testid={`approve-btn-${ts.id}`}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={isProcessing}
-                            onClick={() => setReturnItem(ts)}
-                            data-testid={`return-btn-${ts.id}`}
-                          >
-                            Return
-                          </Button>
-                        </div>
-                      ) : (
-                        !ts.can_approve && ts.status === "SUBMITTED" && (
+                      <div className={styles.actionsGroup}>
+                        {canAction && (
+                          <>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              loading={isProcessing}
+                              onClick={() => onApprove(ts.id)}
+                              data-testid={`approve-btn-${ts.id}`}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={isProcessing}
+                              onClick={() => setReturnItem(ts)}
+                              data-testid={`return-btn-${ts.id}`}
+                            >
+                              Return
+                            </Button>
+                          </>
+                        )}
+
+                        {!ts.can_approve && ts.status === "SUBMITTED" && !isSuper && (
                           <span
                             className={styles.ownTimesheetNotice}
                             data-testid={`own-notice-${ts.id}`}
                           >
                             Own timesheet
                           </span>
-                        )
-                      )}
+                        )}
+
+                        {isSuper && onOverride && (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            disabled={isProcessing}
+                            onClick={() => setOverrideItem(ts)}
+                            data-testid={`override-btn-${ts.id}`}
+                          >
+                            Override
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -210,6 +236,18 @@ export function TeamTimesheetReviewGrid({
           employeeName={returnItem.employee.name}
           weekRange={`${returnItem.week_start_date} - ${returnItem.week_end_date}`}
           isLoading={isProcessingId === returnItem.id}
+        />
+      )}
+
+      {overrideItem && (
+        <SuperAdminOverrideModal
+          isOpen={true}
+          onClose={() => setOverrideItem(null)}
+          onConfirm={handleOverrideConfirm}
+          employeeName={overrideItem.employee.name}
+          weekRange={`${overrideItem.week_start_date} - ${overrideItem.week_end_date}`}
+          currentStatus={overrideItem.status}
+          isLoading={isProcessingId === overrideItem.id}
         />
       )}
     </div>

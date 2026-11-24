@@ -167,4 +167,35 @@ describe("TeamTimesheetReviewGrid", () => {
     expect(screen.getByText("Charlie Technician")).toBeInTheDocument();
     expect(screen.queryByText("Alice Engineer")).not.toBeInTheDocument();
   });
+
+  it("renders override button for super admin and triggers onOverride", async () => {
+    const handleOverride = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <TeamTimesheetReviewGrid
+        timesheets={mockTimesheets}
+        onApprove={vi.fn()}
+        onReturn={vi.fn()}
+        onOverride={handleOverride}
+        isSuper={true}
+      />
+    );
+
+    const overrideBtn = screen.getByTestId("override-btn-101");
+    fireEvent.click(overrideBtn);
+
+    expect(screen.getByText("Super Admin Override")).toBeInTheDocument();
+    const reasonTextarea = screen.getByTestId("override-reason-textarea");
+    fireEvent.change(reasonTextarea, { target: { value: "Executive emergency override." } });
+
+    const confirmBtn = screen.getByTestId("confirm-override-button");
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(handleOverride).toHaveBeenCalledWith(101, {
+        status: "APPROVED",
+        reason: "Executive emergency override.",
+      });
+    });
+  });
 });

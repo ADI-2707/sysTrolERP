@@ -6,6 +6,7 @@ import { DashboardSummaryCards } from "../timesheets/components/DashboardSummary
 import { TimesheetGrid } from "../timesheets/components/TimesheetGrid";
 import { AdminTimesheetTabs } from "../timesheets/components/AdminTimesheetTabs";
 import { TeamTimesheetReviewGrid } from "../timesheets/components/TeamTimesheetReviewGrid";
+import { SystemTelemetryCards } from "../timesheets/components/SystemTelemetryCards";
 import { useTimesheetAutosave } from "../timesheets/hooks/useTimesheetAutosave";
 import {
   fetchOwnTimesheet,
@@ -13,14 +14,22 @@ import {
   fetchTeamTimesheets,
   approveTimesheet,
   returnTimesheet,
+  overrideTimesheet,
   createTimesheetRow,
   deleteTimesheetRow,
   submitOwnTimesheet,
 } from "../api/timesheets";
+import {
+  fetchHealthCheck,
+  fetchTelemetrySummary,
+  type HealthCheckData,
+  type TelemetrySummaryData,
+} from "../api/telemetry";
 import type {
   TimesheetData,
   DashboardSummaryData,
   TeamTimesheetItem,
+  TimesheetStatus,
 } from "../timesheets/types";
 import styles from "./TimesheetsDashboardPage.module.css";
 
@@ -43,6 +52,8 @@ export function TimesheetsDashboardPage() {
   const [ownTimesheet, setOwnTimesheet] = useState<TimesheetData | null>(null);
   const [adminSummary, setAdminSummary] = useState<DashboardSummaryData | null>(null);
   const [teamTimesheets, setTeamTimesheets] = useState<TeamTimesheetItem[]>([]);
+  const [healthData, setHealthData] = useState<HealthCheckData | null>(null);
+  const [telemetryData, setTelemetryData] = useState<TelemetrySummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
 
@@ -61,6 +72,15 @@ export function TimesheetsDashboardPage() {
         ]);
         setAdminSummary(sumData);
         setTeamTimesheets(teamData.results || []);
+      }
+
+      if (isSuper) {
+        const [hData, tData] = await Promise.all([
+          fetchHealthCheck(),
+          fetchTelemetrySummary(),
+        ]);
+        setHealthData(hData);
+        setTelemetryData(tData);
       }
     } catch {
     } finally {
@@ -148,6 +168,19 @@ export function TimesheetsDashboardPage() {
     }
   };
 
+  const handleOverrideTeamTimesheet = async (
+    id: number,
+    payload: { reason: string; status: TimesheetStatus }
+  ) => {
+    try {
+      setProcessingId(id);
+      await overrideTimesheet(id, payload);
+      await loadData();
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   return (
     <div className={styles.pageContainer} data-testid="timesheets-dashboard-page">
       <div className={styles.topControls}>
@@ -220,11 +253,16 @@ export function TimesheetsDashboardPage() {
           aria-labelledby="tab-team"
           className={styles.tabPanel}
         >
+          {isSuper && (
+            <SystemTelemetryCards health={healthData} telemetry={telemetryData} />
+          )}
           {adminSummary && <DashboardSummaryCards adminSummary={adminSummary} />}
           <TeamTimesheetReviewGrid
             timesheets={teamTimesheets}
             onApprove={handleApproveTeamTimesheet}
             onReturn={handleReturnTeamTimesheet}
+            onOverride={handleOverrideTeamTimesheet}
+            isSuper={isSuper}
             isLoading={isLoading}
             isProcessingId={processingId}
           />
