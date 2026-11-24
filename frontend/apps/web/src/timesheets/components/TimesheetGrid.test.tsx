@@ -319,4 +319,26 @@ describe("TimesheetGrid", () => {
     expect(screen.getByTestId("cell-status-1:2026-11-23")).toBeInTheDocument();
     expect(screen.getByTestId("cell-status-1:2026-11-24")).toBeInTheDocument();
   });
+
+  it("opens cell note popover and triggers onNoteChange", () => {
+    const handleNoteChange = vi.fn();
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onNoteChange={handleNoteChange}
+      />
+    );
+
+    const noteTrigger = screen.getByTestId("note-trigger-PRJ-0001-2026-11-23");
+    fireEvent.click(noteTrigger);
+
+    expect(screen.getByTestId("cell-note-popover")).toBeInTheDocument();
+    const textarea = screen.getByTestId("cell-note-textarea");
+    fireEvent.change(textarea, { target: { value: "Site alignment" } });
+
+    const saveBtn = screen.getByTestId("save-note-btn");
+    fireEvent.click(saveBtn);
+
+    expect(handleNoteChange).toHaveBeenCalledWith(1, "2026-11-23", "Site alignment");
+  });
 });

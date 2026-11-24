@@ -1,0 +1,108 @@
+.noteTrigger {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+
+.noteIndicator {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border-default);
+  opacity: 0;
+  transition: opacity var(--duration-fast), background-color var(--duration-fast);
+}
+
+.noteTrigger:hover .noteIndicator,
+.noteTrigger:focus-visible .noteIndicator {
+  opacity: 1;
+  background-color: var(--color-primary-400);
+}
+
+.hasActiveNote .noteIndicator {
+  opacity: 1;
+  background-color: var(--color-brand-500);
+}
+
+.popoverCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 280px;
+  padding: var(--space-3);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 60;
+}
+
+.popoverHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.popoverTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.popoverSubtitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.noteTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--space-2);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+  outline: none;
+}
+
+.noteTextarea:focus {
+  border-color: var(--color-primary-500);
+}
+
+.readOnlyText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.popoverActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

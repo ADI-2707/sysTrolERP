@@ -6,11 +6,13 @@ import { getDayLabel } from "../utils/dateUtils";
 import { validateQuarterHours, parseClipboardHours } from "../utils/validation";
 import { TimesheetCellEditor } from "./TimesheetCellEditor";
 import { AddProjectRowModal } from "./AddProjectRowModal";
+import { CellNotePopover } from "./CellNotePopover";
 import styles from "./TimesheetGrid.module.css";
 
 export interface TimesheetGridProps {
   timesheet: TimesheetData;
   onCellChange?: (projectId: number, date: string, hours: string) => void;
+  onNoteChange?: (projectId: number, date: string, note: string) => void;
   onAddRow?: (projectId: number, description: string) => Promise<void> | void;
   onDeleteRow?: (rowId: number) => Promise<void> | void;
   cellStatuses?: Record<string, CellSaveStatus>;
@@ -22,6 +24,7 @@ export interface TimesheetGridProps {
 export function TimesheetGrid({
   timesheet,
   onCellChange,
+  onNoteChange,
   onAddRow,
   onDeleteRow,
   cellStatuses,
@@ -108,7 +111,7 @@ export function TimesheetGrid({
           const entry = row.entries.find((e) => e.date === dayDate);
           const hours = entry ? parseFloat(entry.hours).toFixed(1) : "0.0";
           const isEditable = canEdit && (entry?.is_editable ?? false);
-          const hasNote = Boolean(entry?.note);
+          const note = entry?.note || "";
           const cellKey = `${row.project.id}:${dayDate}`;
           const cellStatus = cellStatuses?.[cellKey];
 
@@ -124,7 +127,15 @@ export function TimesheetGrid({
               data-testid={`cell-${row.project.id}-${dayDate}`}
             >
               <span>{hours}</span>
-              {hasNote && <span className={styles.hasNote} aria-label="Has task note" />}
+              <CellNotePopover
+                note={note}
+                isEditable={isEditable}
+                projectCode={row.project.code}
+                date={dayDate}
+                onSaveNote={(updatedNote) => {
+                  onNoteChange?.(row.project.id, dayDate, updatedNote);
+                }}
+              />
               {cellStatus && cellStatus !== "idle" && (
                 <span
                   className={[
@@ -182,7 +193,7 @@ export function TimesheetGrid({
     });
 
     return cols;
-  }, [timesheet.days, canEdit, timesheet.policy, onCellChange, onDeleteRow, cellStatuses]);
+  }, [timesheet.days, canEdit, timesheet.policy, onCellChange, onNoteChange, onDeleteRow, cellStatuses]);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     if (!onCellChange || !canEdit) return;
