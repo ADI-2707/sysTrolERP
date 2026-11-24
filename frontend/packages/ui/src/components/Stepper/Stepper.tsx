@@ -151,6 +151,7 @@ export function Stepper({
                       onClick={() => onEditCustom(step.id)}
                       style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
                       aria-label={`Edit ${step.title}`}
+                      data-testid={`edit-substep-btn-${step.id}`}
                     >
                       <IconEdit size={16} />
                     </button>
@@ -161,6 +162,7 @@ export function Stepper({
                       onClick={() => onDeleteCustom(step.id)}
                       style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
                       aria-label={`Delete ${step.title}`}
+                      data-testid={`delete-substep-btn-${step.id}`}
                     >
                       <IconTrash size={16} />
                     </button>

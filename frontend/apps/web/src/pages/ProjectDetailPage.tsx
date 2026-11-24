@@ -16,7 +16,13 @@ import {
   type StepStatus,
 } from "@systrol/ui";
 import { useAuth } from "../auth";
-import { fetchProjectDetail, updateStepStatus, insertSubStep } from "../api/projects";
+import {
+  fetchProjectDetail,
+  updateStepStatus,
+  insertSubStep,
+  updateSubStep,
+  deleteSubStep,
+} from "../api/projects";
 import type { ProjectDetailData, ProjectStepDetail, StepStatusType } from "../projects/types";
 import styles from "./ProjectDetailPage.module.css";
 
@@ -45,6 +51,14 @@ export function ProjectDetailPage() {
   const [subStepName, setSubStepName] = useState<string>("");
   const [insertError, setInsertError] = useState<string | null>(null);
   const [isInserting, setIsInserting] = useState<boolean>(false);
+
+  const [stepToEdit, setStepToEdit] = useState<ProjectStepDetail | null>(null);
+  const [editStepName, setEditStepName] = useState<string>("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+
+  const [stepToDelete, setStepToDelete] = useState<ProjectStepDetail | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -136,6 +150,20 @@ export function ProjectDetailPage() {
     [canManage, highestCompletedPosition]
   );
 
+  const canEditCustom = useCallback(
+    (step: StepperItem) => {
+      return Boolean(canManage && step.isCustom && step.status === "NOT_STARTED");
+    },
+    [canManage]
+  );
+
+  const canDeleteCustom = useCallback(
+    (step: StepperItem) => {
+      return Boolean(canManage && step.isCustom && step.status === "NOT_STARTED");
+    },
+    [canManage]
+  );
+
   const handleOpenInsertModal = (stepIdStr: string) => {
     if (!project || !canManage) return;
     const step = project.steps.find((s) => String(s.id) === stepIdStr);
@@ -184,6 +212,89 @@ export function ProjectDetailPage() {
       });
     } finally {
       setIsInserting(false);
+    }
+  };
+
+  const handleOpenEditModal = (stepIdStr: string) => {
+    if (!project || !canManage) return;
+    const step = project.steps.find((s) => String(s.id) === stepIdStr);
+    if (!step || !step.is_custom || step.status !== "NOT_STARTED") return;
+    setStepToEdit(step);
+    setEditStepName(step.name);
+    setEditError(null);
+  };
+
+  const handleCloseEditModal = () => {
+    if (isEditing) return;
+    setStepToEdit(null);
+    setEditStepName("");
+    setEditError(null);
+  };
+
+  const handleConfirmEdit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!project || !stepToEdit) return;
+    const trimmed = editStepName.trim();
+    if (!trimmed) {
+      setEditError("Step name cannot be empty.");
+      return;
+    }
+    setIsEditing(true);
+    setEditError(null);
+    try {
+      await updateSubStep(project.id, stepToEdit.id, trimmed);
+      addToast({
+        type: "success",
+        title: "Sub-step updated",
+        description: `Updated name to "${trimmed}".`,
+      });
+      handleCloseEditModal();
+      await loadDetail();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to update sub-step.";
+      setEditError(msg);
+      addToast({
+        type: "error",
+        title: "Update failed",
+        description: msg,
+      });
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleOpenDeleteModal = (stepIdStr: string) => {
+    if (!project || !canManage) return;
+    const step = project.steps.find((s) => String(s.id) === stepIdStr);
+    if (!step || !step.is_custom || step.status !== "NOT_STARTED") return;
+    setStepToDelete(step);
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (isDeleting) return;
+    setStepToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!project || !stepToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteSubStep(project.id, stepToDelete.id);
+      addToast({
+        type: "success",
+        title: "Sub-step deleted",
+        description: `Sub-step "${stepToDelete.name}" deleted.`,
+      });
+      handleCloseDeleteModal();
+      await loadDetail();
+    } catch (err: unknown) {
+      addToast({
+        type: "error",
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Failed to delete sub-step.",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -337,7 +448,11 @@ export function ProjectDetailPage() {
             onStatusChange={canManage ? handleStatusChange : undefined}
             onAdvanceStep={canManage ? handleAdvanceStep : undefined}
             onInsertAfter={canManage ? handleOpenInsertModal : undefined}
+            onEditCustom={canManage ? handleOpenEditModal : undefined}
+            onDeleteCustom={canManage ? handleOpenDeleteModal : undefined}
             canInsertAfter={canInsertAfter}
+            canEditCustom={canEditCustom}
+            canDeleteCustom={canDeleteCustom}
           />
         </div>
       </div>
@@ -451,6 +566,91 @@ export function ProjectDetailPage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        isOpen={!!stepToEdit}
+        onClose={handleCloseEditModal}
+        title="Edit Sub-Step"
+        size="md"
+      >
+        <form onSubmit={handleConfirmEdit} data-testid="edit-substep-modal">
+          <p className={styles.modalText}>
+            Editing custom sub-step <strong>{stepToEdit?.name}</strong>.
+          </p>
+          <FormField
+            id="edit-substep-name-input"
+            label="Sub-step Name"
+            required
+            error={editError || undefined}
+          >
+            <Input
+              id="edit-substep-name-input"
+              value={editStepName}
+              onChange={(e) => {
+                setEditStepName(e.target.value);
+                if (editError) setEditError(null);
+              }}
+              placeholder="e.g. Factory Acceptance Test"
+              data-testid="edit-substep-name-input"
+              autoFocus
+              disabled={isEditing}
+            />
+          </FormField>
+          <div className={styles.modalFooter} style={{ marginTop: "var(--space-5)" }}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseEditModal}
+              data-testid="cancel-edit-substep-btn"
+              disabled={isEditing}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              data-testid="confirm-edit-substep-btn"
+              loading={isEditing}
+              disabled={!editStepName.trim() || isEditing}
+            >
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={!!stepToDelete}
+        onClose={handleCloseDeleteModal}
+        title="Delete Sub-Step"
+        size="sm"
+      >
+        <div data-testid="delete-substep-modal">
+          <p className={styles.modalText}>
+            Are you sure you want to delete custom sub-step &ldquo;{stepToDelete?.name}&rdquo;? This action cannot be undone.
+          </p>
+          <div className={styles.modalFooter}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseDeleteModal}
+              data-testid="cancel-delete-substep-btn"
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={handleConfirmDelete}
+              data-testid="confirm-delete-substep-btn"
+              loading={isDeleting}
+            >
+              Delete Sub-Step
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

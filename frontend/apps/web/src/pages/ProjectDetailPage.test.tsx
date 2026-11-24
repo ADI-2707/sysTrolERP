@@ -23,6 +23,8 @@ vi.mock("../api/projects", () => ({
   fetchProjectDetail: vi.fn(),
   updateStepStatus: vi.fn(),
   insertSubStep: vi.fn(),
+  updateSubStep: vi.fn(),
+  deleteSubStep: vi.fn(),
 }));
 
 const mockAddToast = vi.fn();
@@ -107,10 +109,30 @@ describe("ProjectDetailPage", () => {
         confirmed_by_label: null,
       },
       {
+        id: 198,
+        key: "SUB_ENG_1",
+        name: "Custom Started Review",
+        position: 6,
+        is_custom: true,
+        status: "INITIATED",
+        confirmed_at: null,
+        confirmed_by_label: null,
+      },
+      {
+        id: 199,
+        key: "SUB_MFG_1",
+        name: "Custom Pre-Check",
+        position: 7,
+        is_custom: true,
+        status: "NOT_STARTED",
+        confirmed_at: null,
+        confirmed_by_label: null,
+      },
+      {
         id: 106,
         key: "AMC",
         name: "Annual Maintenance Contract",
-        position: 6,
+        position: 8,
         is_custom: false,
         status: "NOT_STARTED",
         confirmed_at: null,
@@ -368,6 +390,114 @@ describe("ProjectDetailPage", () => {
       expect.objectContaining({
         type: "success",
         title: "Sub-step added",
+      })
+    );
+  });
+
+  it("only allows custom sub-steps in NOT_STARTED status to be edited or deleted", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("edit-substep-btn-199")).toBeInTheDocument();
+    expect(screen.getByTestId("delete-substep-btn-199")).toBeInTheDocument();
+
+    expect(screen.queryByTestId("edit-substep-btn-198")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("delete-substep-btn-198")).not.toBeInTheDocument();
+
+    expect(screen.queryByTestId("edit-substep-btn-101")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("delete-substep-btn-101")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("edit-substep-btn-105")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("delete-substep-btn-105")).not.toBeInTheDocument();
+  });
+
+  it("opens edit sub-step modal and saves updated name", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    vi.mocked(projectsApi.updateSubStep).mockResolvedValue({
+      id: 199,
+      key: "SUB_MFG_1",
+      name: "Custom Pre-Check Revised",
+      position: 7,
+      is_custom: true,
+      status: "NOT_STARTED",
+      confirmed_at: null,
+      confirmed_by_label: null,
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    const editBtn = screen.getByTestId("edit-substep-btn-199");
+    fireEvent.click(editBtn);
+
+    const modal = screen.getByTestId("edit-substep-modal");
+    expect(modal).toBeInTheDocument();
+
+    const nameInput = screen.getByTestId("edit-substep-name-input");
+    expect(nameInput).toHaveValue("Custom Pre-Check");
+
+    fireEvent.change(nameInput, { target: { value: "Custom Pre-Check Revised" } });
+    const saveBtn = screen.getByTestId("confirm-edit-substep-btn");
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(projectsApi.updateSubStep).toHaveBeenCalledWith(1, 199, "Custom Pre-Check Revised");
+    });
+
+    expect(mockAddToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "success",
+        title: "Sub-step updated",
+      })
+    );
+  });
+
+  it("opens delete sub-step confirmation modal and removes custom sub-step", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValueOnce(mockProjectDetail);
+    vi.mocked(projectsApi.deleteSubStep).mockResolvedValue(undefined);
+
+    const updatedAfterDelete: ProjectDetailData = {
+      ...mockProjectDetail,
+      total_steps: 13,
+      completion_percentage: 23,
+      steps: mockProjectDetail.steps.filter((s) => s.id !== 199),
+    };
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValueOnce(updatedAfterDelete);
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    const deleteBtn = screen.getByTestId("delete-substep-btn-199");
+    fireEvent.click(deleteBtn);
+
+    const modal = screen.getByTestId("delete-substep-modal");
+    expect(modal).toBeInTheDocument();
+    expect(within(modal).getByText(/Custom Pre-Check/)).toBeInTheDocument();
+
+    const confirmDeleteBtn = screen.getByTestId("confirm-delete-substep-btn");
+    fireEvent.click(confirmDeleteBtn);
+
+    await waitFor(() => {
+      expect(projectsApi.deleteSubStep).toHaveBeenCalledWith(1, 199);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-progress-percentage")).toHaveTextContent("23% (3 / 13 steps)");
+    });
+
+    expect(mockAddToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "success",
+        title: "Sub-step deleted",
       })
     );
   });

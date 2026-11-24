@@ -89,3 +89,21 @@ export async function insertSubStep(
     payload
   );
 }
+
+export async function updateSubStep(
+  projectId: number | string,
+  stepId: number | string,
+  name: string
+): Promise<ProjectStepDetail> {
+  return apiClient.patch<ProjectStepDetail>(
+    `/api/projects/${projectId}/steps/${stepId}/`,
+    { name }
+  );
+}
+
+export async function deleteSubStep(
+  projectId: number | string,
+  stepId: number | string
+): Promise<void> {
+  return apiClient.delete<void>(`/api/projects/${projectId}/steps/${stepId}/`);
+}
