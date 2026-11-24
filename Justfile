@@ -26,6 +26,10 @@ test-e2e:
 lint:
     python scripts/check_no_comments.py
 
+audit:
+    npm audit --omit=dev --audit-level=high
+    pip-audit
+
 seed:
     python backend/manage.py seed_demo
 

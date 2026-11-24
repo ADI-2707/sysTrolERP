@@ -20,6 +20,7 @@
     "test:backend": "cd backend && coverage run -m pytest && coverage report --fail-under=85",
     "test:frontend": "npm run test --workspaces",
     "test:e2e": "playwright test",
+    "audit": "npm audit --omit=dev --audit-level=high",
     "lint": "python scripts/check_no_comments.py",
     "seed": "python backend/manage.py seed_demo",
     "seed:fresh": "python backend/manage.py seed_demo --clear",
