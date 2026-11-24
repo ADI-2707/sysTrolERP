@@ -7,6 +7,7 @@ import { AuditTableView } from "../logs/components/AuditTableView";
 import { RequestsTableView } from "../logs/components/RequestsTableView";
 import { ErrorsTableView } from "../logs/components/ErrorsTableView";
 import { AuthEventsTableView } from "../logs/components/AuthEventsTableView";
+import { TelemetryDashboard } from "../logs/components/TelemetryDashboard";
 import styles from "./LogsPage.module.css";
 
 export function LogsPage() {
@@ -149,8 +150,8 @@ export function LogsPage() {
         )}
 
         {activeTab === "telemetry" && (
-          <div data-testid="telemetry-tab-panel" className={styles.placeholderCard}>
-            Telemetry performance metrics dashboard
+          <div data-testid="telemetry-tab-panel">
+            <TelemetryDashboard />
           </div>
         )}
       </div>

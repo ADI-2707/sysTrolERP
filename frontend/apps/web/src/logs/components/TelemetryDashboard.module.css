@@ -1,0 +1,168 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 24px);
+  width: 100%;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4, 16px);
+  padding: var(--space-4, 16px);
+  background-color: var(--color-neutral-60-surface, #ffffff);
+  border: 1px solid var(--color-neutral-60-border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 8px);
+}
+
+.rangeButtonGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.rangeBtn {
+  padding: 6px 14px;
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--color-neutral-60-border-subtle, #e2e8f0);
+  background-color: var(--color-neutral-60-surface, #ffffff);
+  color: var(--color-neutral-60-text-secondary, #475569);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.rangeBtn:hover {
+  background-color: var(--color-neutral-60-surface-raised, #f1f5f9);
+}
+
+.rangeBtnActive {
+  background-color: var(--color-brand-30-primary, #16a34a);
+  color: var(--color-neutral-60-surface, #ffffff);
+  border-color: var(--color-brand-30-primary, #16a34a);
+}
+
+.controlsRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4, 16px);
+}
+
+.autoRefreshLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  font-size: var(--font-size-sm, 14px);
+  color: var(--color-neutral-60-text-secondary, #475569);
+  cursor: pointer;
+  user-select: none;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4, 16px);
+}
+
+.metricCard {
+  background-color: var(--color-neutral-60-surface, #ffffff);
+  border: 1px solid var(--color-neutral-60-border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 8px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  font-size: var(--font-size-xs, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-neutral-60-text-muted, #64748b);
+  margin: 0;
+}
+
+.cardMain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+}
+
+.cardValue {
+  font-size: var(--font-size-2xl, 24px);
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--color-neutral-60-text-primary, #0f172a);
+  margin: 0;
+}
+
+.cardSub {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-neutral-60-text-muted, #64748b);
+}
+
+.chartsSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+  gap: var(--space-6, 24px);
+}
+
+.chartCard {
+  background-color: var(--color-neutral-60-surface, #ffffff);
+  border: 1px solid var(--color-neutral-60-border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 8px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chartTitle {
+  font-size: var(--font-size-base, 16px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-neutral-60-text-primary, #0f172a);
+  margin: 0;
+}
+
+.chartSubtitle {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-neutral-60-text-muted, #64748b);
+}
+
+.spinnerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 240px;
+}
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4, 16px);
+  background-color: var(--color-status-danger-bg, #fef2f2);
+  border: 1px solid var(--color-status-danger, #ef4444);
+  border-radius: var(--radius-md, 6px);
+  color: var(--color-status-danger, #ef4444);
+  font-size: var(--font-size-sm, 14px);
+}
