@@ -3,7 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TimesheetsDashboardPage } from "./TimesheetsDashboardPage";
 import * as authModule from "../auth";
 import * as timesheetsApi from "../api/timesheets";
-import type { TimesheetData, DashboardSummaryData } from "../timesheets/types";
+import type {
+  TimesheetData,
+  DashboardSummaryData,
+  TeamTimesheetItem,
+} from "../timesheets/types";
 
 vi.mock("../auth", () => ({
   useAuth: vi.fn(),
@@ -12,6 +16,9 @@ vi.mock("../auth", () => ({
 vi.mock("../api/timesheets", () => ({
   fetchOwnTimesheet: vi.fn(),
   fetchTimesheetSummary: vi.fn(),
+  fetchTeamTimesheets: vi.fn(),
+  approveTimesheet: vi.fn(),
+  returnTimesheet: vi.fn(),
   createTimesheetRow: vi.fn(),
   deleteTimesheetRow: vi.fn(),
   submitOwnTimesheet: vi.fn(),
@@ -81,6 +88,30 @@ describe("TimesheetsDashboardPage", () => {
     total_overtime_hours: "0.00",
   };
 
+  const mockTeamTimesheets: TeamTimesheetItem[] = [
+    {
+      id: 101,
+      employee: {
+        id: 2,
+        code: "SYS-002",
+        name: "Alice Engineer",
+        designation: "Lead",
+        department: "Engineering",
+      },
+      week_start_date: "2026-11-23",
+      week_end_date: "2026-11-29",
+      status: "SUBMITTED",
+      total_hours: "40.00",
+      submitted_at: "2026-11-27T18:00:00Z",
+      approved_at: null,
+      approved_by_label: null,
+      returned_at: null,
+      returned_by_label: null,
+      return_reason: null,
+      can_approve: true,
+    },
+  ];
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -116,7 +147,7 @@ describe("TimesheetsDashboardPage", () => {
     });
   });
 
-  it("renders admin dashboard with tabs and switches between tabs", async () => {
+  it("renders admin dashboard with tabs and allows approving team timesheet", async () => {
     vi.mocked(authModule.useAuth).mockReturnValue({
       user: {
         id: "admin-1",
@@ -138,6 +169,13 @@ describe("TimesheetsDashboardPage", () => {
     });
     vi.mocked(timesheetsApi.fetchOwnTimesheet).mockResolvedValue(mockEmployeeTimesheet);
     vi.mocked(timesheetsApi.fetchTimesheetSummary).mockResolvedValue(mockSummary);
+    vi.mocked(timesheetsApi.fetchTeamTimesheets).mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: mockTeamTimesheets,
+    });
+    vi.mocked(timesheetsApi.approveTimesheet).mockResolvedValue({});
 
     render(<TimesheetsDashboardPage />);
 
@@ -150,10 +188,17 @@ describe("TimesheetsDashboardPage", () => {
     fireEvent.click(teamTab);
 
     expect(screen.getByTestId("admin-summary-cards")).toBeInTheDocument();
-    expect(screen.getByTestId("team-review-placeholder")).toBeInTheDocument();
+    expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
+
+    const approveBtn = screen.getByTestId("approve-btn-101");
+    fireEvent.click(approveBtn);
+
+    await waitFor(() => {
+      expect(timesheetsApi.approveTimesheet).toHaveBeenCalledWith(101);
+    });
   });
 
-  it("renders super admin directly in team view", async () => {
+  it("renders super admin directly in team review view", async () => {
     vi.mocked(authModule.useAuth).mockReturnValue({
       user: {
         id: "super",
@@ -174,12 +219,18 @@ describe("TimesheetsDashboardPage", () => {
       refreshUser: vi.fn(),
     });
     vi.mocked(timesheetsApi.fetchTimesheetSummary).mockResolvedValue(mockSummary);
+    vi.mocked(timesheetsApi.fetchTeamTimesheets).mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: mockTeamTimesheets,
+    });
 
     render(<TimesheetsDashboardPage />);
 
     await waitFor(() => {
       expect(screen.getByTestId("admin-summary-cards")).toBeInTheDocument();
-      expect(screen.getByTestId("team-review-placeholder")).toBeInTheDocument();
+      expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
       expect(timesheetsApi.fetchOwnTimesheet).not.toHaveBeenCalled();
     });
   });

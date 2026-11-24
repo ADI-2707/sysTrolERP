@@ -53,6 +53,30 @@ export interface DashboardSummaryData {
   total_overtime_hours: string;
 }
 
+export interface TeamTimesheetEmployee {
+  id: number | string;
+  code: string;
+  name: string;
+  designation?: string;
+  department?: string;
+}
+
+export interface TeamTimesheetItem {
+  id: number;
+  employee: TeamTimesheetEmployee;
+  week_start_date: string;
+  week_end_date: string;
+  status: TimesheetStatus;
+  total_hours: string;
+  submitted_at: string | null;
+  approved_at: string | null;
+  approved_by_label: string | null;
+  returned_at: string | null;
+  returned_by_label: string | null;
+  return_reason: string | null;
+  can_approve: boolean;
+}
+
 export interface TimesheetData {
   id: number;
   week_start_date: string;

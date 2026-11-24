@@ -5,15 +5,23 @@ import { useWeekNavigation } from "../timesheets/hooks/useWeekNavigation";
 import { DashboardSummaryCards } from "../timesheets/components/DashboardSummaryCards";
 import { TimesheetGrid } from "../timesheets/components/TimesheetGrid";
 import { AdminTimesheetTabs } from "../timesheets/components/AdminTimesheetTabs";
+import { TeamTimesheetReviewGrid } from "../timesheets/components/TeamTimesheetReviewGrid";
 import { useTimesheetAutosave } from "../timesheets/hooks/useTimesheetAutosave";
 import {
   fetchOwnTimesheet,
   fetchTimesheetSummary,
+  fetchTeamTimesheets,
+  approveTimesheet,
+  returnTimesheet,
   createTimesheetRow,
   deleteTimesheetRow,
   submitOwnTimesheet,
 } from "../api/timesheets";
-import type { TimesheetData, DashboardSummaryData } from "../timesheets/types";
+import type {
+  TimesheetData,
+  DashboardSummaryData,
+  TeamTimesheetItem,
+} from "../timesheets/types";
 import styles from "./TimesheetsDashboardPage.module.css";
 
 export function TimesheetsDashboardPage() {
@@ -34,7 +42,9 @@ export function TimesheetsDashboardPage() {
 
   const [ownTimesheet, setOwnTimesheet] = useState<TimesheetData | null>(null);
   const [adminSummary, setAdminSummary] = useState<DashboardSummaryData | null>(null);
+  const [teamTimesheets, setTeamTimesheets] = useState<TeamTimesheetItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<number | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -45,8 +55,12 @@ export function TimesheetsDashboardPage() {
       }
 
       if (canReviewTeam) {
-        const sumData = await fetchTimesheetSummary(currentWeekStart);
+        const [sumData, teamData] = await Promise.all([
+          fetchTimesheetSummary(currentWeekStart),
+          fetchTeamTimesheets({ week: currentWeekStart }),
+        ]);
         setAdminSummary(sumData);
+        setTeamTimesheets(teamData.results || []);
       }
     } catch {
     } finally {
@@ -112,6 +126,26 @@ export function TimesheetsDashboardPage() {
   const handleSubmitTimesheet = async () => {
     await submitOwnTimesheet(currentWeekStart);
     await loadData();
+  };
+
+  const handleApproveTeamTimesheet = async (id: number) => {
+    try {
+      setProcessingId(id);
+      await approveTimesheet(id);
+      await loadData();
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReturnTeamTimesheet = async (id: number, reason: string) => {
+    try {
+      setProcessingId(id);
+      await returnTimesheet(id, reason);
+      await loadData();
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   return (
@@ -187,9 +221,13 @@ export function TimesheetsDashboardPage() {
           className={styles.tabPanel}
         >
           {adminSummary && <DashboardSummaryCards adminSummary={adminSummary} />}
-          <div className={styles.emptyNotice} data-testid="team-review-placeholder">
-            Team timesheet review view
-          </div>
+          <TeamTimesheetReviewGrid
+            timesheets={teamTimesheets}
+            onApprove={handleApproveTeamTimesheet}
+            onReturn={handleReturnTeamTimesheet}
+            isLoading={isLoading}
+            isProcessingId={processingId}
+          />
         </div>
       )}
     </div>

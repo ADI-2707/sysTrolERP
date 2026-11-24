@@ -23,3 +23,10 @@ export interface RequestOptions {
   signal?: AbortSignal;
   params?: Record<string, string | number | boolean | undefined>;
 }
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
