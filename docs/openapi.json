@@ -1,0 +1,502 @@
+openapi: 3.0.3
+info:
+  title: sysTrol ERP API
+  version: 1.0.0
+  description: sysTrol Enterprise Resource Planning API
+paths:
+  /api/audit/logs/:
+    get:
+      operationId: audit_logs_retrieve
+      tags:
+      - audit
+      responses:
+        '200':
+          description: No response body
+  /api/audit/logs/export/:
+    get:
+      operationId: audit_logs_export_retrieve
+      tags:
+      - audit
+      responses:
+        '200':
+          description: No response body
+  /api/auth/csrf:
+    get:
+      operationId: auth_csrf_retrieve
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/login:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/logout:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      responses:
+        '200':
+          description: No response body
+  /api/auth/me:
+    get:
+      operationId: auth_me_retrieve
+      tags:
+      - auth
+      responses:
+        '200':
+          description: No response body
+  /api/auth/password/change:
+    post:
+      operationId: auth_password_change_create
+      tags:
+      - auth
+      responses:
+        '200':
+          description: No response body
+  /api/employees/:
+    get:
+      operationId: employees_retrieve
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: employees_create
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/employees/{id}/:
+    get:
+      operationId: employees_retrieve_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: employees_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/employees/{id}/reset-password/:
+    post:
+      operationId: employees_reset_password_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/employees/{id}/restore/:
+    post:
+      operationId: employees_restore_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/employees/{id}/revoke/:
+    post:
+      operationId: employees_revoke_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/employees/recovery/clear-lockout/:
+    post:
+      operationId: employees_recovery_clear_lockout_create
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/employees/recovery/reset-admin-password/:
+    post:
+      operationId: employees_recovery_reset_admin_password_create
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/employees/recovery/restore-account/:
+    post:
+      operationId: employees_recovery_restore_account_create
+      tags:
+      - employees
+      responses:
+        '200':
+          description: No response body
+  /api/health/:
+    get:
+      operationId: health_retrieve
+      tags:
+      - health
+      responses:
+        '200':
+          description: No response body
+  /api/projects/:
+    get:
+      operationId: projects_retrieve
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: projects_create
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+  /api/projects/{id}/:
+    get:
+      operationId: projects_retrieve_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+  /api/projects/{project_id}/members/:
+    post:
+      operationId: projects_members_create
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+    put:
+      operationId: projects_members_update
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+  /api/projects/{project_id}/members/{user_id}/:
+    delete:
+      operationId: projects_members_destroy
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '204':
+          description: No response body
+  /api/projects/{project_id}/steps/{step_id}/:
+    patch:
+      operationId: projects_steps_partial_update
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: step_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: projects_steps_destroy
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: step_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '204':
+          description: No response body
+  /api/projects/{project_id}/steps/{step_id}/status/:
+    post:
+      operationId: projects_steps_status_create
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: step_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+  /api/projects/{project_id}/sub-steps/:
+    post:
+      operationId: projects_sub_steps_create
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+  /api/projects/matrix/:
+    get:
+      operationId: projects_matrix_retrieve
+      tags:
+      - projects
+      responses:
+        '200':
+          description: No response body
+  /api/telemetry/errors/:
+    get:
+      operationId: telemetry_errors_retrieve
+      tags:
+      - telemetry
+      responses:
+        '200':
+          description: No response body
+  /api/telemetry/requests/:
+    get:
+      operationId: telemetry_requests_retrieve
+      tags:
+      - telemetry
+      responses:
+        '200':
+          description: No response body
+  /api/telemetry/summary/:
+    get:
+      operationId: telemetry_summary_retrieve
+      tags:
+      - telemetry
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/:
+    get:
+      operationId: timesheets_retrieve
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/{id}/approve/:
+    post:
+      operationId: timesheets_approve_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/{id}/override/:
+    put:
+      operationId: timesheets_override_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/{id}/return/:
+    post:
+      operationId: timesheets_return_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/me/:
+    get:
+      operationId: timesheets_me_retrieve
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/me/cells/:
+    put:
+      operationId: timesheets_me_cells_update
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/me/cells/bulk/:
+    post:
+      operationId: timesheets_me_cells_bulk_create
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/me/rows/:
+    post:
+      operationId: timesheets_me_rows_create
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/me/rows/{id}/:
+    delete:
+      operationId: timesheets_me_rows_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - timesheets
+      responses:
+        '204':
+          description: No response body
+  /api/timesheets/me/submit/:
+    post:
+      operationId: timesheets_me_submit_create
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/pending/:
+    get:
+      operationId: timesheets_pending_retrieve
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/policy/:
+    get:
+      operationId: timesheets_policy_retrieve
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+    put:
+      operationId: timesheets_policy_update
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: timesheets_policy_partial_update
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+  /api/timesheets/summary/:
+    get:
+      operationId: timesheets_summary_retrieve
+      tags:
+      - timesheets
+      responses:
+        '200':
+          description: No response body
+components: {}
