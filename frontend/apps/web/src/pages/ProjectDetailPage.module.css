@@ -213,3 +213,16 @@
   color: var(--color-danger);
   font-size: var(--font-size-sm);
 }
+
+.modalText {
+  margin: 0 0 var(--space-5) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}

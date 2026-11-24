@@ -1,4 +1,4 @@
-import { IconCheck, IconEdit, IconPlus, IconTrash } from "../../icons";
+import { IconCheck, IconEdit, IconLock, IconPlus, IconTrash } from "../../icons";
 import { Badge } from "../Display";
 import styles from "./Stepper.module.css";
 
@@ -18,6 +18,7 @@ export interface StepperItem {
 export interface StepperProps {
   items: StepperItem[];
   onStatusChange?: (stepId: string, status: StepStatus) => void;
+  onAdvanceStep?: (stepId: string) => void;
   onInsertAfter?: (stepId: string) => void;
   onEditCustom?: (stepId: string) => void;
   onDeleteCustom?: (stepId: string) => void;
@@ -30,6 +31,7 @@ export interface StepperProps {
 export function Stepper({
   items,
   onStatusChange,
+  onAdvanceStep,
   onInsertAfter,
   onEditCustom,
   onDeleteCustom,
@@ -101,7 +103,7 @@ export function Stepper({
                   <button
                     type="button"
                     onClick={() => {
-                      if (!onStatusChange) return;
+                      if (!onStatusChange || isCompleted) return;
                       const nextMap: Record<StepStatus, StepStatus> = {
                         NOT_STARTED: "INITIATED",
                         INITIATED: "IN_PROGRESS",
@@ -114,16 +116,35 @@ export function Stepper({
                       background: "none",
                       border: "none",
                       padding: 0,
-                      cursor: onStatusChange ? "pointer" : "default",
+                      cursor: onStatusChange && !isCompleted ? "pointer" : "default",
                     }}
+                    disabled={!onStatusChange || isCompleted}
+                    aria-label={`Status: ${step.status}`}
+                    data-testid={`step-status-btn-${step.id}`}
                   >
                     <Badge variant={getBadgeVariant(step.status)}>
                       {step.status.replace("_", " ")}
                     </Badge>
                   </button>
+                  {isCompleted && (
+                    <span className={styles["locked-tag"]} data-testid={`step-locked-tag-${step.id}`}>
+                      <IconLock size={12} />
+                      <span>Locked</span>
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles["step-actions"]}>
+                  {!isCompleted && onAdvanceStep && (
+                    <button
+                      type="button"
+                      onClick={() => onAdvanceStep(step.id)}
+                      className={styles["advance-btn"]}
+                      data-testid={`advance-step-btn-${step.id}`}
+                    >
+                      Advance Status
+                    </button>
+                  )}
                   {step.isCustom && canEditCustom(step) && onEditCustom && (
                     <button
                       type="button"

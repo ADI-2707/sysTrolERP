@@ -1,17 +1,43 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Badge, ProgressBar, Avatar, Stepper, Spinner, IconChevronLeft, type StepperItem, type StepStatus } from "@systrol/ui";
-import { fetchProjectDetail } from "../api/projects";
-import type { ProjectDetailData } from "../projects/types";
+import {
+  Badge,
+  ProgressBar,
+  Avatar,
+  Stepper,
+  Spinner,
+  Button,
+  Modal,
+  useToast,
+  IconChevronLeft,
+  type StepperItem,
+  type StepStatus,
+} from "@systrol/ui";
+import { useAuth } from "../auth";
+import { fetchProjectDetail, updateStepStatus } from "../api/projects";
+import type { ProjectDetailData, ProjectStepDetail, StepStatusType } from "../projects/types";
 import styles from "./ProjectDetailPage.module.css";
+
+const nextStatusMap: Record<StepStatusType, StepStatusType> = {
+  NOT_STARTED: "INITIATED",
+  INITIATED: "IN_PROGRESS",
+  IN_PROGRESS: "COMPLETED",
+  COMPLETED: "COMPLETED",
+};
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isSuperAdmin, isAdmin } = useAuth();
+  const { addToast } = useToast();
+  const canManage = isSuperAdmin || isAdmin;
 
   const [project, setProject] = useState<ProjectDetailData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [stepToComplete, setStepToComplete] = useState<ProjectStepDetail | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -34,6 +60,58 @@ export function ProjectDetailPage() {
   useEffect(() => {
     loadDetail();
   }, [loadDetail]);
+
+  const executeStatusChange = async (
+    stepId: number,
+    status: StepStatusType,
+    confirm: boolean
+  ) => {
+    if (!project) return;
+    setIsUpdatingStatus(true);
+    try {
+      await updateStepStatus(project.id, stepId, status, confirm);
+      addToast({
+        type: "success",
+        title: "Status updated",
+        description: `Step status updated to ${status.replace("_", " ")}.`,
+      });
+      await loadDetail();
+    } catch (err: unknown) {
+      addToast({
+        type: "error",
+        title: "Update failed",
+        description: err instanceof Error ? err.message : "Failed to update step status.",
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+      setStepToComplete(null);
+    }
+  };
+
+  const handleAdvanceStep = (stepIdStr: string) => {
+    if (!project || !canManage) return;
+    const step = project.steps.find((s) => String(s.id) === stepIdStr);
+    if (!step || step.status === "COMPLETED") return;
+
+    const nextStatus = nextStatusMap[step.status];
+    if (nextStatus === "COMPLETED") {
+      setStepToComplete(step);
+    } else {
+      executeStatusChange(step.id, nextStatus, false);
+    }
+  };
+
+  const handleStatusChange = (stepIdStr: string, nextStatus: StepStatus) => {
+    if (!project || !canManage) return;
+    const step = project.steps.find((s) => String(s.id) === stepIdStr);
+    if (!step || step.status === "COMPLETED") return;
+
+    if (nextStatus === "COMPLETED") {
+      setStepToComplete(step);
+    } else {
+      executeStatusChange(step.id, nextStatus as StepStatusType, false);
+    }
+  };
 
   const stepperItems: StepperItem[] = useMemo(() => {
     if (!project) return [];
@@ -179,7 +257,11 @@ export function ProjectDetailPage() {
       <div className={styles.sectionContainer}>
         <h2 className={styles.sectionTitle}>Lifecycle Step Timeline</h2>
         <div className={styles.timelineWrapper} data-testid="project-stepper-timeline">
-          <Stepper items={stepperItems} />
+          <Stepper
+            items={stepperItems}
+            onStatusChange={canManage ? handleStatusChange : undefined}
+            onAdvanceStep={canManage ? handleAdvanceStep : undefined}
+          />
         </div>
       </div>
 
@@ -198,7 +280,7 @@ export function ProjectDetailPage() {
                   <span className={styles.memberName}>{member.full_name}</span>
                   <span className={styles.memberMeta}>
                     {member.employee_code}
-                    {member.designation ? ` &bull; ${member.designation}` : ""}
+                    {member.designation ? ` • ${member.designation}` : ""}
                   </span>
                 </div>
               </div>
@@ -206,6 +288,41 @@ export function ProjectDetailPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={!!stepToComplete}
+        onClose={() => !isUpdatingStatus && setStepToComplete(null)}
+        title="Confirm Step Completion"
+        size="sm"
+      >
+        <div data-testid="complete-step-modal">
+          <p className={styles.modalText}>
+            Are you sure you want to mark step &ldquo;{stepToComplete?.name}&rdquo; as COMPLETED? Once completed, this step is locked and cannot be reopened.
+          </p>
+          <div className={styles.modalFooter}>
+            <Button
+              variant="secondary"
+              onClick={() => setStepToComplete(null)}
+              data-testid="cancel-complete-step-btn"
+              disabled={isUpdatingStatus}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (stepToComplete) {
+                  executeStatusChange(stepToComplete.id, "COMPLETED", true);
+                }
+              }}
+              data-testid="confirm-complete-step-btn"
+              loading={isUpdatingStatus}
+            >
+              Confirm Completion
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

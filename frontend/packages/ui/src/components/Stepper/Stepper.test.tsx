@@ -39,6 +39,18 @@ describe("Stepper component", () => {
     expect(screen.getByText("Custom Sub-step")).toBeInTheDocument();
     expect(screen.getByText("COMPLETED")).toBeInTheDocument();
     expect(screen.getByText("IN PROGRESS")).toBeInTheDocument();
+    expect(screen.getByTestId("step-locked-tag-s1")).toBeInTheDocument();
+  });
+
+  it("triggers onAdvanceStep for uncompleted steps", () => {
+    const handleAdvance = vi.fn();
+    render(<Stepper items={steps} onAdvanceStep={handleAdvance} />);
+
+    expect(screen.queryByTestId("advance-step-btn-s1")).not.toBeInTheDocument();
+    const advanceBtn = screen.getByTestId("advance-step-btn-s2");
+    expect(advanceBtn).toBeInTheDocument();
+    fireEvent.click(advanceBtn);
+    expect(handleAdvance).toHaveBeenCalledWith("s2");
   });
 
   it("renders insert affordance and triggers onInsertAfter", () => {

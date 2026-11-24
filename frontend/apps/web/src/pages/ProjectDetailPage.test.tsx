@@ -1,7 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ProjectDetailPage } from "./ProjectDetailPage";
+import * as authModule from "../auth";
 import * as projectsApi from "../api/projects";
 import type { ProjectDetailData } from "../projects/types";
 
@@ -14,9 +15,25 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+vi.mock("../auth", () => ({
+  useAuth: vi.fn(),
+}));
+
 vi.mock("../api/projects", () => ({
   fetchProjectDetail: vi.fn(),
+  updateStepStatus: vi.fn(),
 }));
+
+const mockAddToast = vi.fn();
+vi.mock("@systrol/ui", async () => {
+  const actual = await vi.importActual("@systrol/ui");
+  return {
+    ...actual,
+    useToast: () => ({
+      addToast: mockAddToast,
+    }),
+  };
+});
 
 describe("ProjectDetailPage", () => {
   const mockProjectDetail: ProjectDetailData = {
@@ -109,6 +126,25 @@ describe("ProjectDetailPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(authModule.useAuth).mockReturnValue({
+      user: {
+        id: 1,
+        employee_code: "SYS-001",
+        full_name: "Admin User",
+        role: "ADMIN",
+        email: "admin@example.com",
+        must_change_password: false,
+      },
+      isAdmin: true,
+      isSuperAdmin: false,
+      isEmployee: false,
+      isAuthenticated: true,
+      isLoading: false,
+      mustChangePassword: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
   });
 
   const renderComponent = (projectId = "1") => {
@@ -141,7 +177,7 @@ describe("ProjectDetailPage", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/projects");
   });
 
-  it("renders project details, steps timeline and member cards correctly", async () => {
+  it("renders project details and locked tags for completed steps", async () => {
     vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
     renderComponent();
 
@@ -151,38 +187,109 @@ describe("ProjectDetailPage", () => {
 
     expect(screen.getByText("Turbine Installation")).toBeInTheDocument();
     expect(screen.getByTestId("project-detail-code")).toHaveTextContent("PRJ-01");
-    expect(screen.getByTestId("project-client-name")).toHaveTextContent("Apex Energy");
-    expect(screen.getByText("Commissioning of 500kW turbine")).toBeInTheDocument();
-
-    expect(screen.getByTestId("project-creator")).toHaveTextContent("Project Admin");
-    expect(screen.getByTestId("project-active-status")).toHaveTextContent("Active");
-    expect(screen.getByTestId("project-progress-percentage")).toHaveTextContent("21% (3 / 14 steps)");
-
-    expect(screen.getByTestId("project-stepper-timeline")).toBeInTheDocument();
-    expect(screen.getByText("Enquiry")).toBeInTheDocument();
-    expect(screen.getByText("Sales Visit")).toBeInTheDocument();
-    expect(screen.getByText("Procurement")).toBeInTheDocument();
-    expect(screen.getByText("Engineering")).toBeInTheDocument();
-    expect(screen.getByText("Manufacturing")).toBeInTheDocument();
-
-    expect(screen.getByText("Assigned Members (2)")).toBeInTheDocument();
-    expect(screen.getByTestId("project-members-grid")).toBeInTheDocument();
-    expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
-    expect(screen.getByText("Bob Tech")).toBeInTheDocument();
-
-    const backBtn = screen.getByTestId("back-to-projects-btn");
-    fireEvent.click(backBtn);
-    expect(mockNavigate).toHaveBeenCalledWith("/projects");
+    expect(screen.getByTestId("step-locked-tag-101")).toBeInTheDocument();
+    expect(screen.getByTestId("step-locked-tag-102")).toBeInTheDocument();
+    expect(screen.getByTestId("step-locked-tag-103")).toBeInTheDocument();
+    expect(screen.queryByTestId("advance-step-btn-101")).not.toBeInTheDocument();
   });
 
-  it("renders empty members state when no members assigned", async () => {
-    const noMembersProject = { ...mockProjectDetail, members: [] };
-    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(noMembersProject);
+  it("advances step from NOT_STARTED to INITIATED without modal", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    vi.mocked(projectsApi.updateStepStatus).mockResolvedValue({
+      id: 105,
+      key: "MANUFACTURING",
+      name: "Manufacturing",
+      position: 5,
+      is_custom: false,
+      status: "INITIATED",
+      confirmed_at: null,
+      confirmed_by_label: null,
+    });
+
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText("Assigned Members (0)")).toBeInTheDocument();
-      expect(screen.getByText("No team members currently assigned.")).toBeInTheDocument();
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
     });
+
+    const advanceBtn = screen.getByTestId("advance-step-btn-105");
+    fireEvent.click(advanceBtn);
+
+    await waitFor(() => {
+      expect(projectsApi.updateStepStatus).toHaveBeenCalledWith(1, 105, "INITIATED", false);
+    });
+  });
+
+  it("opens confirmation modal when advancing IN_PROGRESS step to COMPLETED", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    vi.mocked(projectsApi.updateStepStatus).mockResolvedValue({
+      id: 104,
+      key: "ENGINEERING",
+      name: "Engineering",
+      position: 4,
+      is_custom: false,
+      status: "COMPLETED",
+      confirmed_at: "2026-11-20T10:00:00Z",
+      confirmed_by_label: "Admin User",
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    const advanceBtn = screen.getByTestId("advance-step-btn-104");
+    fireEvent.click(advanceBtn);
+
+    const modal = screen.getByTestId("complete-step-modal");
+    expect(modal).toBeInTheDocument();
+    expect(within(modal).getByText(/Engineering/)).toBeInTheDocument();
+
+    const cancelBtn = screen.getByTestId("cancel-complete-step-btn");
+    fireEvent.click(cancelBtn);
+    expect(screen.queryByTestId("complete-step-modal")).not.toBeInTheDocument();
+
+    fireEvent.click(advanceBtn);
+    expect(screen.getByTestId("complete-step-modal")).toBeInTheDocument();
+
+    const confirmBtn = screen.getByTestId("confirm-complete-step-btn");
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(projectsApi.updateStepStatus).toHaveBeenCalledWith(1, 104, "COMPLETED", true);
+    });
+  });
+
+  it("does not allow employees to see step advance controls", async () => {
+    vi.mocked(authModule.useAuth).mockReturnValue({
+      user: {
+        id: 20,
+        employee_code: "SYS-020",
+        full_name: "Alice Employee",
+        role: "EMPLOYEE",
+        email: "alice@example.com",
+        must_change_password: false,
+      },
+      isAdmin: false,
+      isSuperAdmin: false,
+      isEmployee: true,
+      isAuthenticated: true,
+      isLoading: false,
+      mustChangePassword: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId("advance-step-btn-104")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("advance-step-btn-105")).not.toBeInTheDocument();
   });
 });

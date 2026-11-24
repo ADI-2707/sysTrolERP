@@ -3,6 +3,8 @@ import type { PaginatedResponse } from "./types";
 import type {
   ProjectListItem,
   ProjectDetailData,
+  ProjectStepDetail,
+  StepStatusType,
   AssignmentMatrixData,
 } from "../projects/types";
 
@@ -59,4 +61,16 @@ export async function fetchProjectDetail(
   idOrSlug: string | number
 ): Promise<ProjectDetailData> {
   return apiClient.get<ProjectDetailData>(`/api/projects/${idOrSlug}/`);
+}
+
+export async function updateStepStatus(
+  projectId: number | string,
+  stepId: number | string,
+  status: StepStatusType,
+  confirm: boolean = false
+): Promise<ProjectStepDetail> {
+  return apiClient.post<ProjectStepDetail>(
+    `/api/projects/${projectId}/steps/${stepId}/status/`,
+    { status, confirm }
+  );
 }
