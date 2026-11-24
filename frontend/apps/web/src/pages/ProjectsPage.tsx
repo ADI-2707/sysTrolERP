@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Spinner, EmptyState } from "@systrol/ui";
 import { useAuth } from "../auth";
-import { fetchProjects } from "../api/projects";
+import { fetchProjects, createProject, type CreateProjectPayload } from "../api/projects";
 import type { ProjectListItem } from "../projects/types";
 import { ProjectCard } from "../projects/components/ProjectCard";
 import { ProjectListToolbar } from "../projects/components/ProjectListToolbar";
+import { CreateProjectModal } from "../projects/components/CreateProjectModal";
 import styles from "./ProjectsPage.module.css";
 
 export function ProjectsPage() {
@@ -19,6 +20,12 @@ export function ProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+
+  const handleCreateProject = async (payload: CreateProjectPayload) => {
+    await createProject(payload);
+    await loadProjects();
+  };
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -100,7 +107,7 @@ export function ProjectsPage() {
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
             canCreateProject={canManageProjects}
-            onCreateProject={() => {}}
+            onCreateProject={() => setIsCreateModalOpen(true)}
           />
 
           {error && (
@@ -147,6 +154,14 @@ export function ProjectsPage() {
             <span>Assignments matrix view</span>
           </div>
         </div>
+      )}
+
+      {canManageProjects && (
+        <CreateProjectModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreateProject}
+        />
       )}
     </div>
   );

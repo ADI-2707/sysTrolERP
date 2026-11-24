@@ -21,6 +21,8 @@ vi.mock("../auth", () => ({
 
 vi.mock("../api/projects", () => ({
   fetchProjects: vi.fn(),
+  createProject: vi.fn(),
+  fetchActiveEmployees: vi.fn(),
   fetchAssignmentMatrix: vi.fn(),
 }));
 
@@ -306,6 +308,75 @@ describe("ProjectsPage", () => {
     await waitFor(() => {
       expect(screen.getByTestId("projects-empty-state")).toBeInTheDocument();
       expect(screen.getByText("No projects found")).toBeInTheDocument();
+    });
+  });
+
+  it("opens create project modal and creates a project", async () => {
+    vi.mocked(authModule.useAuth).mockReturnValue({
+      user: {
+        id: "adm-1",
+        full_name: "Admin User",
+        email: "admin@systrol.com",
+        role: "ADMIN",
+        employee_code: "SYS-ADM",
+        must_change_password: false,
+      },
+      isLoading: false,
+      isAuthenticated: true,
+      isSuperAdmin: false,
+      isAdmin: true,
+      isEmployee: false,
+      mustChangePassword: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    });
+
+    vi.mocked(projectsApi.fetchProjects).mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [mockProjects[0]],
+    });
+    vi.mocked(projectsApi.fetchActiveEmployees).mockResolvedValue({
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    });
+    vi.mocked(projectsApi.createProject).mockResolvedValue(mockProjects[0]);
+
+    render(
+      <MemoryRouter>
+        <ProjectsPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("create-project-btn")).toBeInTheDocument();
+    });
+
+    const createBtn = screen.getByTestId("create-project-btn");
+    fireEvent.click(createBtn);
+
+    expect(screen.getByRole("heading", { name: "Create Project" })).toBeInTheDocument();
+
+    const nameInput = screen.getByTestId("create-project-name-input");
+    fireEvent.change(nameInput, { target: { value: "New Industrial Plant" } });
+
+    const clientInput = screen.getByTestId("create-project-client-input");
+    fireEvent.change(clientInput, { target: { value: "MegaCorp" } });
+
+    const submitBtn = screen.getByTestId("submit-create-project-btn");
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(projectsApi.createProject).toHaveBeenCalledWith({
+        name: "New Industrial Plant",
+        client_name: "MegaCorp",
+        description: "",
+        member_ids: [],
+      });
     });
   });
 });

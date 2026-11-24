@@ -12,6 +12,21 @@ export interface ProjectListParams {
   page?: number;
 }
 
+export interface CreateProjectPayload {
+  name: string;
+  client_name?: string;
+  description?: string;
+  member_ids?: number[];
+}
+
+export interface EmployeeSummary {
+  id: number;
+  employee_code: string;
+  full_name: string;
+  designation?: string;
+  department?: string;
+}
+
 export async function fetchProjects(
   params?: ProjectListParams
 ): Promise<PaginatedResponse<ProjectListItem>> {
@@ -23,6 +38,16 @@ export async function fetchProjects(
 
   const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
   return apiClient.get<PaginatedResponse<ProjectListItem>>(`/api/projects/${query}`);
+}
+
+export async function createProject(
+  payload: CreateProjectPayload
+): Promise<ProjectListItem> {
+  return apiClient.post<ProjectListItem>("/api/projects/", payload);
+}
+
+export async function fetchActiveEmployees(): Promise<PaginatedResponse<EmployeeSummary>> {
+  return apiClient.get<PaginatedResponse<EmployeeSummary>>("/api/employees/?is_active=true");
 }
 
 export async function fetchAssignmentMatrix(): Promise<AssignmentMatrixData> {
