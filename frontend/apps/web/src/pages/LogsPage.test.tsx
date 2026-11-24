@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { LogsPage } from "./LogsPage";
@@ -80,5 +80,23 @@ describe("LogsPage Structure", () => {
 
     expect(screen.queryByTestId("logs-clear-filters-btn")).not.toBeInTheDocument();
     expect((screen.getByTestId("logs-search-input") as HTMLInputElement).value).toBe("");
+  });
+
+  it("triggers CSV and Gzip export downloads with active filters", () => {
+    renderLogsPage("/audit");
+
+    const exportCsvBtn = screen.getByTestId("logs-export-csv-btn");
+    const exportGzipBtn = screen.getByTestId("logs-export-gzip-btn");
+    expect(exportCsvBtn).toBeInTheDocument();
+    expect(exportGzipBtn).toBeInTheDocument();
+
+    const appendChildSpy = vi.spyOn(document.body, "appendChild");
+    fireEvent.click(exportCsvBtn);
+    expect(appendChildSpy).toHaveBeenCalled();
+
+    fireEvent.click(exportGzipBtn);
+    expect(appendChildSpy).toHaveBeenCalledTimes(2);
+
+    appendChildSpy.mockRestore();
   });
 });

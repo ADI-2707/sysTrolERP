@@ -8,7 +8,19 @@ import { RequestsTableView } from "../logs/components/RequestsTableView";
 import { ErrorsTableView } from "../logs/components/ErrorsTableView";
 import { AuthEventsTableView } from "../logs/components/AuthEventsTableView";
 import { TelemetryDashboard } from "../logs/components/TelemetryDashboard";
+import { getAuditLogExportUrl } from "../api/logs";
 import styles from "./LogsPage.module.css";
+
+const ALL_AUTH_ACTIONS = [
+  "LOGIN_SUCCESS",
+  "LOGIN_FAILURE",
+  "LOGIN_LOCKOUT",
+  "LOGOUT",
+  "PASSWORD_CHANGE",
+  "PASSWORD_RESET_BY_ADMIN",
+  "SUPER_ADMIN_PASSWORD_RESET",
+  "SUPER_CLEAR_LOCKOUT",
+].join(",");
 
 export function LogsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,6 +70,25 @@ export function LogsPage() {
     setSearchParams({ tab: activeTab });
   };
 
+  const handleExport = (gzip: boolean) => {
+    const action = activeTab === "auth" ? (actionFilter || ALL_AUTH_ACTIONS) : actionFilter;
+    const url = getAuditLogExportUrl(
+      {
+        search: search || undefined,
+        action: action || undefined,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+      },
+      gzip
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", gzip ? "audit_logs.csv.gz" : "audit_logs.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   const tabs: TabItem[] = [
     { id: "audit", label: "Audit" },
     { id: "requests", label: "Requests" },
@@ -104,6 +135,8 @@ export function LogsPage() {
           onMethodFilterChange={(v) => updateParam("method", v)}
           onErrorClassFilterChange={(v) => updateParam("error_class", v)}
           onResetFilters={handleResetFilters}
+          onExportCsv={() => handleExport(false)}
+          onExportGzip={() => handleExport(true)}
         />
       )}
 

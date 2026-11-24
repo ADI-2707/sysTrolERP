@@ -20,6 +20,7 @@ export interface LogsFilterBarProps {
   onErrorClassFilterChange: (value: string) => void;
   onResetFilters: () => void;
   onExportCsv?: () => void;
+  onExportGzip?: () => void;
 }
 
 export function LogsFilterBar({
@@ -40,6 +41,7 @@ export function LogsFilterBar({
   onErrorClassFilterChange,
   onResetFilters,
   onExportCsv,
+  onExportGzip,
 }: LogsFilterBarProps) {
   const hasActiveFilters = Boolean(
     search ||
@@ -182,15 +184,29 @@ export function LogsFilterBar({
             </Button>
           )}
 
-          {onExportCsv && (activeTab === "audit" || activeTab === "auth") && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={onExportCsv}
-              data-testid="logs-export-csv-btn"
-            >
-              Export CSV
-            </Button>
+          {(activeTab === "audit" || activeTab === "auth") && (
+            <>
+              {onExportCsv && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onExportCsv}
+                  data-testid="logs-export-csv-btn"
+                >
+                  Export CSV
+                </Button>
+              )}
+              {onExportGzip && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onExportGzip}
+                  data-testid="logs-export-gzip-btn"
+                >
+                  Export Gzip (.gz)
+                </Button>
+              )}
+            </>
           )}
         </div>
       </div>
