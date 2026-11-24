@@ -6,6 +6,7 @@ import { LogsFilterBar } from "../logs/components/LogsFilterBar";
 import { AuditTableView } from "../logs/components/AuditTableView";
 import { RequestsTableView } from "../logs/components/RequestsTableView";
 import { ErrorsTableView } from "../logs/components/ErrorsTableView";
+import { AuthEventsTableView } from "../logs/components/AuthEventsTableView";
 import styles from "./LogsPage.module.css";
 
 export function LogsPage() {
@@ -137,8 +138,13 @@ export function LogsPage() {
         )}
 
         {activeTab === "auth" && (
-          <div data-testid="auth-tab-panel" className={styles.placeholderCard}>
-            Authentication events and security alerts view
+          <div data-testid="auth-tab-panel">
+            <AuthEventsTableView
+              search={search}
+              actionFilter={actionFilter}
+              startDate={startDate}
+              endDate={endDate}
+            />
           </div>
         )}
 

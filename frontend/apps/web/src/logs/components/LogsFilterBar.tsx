@@ -111,11 +111,12 @@ export function LogsFilterBar({
             data-testid="logs-auth-action-filter"
           >
             <option value="">All Auth Events</option>
-            <option value="AUTH_LOGIN">AUTH_LOGIN</option>
-            <option value="AUTH_LOGIN_FAILED">AUTH_LOGIN_FAILED</option>
-            <option value="AUTH_LOGOUT">AUTH_LOGOUT</option>
-            <option value="AUTH_LOCKOUT">AUTH_LOCKOUT</option>
-            <option value="AUTH_PASSWORD_CHANGE">AUTH_PASSWORD_CHANGE</option>
+            <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
+            <option value="LOGIN_FAILURE">LOGIN_FAILURE</option>
+            <option value="LOGIN_LOCKOUT">LOGIN_LOCKOUT</option>
+            <option value="LOGOUT">LOGOUT</option>
+            <option value="PASSWORD_CHANGE">PASSWORD_CHANGE</option>
+            <option value="PASSWORD_RESET_BY_ADMIN">PASSWORD_RESET_BY_ADMIN</option>
             <option value="SUPER_ADMIN_PASSWORD_RESET">SUPER_ADMIN_PASSWORD_RESET</option>
             <option value="SUPER_CLEAR_LOCKOUT">SUPER_CLEAR_LOCKOUT</option>
           </select>

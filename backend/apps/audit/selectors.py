@@ -28,7 +28,11 @@ def query_audit_logs(
         qs = qs.filter(super_only=False)
 
     if action:
-        qs = qs.filter(action=action.strip())
+        actions = [a.strip() for a in action.split(",") if a.strip()]
+        if len(actions) == 1:
+            qs = qs.filter(action=actions[0])
+        elif len(actions) > 1:
+            qs = qs.filter(action__in=actions)
 
     if actor:
         val = actor.strip()
