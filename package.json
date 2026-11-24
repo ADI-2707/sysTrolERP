@@ -9,7 +9,20 @@
     "frontend/packages/*"
   ],
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev": "npm run dev:frontend",
+    "dev:backend": "python backend/manage.py runserver 0.0.0.0:8000",
+    "dev:frontend": "npm run dev --workspace=@systrol/web",
+    "build": "npm run build --workspaces",
+    "build:ui": "npm run build --workspace=@systrol/ui",
+    "build:web": "npm run build --workspace=@systrol/web",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "pytest backend",
+    "test:frontend": "npm run test --workspaces",
+    "lint": "python scripts/check_no_comments.py",
+    "seed": "python backend/manage.py seed_demo",
+    "seed:fresh": "python backend/manage.py seed_demo --clear",
+    "migrate": "python backend/manage.py migrate"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.7.1",
