@@ -201,6 +201,9 @@ describe("TimesheetGrid", () => {
     expect(within(footer).getByText("Regular Hours")).toBeInTheDocument();
     expect(within(footer).getByText("Overtime Hours")).toBeInTheDocument();
     expect(within(footer).getByText("Daily Total")).toBeInTheDocument();
+    expect(within(footer).getByText("Standard Hours")).toBeInTheDocument();
+    expect(screen.getByTestId("status-badge-2026-11-23")).toHaveTextContent("+1.0h OT");
+    expect(screen.getByTestId("status-badge-2026-11-24")).toHaveTextContent("Met");
 
     expect(within(footer).getByText("40.0")).toBeInTheDocument();
     expect(within(footer).getAllByText("1.0").length).toBeGreaterThanOrEqual(1);

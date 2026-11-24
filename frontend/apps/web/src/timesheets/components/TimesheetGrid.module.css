@@ -219,3 +219,38 @@
 .autosaveBadge.error {
   color: var(--color-danger-700);
 }
+
+.badgeMet {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-success-50);
+  color: var(--color-success-700);
+  border-radius: var(--radius-full);
+}
+
+.badgeOt {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-800);
+  border-radius: var(--radius-full);
+}
+
+.badgeUnder {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+}
+
+.badgeOff {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}

@@ -294,6 +294,60 @@ export function TimesheetGrid({
               </span>
             </div>
           </div>
+
+          <div className={styles.footerRow}>
+            <span className={styles.footerLabel}>Standard Hours</span>
+            <div className={styles.footerValues}>
+              {timesheet.days.map((d) => {
+                const total = parseFloat(timesheet.day_totals[d] || "0");
+                const ot = parseFloat(timesheet.day_overtime[d] || "0");
+                const threshold = parseFloat(timesheet.policy?.daily_regular_hours || "8");
+
+                if (ot > 0) {
+                  return (
+                    <span key={d} className={styles.footerVal}>
+                      <span className={styles.badgeOt} data-testid={`status-badge-${d}`}>
+                        +{ot.toFixed(1)}h OT
+                      </span>
+                    </span>
+                  );
+                }
+                if (total >= threshold) {
+                  return (
+                    <span key={d} className={styles.footerVal}>
+                      <span className={styles.badgeMet} data-testid={`status-badge-${d}`}>
+                        Met
+                      </span>
+                    </span>
+                  );
+                }
+                if (total > 0) {
+                  return (
+                    <span key={d} className={styles.footerVal}>
+                      <span className={styles.badgeUnder} data-testid={`status-badge-${d}`}>
+                        {total.toFixed(1)}h
+                      </span>
+                    </span>
+                  );
+                }
+                return (
+                  <span key={d} className={styles.footerVal}>
+                    <span className={styles.badgeOff}>-</span>
+                  </span>
+                );
+              })}
+              <span className={styles.footerTotal}>
+                {parseFloat(timesheet.total_regular_hours || "0") >=
+                parseFloat(timesheet.policy?.daily_regular_hours || "8") * 5 ? (
+                  <span className={styles.badgeMet}>Met</span>
+                ) : (
+                  <span className={styles.badgeUnder}>
+                    {parseFloat(timesheet.total_regular_hours || "0").toFixed(1)}h
+                  </span>
+                )}
+              </span>
+            </div>
+          </div>
         </div>
       </td>
     </tr>
