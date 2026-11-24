@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Spinner, EmptyState, Input, useToast } from "@systrol/ui";
+import { Spinner, EmptyState, Input, Button, useToast } from "@systrol/ui";
 import {
   fetchAssignmentMatrix,
   addProjectMember,
@@ -147,6 +147,9 @@ export function AssignmentMatrix() {
     return (
       <div role="alert" className={styles.loadingWrapper} data-testid="matrix-error">
         <span>{error || "Failed to load matrix data."}</span>
+        <Button size="sm" variant="secondary" onClick={loadMatrix} data-testid="matrix-retry-btn">
+          Retry
+        </Button>
       </div>
     );
   }

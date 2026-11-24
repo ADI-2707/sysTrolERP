@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Spinner, EmptyState } from "@systrol/ui";
+import { Tabs, EmptyState, Button } from "@systrol/ui";
 import { useAuth } from "../auth";
 import { fetchProjects, createProject, type CreateProjectPayload } from "../api/projects";
 import type { ProjectListItem } from "../projects/types";
@@ -8,6 +8,7 @@ import { ProjectCard } from "../projects/components/ProjectCard";
 import { ProjectListToolbar } from "../projects/components/ProjectListToolbar";
 import { CreateProjectModal } from "../projects/components/CreateProjectModal";
 import { AssignmentMatrix } from "../projects/components/AssignmentMatrix";
+import { ProjectCardSkeleton } from "../projects/components/ProjectCardSkeleton";
 import styles from "./ProjectsPage.module.css";
 
 export function ProjectsPage() {
@@ -113,14 +114,23 @@ export function ProjectsPage() {
 
           {error && (
             <div role="alert" className={styles.errorAlert} data-testid="projects-error">
-              {error}
+              <span>{error}</span>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={loadProjects}
+                data-testid="projects-retry-btn"
+              >
+                Retry
+              </Button>
             </div>
           )}
 
           {isLoading ? (
-            <div className={styles.loadingContainer} data-testid="projects-loading">
-              <Spinner size="lg" />
-              <span>Loading projects...</span>
+            <div className={styles.projectsGrid} data-testid="projects-loading">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ProjectCardSkeleton key={i} />
+              ))}
             </div>
           ) : displayedProjects.length === 0 ? (
             <div data-testid="projects-empty-state">

@@ -29,6 +29,7 @@ import {
   type EmployeeSummary,
 } from "../api/projects";
 import type { ProjectDetailData, ProjectStepDetail, ProjectMemberDetail, StepStatusType } from "../projects/types";
+import { ProjectDetailSkeleton } from "./ProjectDetailSkeleton";
 import styles from "./ProjectDetailPage.module.css";
 
 const nextStatusMap: Record<StepStatusType, StepStatusType> = {
@@ -432,9 +433,8 @@ export function ProjectDetailPage() {
 
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer} data-testid="project-detail-loading">
-        <Spinner size="lg" />
-        <span>Loading project details...</span>
+      <div className={styles.pageContainer} data-testid="project-detail-loading">
+        <ProjectDetailSkeleton />
       </div>
     );
   }
@@ -454,7 +454,16 @@ export function ProjectDetailPage() {
           </button>
         </div>
         <div role="alert" className={styles.errorAlert}>
-          {error || "Project not found."}
+          <span>{error || "Project not found."}</span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={loadDetail}
+            data-testid="project-detail-retry-btn"
+            style={{ marginLeft: "var(--space-3)" }}
+          >
+            Retry
+          </Button>
         </div>
       </div>
     );

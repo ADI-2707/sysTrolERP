@@ -197,10 +197,12 @@ describe("ProjectDetailPage", () => {
     vi.mocked(projectsApi.fetchProjectDetail).mockReturnValue(new Promise(() => {}));
     renderComponent();
     expect(screen.getByTestId("project-detail-loading")).toBeInTheDocument();
+    expect(screen.getByTestId("project-detail-loading-skeleton")).toBeInTheDocument();
   });
 
-  it("renders error state when fetch fails", async () => {
-    vi.mocked(projectsApi.fetchProjectDetail).mockRejectedValue(new Error("Network Error"));
+  it("renders error state when fetch fails and allows retry", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockRejectedValueOnce(new Error("Network Error"));
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValueOnce(mockProjectDetail);
     renderComponent();
 
     await waitFor(() => {
@@ -208,9 +210,12 @@ describe("ProjectDetailPage", () => {
       expect(screen.getByText("Network Error")).toBeInTheDocument();
     });
 
-    const backBtn = screen.getByTestId("back-to-projects-btn");
-    fireEvent.click(backBtn);
-    expect(mockNavigate).toHaveBeenCalledWith("/projects");
+    const retryBtn = screen.getByTestId("project-detail-retry-btn");
+    fireEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
   });
 
   it("renders project details and locked tags for completed steps", async () => {

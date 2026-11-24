@@ -179,4 +179,23 @@ describe("AssignmentMatrix", () => {
     expect(screen.getByTestId("matrix-col-102")).toBeInTheDocument();
     expect(screen.queryByTestId("matrix-col-101")).not.toBeInTheDocument();
   });
+
+  it("renders error state with retry button and retries on click", async () => {
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockRejectedValueOnce(new Error("Network failed"));
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValueOnce(mockMatrixData);
+
+    render(<AssignmentMatrix />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("matrix-error")).toBeInTheDocument();
+      expect(screen.getByText("Network failed")).toBeInTheDocument();
+    });
+
+    const retryBtn = screen.getByTestId("matrix-retry-btn");
+    fireEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("assignment-matrix")).toBeInTheDocument();
+    });
+  });
 });
