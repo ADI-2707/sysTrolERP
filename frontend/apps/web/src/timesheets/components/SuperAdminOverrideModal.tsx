@@ -112,7 +112,6 @@ export function SuperAdminOverrideModal({
               setReason(e.target.value);
               if (error) setError(null);
             }}
-            autoFocus
             data-testid="override-reason-textarea"
           />
         </div>

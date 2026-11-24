@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../auth";
 import { WeekNavigator } from "../timesheets/components/WeekNavigator";
 import { useWeekNavigation } from "../timesheets/hooks/useWeekNavigation";
@@ -92,35 +92,38 @@ export function TimesheetsDashboardPage() {
     loadData();
   }, [loadData]);
 
-  const dummyTimesheet: TimesheetData = {
-    id: 0,
-    week_start_date: currentWeekStart,
-    week_end_date: currentWeekStart,
-    status: "OPEN",
-    can_edit: false,
-    can_submit: false,
-    return_reason: null,
-    submitted_at: null,
-    approved_at: null,
-    approved_by_label: null,
-    returned_at: null,
-    returned_by_label: null,
-    policy: {
-      daily_regular_hours: "8.00",
-      hour_step: "0.25",
-      break_duration_hours: "1.00",
-      overtime_threshold_daily: "8.00",
-    },
-    days: [],
-    day_totals: {},
-    day_regular: {},
-    day_overtime: {},
-    total_week_hours: "0.00",
-    total_regular_hours: "0.00",
-    total_overtime_hours: "0.00",
-    rows: [],
-    assigned_projects: [],
-  };
+  const dummyTimesheet: TimesheetData = useMemo(
+    () => ({
+      id: 0,
+      week_start_date: currentWeekStart,
+      week_end_date: currentWeekStart,
+      status: "OPEN",
+      can_edit: false,
+      can_submit: false,
+      return_reason: null,
+      submitted_at: null,
+      approved_at: null,
+      approved_by_label: null,
+      returned_at: null,
+      returned_by_label: null,
+      policy: {
+        daily_regular_hours: "8.00",
+        hour_step: "0.25",
+        break_duration_hours: "1.00",
+        overtime_threshold_daily: "8.00",
+      },
+      days: [],
+      day_totals: {},
+      day_regular: {},
+      day_overtime: {},
+      total_week_hours: "0.00",
+      total_regular_hours: "0.00",
+      total_overtime_hours: "0.00",
+      rows: [],
+      assigned_projects: [],
+    }),
+    [currentWeekStart]
+  );
 
   const {
     timesheet: activeTimesheet,
