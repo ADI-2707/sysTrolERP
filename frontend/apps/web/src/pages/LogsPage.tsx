@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Tabs, type TabItem } from "@systrol/ui";
 import type { LogsTabKey } from "../logs/types";
 import { LogsFilterBar } from "../logs/components/LogsFilterBar";
+import { AuditTableView } from "../logs/components/AuditTableView";
 import styles from "./LogsPage.module.css";
 
 export function LogsPage() {
@@ -104,8 +105,13 @@ export function LogsPage() {
 
       <div className={styles.panelContainer}>
         {activeTab === "audit" && (
-          <div data-testid="audit-tab-panel" className={styles.placeholderCard}>
-            Audit log records view
+          <div data-testid="audit-tab-panel">
+            <AuditTableView
+              search={search}
+              actionFilter={actionFilter}
+              startDate={startDate}
+              endDate={endDate}
+            />
           </div>
         )}
 
