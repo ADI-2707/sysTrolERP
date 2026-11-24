@@ -32,8 +32,9 @@ RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 
 COPY backend/ /app/
+COPY deploy/entrypoint.sh /app/entrypoint.sh
 
-RUN mkdir -p /app/staticfiles && chown -R systrol:systrol /app
+RUN mkdir -p /app/staticfiles && chmod +x /app/entrypoint.sh && chown -R systrol:systrol /app
 
 USER systrol
 
@@ -42,4 +43,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/api/health/ || exit 1
 
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2", "--worker-class", "gthread", "config.wsgi:application"]

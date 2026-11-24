@@ -1,0 +1,2 @@
+59 23 * * 0 python /app/manage.py close_weeks
+0 2 * * * python /app/manage.py prune_logs
