@@ -3,13 +3,15 @@ import { Tabs, type TabItem } from "@systrol/ui";
 import { useAuth } from "../auth";
 import { ChangePasswordForm } from "../settings/components/ChangePasswordForm";
 import { AppearanceSettings } from "../settings/components/AppearanceSettings";
+import { ProfileSection } from "../settings/components/ProfileSection";
 import styles from "./SettingsPage.module.css";
 
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<string>("security");
+  const [activeTab, setActiveTab] = useState<string>("profile");
   const { isSuperAdmin } = useAuth();
 
   const tabs: TabItem[] = [
+    { id: "profile", label: "Profile" },
     { id: "security", label: "Security & Password" },
     { id: "appearance", label: "Appearance" },
   ];
@@ -33,6 +35,12 @@ export function SettingsPage() {
       </div>
 
       <div className={styles.contentCard} data-testid="settings-tab-content">
+        {activeTab === "profile" && (
+          <div data-testid="settings-profile-panel">
+            <ProfileSection />
+          </div>
+        )}
+
         {activeTab === "security" && (
           <div data-testid="settings-security-panel">
             {isSuperAdmin ? (
