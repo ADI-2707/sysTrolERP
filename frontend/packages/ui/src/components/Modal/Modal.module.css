@@ -161,3 +161,24 @@
     transform: translateX(0);
   }
 }
+
+@media (max-width: 640px) {
+  .backdrop {
+    padding: var(--space-2);
+  }
+
+  .modal {
+    max-height: calc(100vh - 16px);
+  }
+
+  .size-sm,
+  .size-md,
+  .size-lg,
+  .size-xl {
+    max-width: 100%;
+  }
+
+  .drawer {
+    max-width: 100vw;
+  }
+}

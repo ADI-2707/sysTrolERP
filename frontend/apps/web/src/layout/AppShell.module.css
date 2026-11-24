@@ -86,3 +86,13 @@
   align-items: center;
   gap: var(--space-3);
 }
+
+@media (max-width: 768px) {
+  .contentArea {
+    padding: var(--space-3);
+  }
+
+  .userInfo {
+    display: none;
+  }
+}
