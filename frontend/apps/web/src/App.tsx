@@ -9,6 +9,7 @@ import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { TimesheetsDashboardPage } from "./pages/TimesheetsDashboardPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
+import { EmployeesPage } from "./pages/EmployeesPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { AppShell, SessionExpiryWatcher } from "./layout";
 import { ComponentGallery } from "./gallery/ComponentGallery";
@@ -30,7 +31,7 @@ export function AppContent() {
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route element={<RequireRole allowedRoles={["ADMIN", "SUPER"]} />}>
-              <Route path="/employees" element={<div data-testid="employees-view">Employees View</div>} />
+              <Route path="/employees" element={<EmployeesPage />} />
               <Route path="/audit" element={<div data-testid="audit-view">Audit Logs View</div>} />
             </Route>
             <Route path="/gallery" element={<ComponentGallery />} />
