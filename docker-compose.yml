@@ -29,9 +29,11 @@ services:
       DEBUG: "False"
       ALLOWED_HOSTS: "*"
       SECURE_SSL_REDIRECT: "False"
+      SESSION_COOKIE_SECURE: "False"
+      CSRF_COOKIE_SECURE: "False"
       COMPANY_TIMEZONE: Asia/Kolkata
       SUPER_ADMIN_USERNAME: superadmin
-      SUPER_ADMIN_PASSWORD_HASH: "$$argon2id$$v=19$$m=65536,t=3,p=4$$placeholder"
+      SUPER_ADMIN_PASSWORD_HASH: "argon2$$argon2id$$v=19$$m=102400,t=2,p=8$$SzhVeTRramxkcTl0a0hCNVQ5OUdVTQ$$CovgJGvdmtNXdK9GBNaiVQNJqsmiFO5tjS4npyawDJo"
     depends_on:
       postgres:
         condition: service_healthy
