@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY backend/pyproject.toml .
+COPY backend/ /build/
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && pip wheel --no-cache-dir --wheel-dir=/build/wheels -e .
+    && pip wheel --no-cache-dir --wheel-dir=/build/wheels .
 
 FROM python:3.12-slim
 
@@ -27,7 +27,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && useradd --create-home --home-dir /home/systrol --shell /bin/bash systrol
 
 COPY --from=builder /build/wheels /wheels
-COPY backend/pyproject.toml .
 RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 

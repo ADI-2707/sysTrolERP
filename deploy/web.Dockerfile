@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,6 @@ COPY frontend/apps/web/package.json ./frontend/apps/web/
 RUN npm ci
 
 COPY frontend/ ./frontend/
-COPY tsconfig.json ./
 
 RUN npm run build --workspace=@systrol/ui
 RUN npm run build --workspace=@systrol/web
