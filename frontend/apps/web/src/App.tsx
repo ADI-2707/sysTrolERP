@@ -7,6 +7,7 @@ import { RequireAnonymous, RequireAuth, RequireRole } from "./routes";
 import { LoginPage } from "./pages/LoginPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 import { TimesheetsDashboardPage } from "./pages/TimesheetsDashboardPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { AppShell, SessionExpiryWatcher } from "./layout";
 import { ComponentGallery } from "./gallery/ComponentGallery";
@@ -25,7 +26,7 @@ export function AppContent() {
           <Route element={<AppShell />}>
             <Route path="/" element={<Navigate to="/timesheets" replace />} />
             <Route path="/timesheets" element={<TimesheetsDashboardPage />} />
-            <Route path="/projects" element={<div data-testid="projects-view">Projects View</div>} />
+            <Route path="/projects" element={<ProjectsPage />} />
             <Route element={<RequireRole allowedRoles={["ADMIN", "SUPER"]} />}>
               <Route path="/employees" element={<div data-testid="employees-view">Employees View</div>} />
               <Route path="/audit" element={<div data-testid="audit-view">Audit Logs View</div>} />
