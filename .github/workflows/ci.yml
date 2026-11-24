@@ -55,12 +55,12 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -e "backend[dev]"
-      - name: Run tests on SQLite
-        run: pytest
+      - name: Run tests with 85% coverage gate on SQLite
+        run: coverage run -m pytest && coverage report --fail-under=85
       - name: Run tests on PostgreSQL
         env:
           DATABASE_URL: postgres://systrol:systrol_password@localhost:5432/systrol_test
-        run: pytest
+        run: coverage run -m pytest && coverage report --fail-under=85
 
   frontend-tests:
     runs-on: ubuntu-latest

@@ -17,7 +17,7 @@
     "build:ui": "npm run build --workspace=@systrol/ui",
     "build:web": "npm run build --workspace=@systrol/web",
     "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "pytest backend",
+    "test:backend": "cd backend && coverage run -m pytest && coverage report --fail-under=85",
     "test:frontend": "npm run test --workspaces",
     "lint": "python scripts/check_no_comments.py",
     "seed": "python backend/manage.py seed_demo",
