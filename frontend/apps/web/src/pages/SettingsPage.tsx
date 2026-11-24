@@ -4,6 +4,7 @@ import { useAuth } from "../auth";
 import { ChangePasswordForm } from "../settings/components/ChangePasswordForm";
 import { AppearanceSettings } from "../settings/components/AppearanceSettings";
 import { ProfileSection } from "../settings/components/ProfileSection";
+import { TimesheetPolicyEditor } from "../settings/components/TimesheetPolicyEditor";
 import styles from "./SettingsPage.module.css";
 
 export function SettingsPage() {
@@ -14,6 +15,7 @@ export function SettingsPage() {
     { id: "profile", label: "Profile" },
     { id: "security", label: "Security & Password" },
     { id: "appearance", label: "Appearance" },
+    { id: "policy", label: "Timesheet Policy" },
   ];
 
   return (
@@ -56,6 +58,12 @@ export function SettingsPage() {
         {activeTab === "appearance" && (
           <div data-testid="settings-appearance-panel">
             <AppearanceSettings />
+          </div>
+        )}
+
+        {activeTab === "policy" && (
+          <div data-testid="settings-policy-panel">
+            <TimesheetPolicyEditor />
           </div>
         )}
       </div>

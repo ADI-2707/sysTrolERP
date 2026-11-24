@@ -1,0 +1,86 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 24px);
+  max-width: 640px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.title {
+  font-size: var(--font-size-lg, 18px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-neutral-60-text-primary, #0f172a);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: var(--font-size-sm, 14px);
+  color: var(--color-neutral-60-text-secondary, #475569);
+  margin: 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4, 16px);
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.infoBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  padding: var(--space-4, 16px);
+  background-color: var(--color-brand-10-chip-bg, #f0fdf4);
+  border: 1px solid var(--color-brand-30-primary, #16a34a);
+  border-radius: var(--radius-md, 6px);
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-neutral-60-text-primary, #0f172a);
+  line-height: 1.5;
+}
+
+.infoTitle {
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-brand-30-header, #166534);
+}
+
+.errorAlert {
+  padding: var(--space-3, 12px);
+  background-color: var(--color-status-danger-bg, #fef2f2);
+  border: 1px solid var(--color-status-danger, #ef4444);
+  border-radius: var(--radius-md, 6px);
+  color: var(--color-status-danger, #ef4444);
+  font-size: var(--font-size-sm, 14px);
+}
+
+.readOnlyNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-3, 12px);
+  background-color: var(--color-neutral-60-surface-raised, #f8fafc);
+  border: 1px solid var(--color-neutral-60-border-subtle, #e2e8f0);
+  border-radius: var(--radius-md, 6px);
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-neutral-60-text-secondary, #475569);
+}
+
+.submitBtn {
+  align-self: flex-start;
+  margin-top: var(--space-2, 8px);
+}
+
+.spinnerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
+}

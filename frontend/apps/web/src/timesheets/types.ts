@@ -23,10 +23,13 @@ export interface TimesheetRowData {
 }
 
 export interface TimesheetPolicyData {
+  standard_start_time?: string;
+  standard_end_time?: string;
   daily_regular_hours: string;
   hour_step: string;
   break_duration_hours: string;
   overtime_threshold_daily: string;
+  updated_at?: string;
 }
 
 export interface AssignedProject {
