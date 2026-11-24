@@ -13,10 +13,6 @@ import {
   IconDashboard,
   IconBriefcase,
   IconUsers,
-  IconMessageSquare,
-  IconImage,
-  IconFileText,
-  IconBarChart,
   IconShieldAlert,
   IconSettings,
   IconLogout,
@@ -117,38 +113,6 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       icon: <IconUsers size={17} />,
       isActive: location.pathname.startsWith("/employees"),
       onClick: () => navigate("/employees"),
-    });
-
-    navItems.push({
-      key: "cta",
-      label: "CTA Inquiries",
-      icon: <IconMessageSquare size={17} />,
-      isActive: location.pathname.startsWith("/cta"),
-      onClick: () => navigate("/timesheets"),
-    });
-
-    navItems.push({
-      key: "media",
-      label: "Media CMS",
-      icon: <IconImage size={17} />,
-      isActive: location.pathname.startsWith("/media"),
-      onClick: () => navigate("/timesheets"),
-    });
-
-    navItems.push({
-      key: "careers",
-      label: "Careers & Jobs",
-      icon: <IconFileText size={17} />,
-      isActive: location.pathname.startsWith("/careers"),
-      onClick: () => navigate("/timesheets"),
-    });
-
-    navItems.push({
-      key: "analytics",
-      label: "Analytics",
-      icon: <IconBarChart size={17} />,
-      isActive: location.pathname.startsWith("/analytics"),
-      onClick: () => navigate("/timesheets"),
     });
 
     navItems.push({
