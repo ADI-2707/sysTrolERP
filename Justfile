@@ -20,6 +20,9 @@ test-backend:
 test-frontend:
     npm run test --workspaces
 
+test-e2e:
+    npx playwright test
+
 lint:
     python scripts/check_no_comments.py
 
