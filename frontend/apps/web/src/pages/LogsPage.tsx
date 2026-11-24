@@ -4,6 +4,8 @@ import { Tabs, type TabItem } from "@systrol/ui";
 import type { LogsTabKey } from "../logs/types";
 import { LogsFilterBar } from "../logs/components/LogsFilterBar";
 import { AuditTableView } from "../logs/components/AuditTableView";
+import { RequestsTableView } from "../logs/components/RequestsTableView";
+import { ErrorsTableView } from "../logs/components/ErrorsTableView";
 import styles from "./LogsPage.module.css";
 
 export function LogsPage() {
@@ -116,14 +118,21 @@ export function LogsPage() {
         )}
 
         {activeTab === "requests" && (
-          <div data-testid="requests-tab-panel" className={styles.placeholderCard}>
-            HTTP request telemetry records view
+          <div data-testid="requests-tab-panel">
+            <RequestsTableView
+              search={search}
+              methodFilter={methodFilter}
+              statusCodeFilter={statusCodeFilter}
+            />
           </div>
         )}
 
         {activeTab === "errors" && (
-          <div data-testid="errors-tab-panel" className={styles.placeholderCard}>
-            Application error logs and stack traces view
+          <div data-testid="errors-tab-panel">
+            <ErrorsTableView
+              search={search}
+              errorClassFilter={errorClassFilter}
+            />
           </div>
         )}
 
