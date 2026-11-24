@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Badge, Button, Table, Pagination, EmptyState, Spinner, type TableColumn } from "@systrol/ui";
+import { Badge, Button, Table, Pagination, EmptyState, Spinner, useToast, type TableColumn } from "@systrol/ui";
 import { useAuth } from "../auth";
-import { fetchEmployees, createEmployee } from "../api/employees";
-import type { EmployeeListItem, CreateEmployeePayload, EmployeeCreatedResponse } from "../employees/types";
+import { fetchEmployees, createEmployee, updateEmployee } from "../api/employees";
+import type { EmployeeListItem, CreateEmployeePayload, EmployeeCreatedResponse, EmployeeDetailData, UpdateEmployeePayload } from "../employees/types";
 import { CreateEmployeeModal } from "../employees/components/CreateEmployeeModal";
 import { TemporaryPasswordModal } from "../employees/components/TemporaryPasswordModal";
 import { EmployeeDetailDrawer } from "../employees/components/EmployeeDetailDrawer";
+import { EditEmployeeModal } from "../employees/components/EditEmployeeModal";
 import styles from "./EmployeesPage.module.css";
 
 export function EmployeesPage() {
   const { isSuperAdmin, isAdmin } = useAuth();
   const canManage = isSuperAdmin || isAdmin;
+  const { addToast } = useToast();
 
   const [employees, setEmployees] = useState<EmployeeListItem[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -20,6 +22,7 @@ export function EmployeesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
   const [createdEmployee, setCreatedEmployee] = useState<EmployeeCreatedResponse | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<EmployeeDetailData | null>(null);
 
   const [search, setSearch] = useState<string>("");
   const [roleFilter, setRoleFilter] = useState<string>("");
@@ -69,6 +72,17 @@ export function EmployeesPage() {
     setCreatedEmployee(res);
     loadEmployees();
     return res;
+  };
+
+  const handleUpdateEmployee = async (id: number, payload: UpdateEmployeePayload) => {
+    await updateEmployee(id, payload);
+    addToast({
+      title: "Profile Updated",
+      description: "Employee profile has been updated successfully.",
+      type: "success",
+    });
+    loadEmployees();
+    setEditingEmployee(null);
   };
 
   const columns: TableColumn<EmployeeListItem>[] = useMemo(
@@ -324,6 +338,14 @@ export function EmployeesPage() {
         employeeId={selectedEmployeeId}
         canManage={canManage}
         isSuperAdmin={isSuperAdmin}
+        onEditProfile={(emp) => setEditingEmployee(emp)}
+      />
+
+      <EditEmployeeModal
+        isOpen={editingEmployee !== null}
+        onClose={() => setEditingEmployee(null)}
+        employee={editingEmployee}
+        onSubmit={handleUpdateEmployee}
       />
     </div>
   );
