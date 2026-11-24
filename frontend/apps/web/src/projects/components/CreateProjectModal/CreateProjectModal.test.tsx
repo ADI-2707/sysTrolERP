@@ -4,7 +4,7 @@ import { CreateProjectModal } from "./CreateProjectModal";
 import * as projectsApi from "../../../api/projects";
 
 vi.mock("../../../api/projects", async () => {
-  const actual = await vi.importActual("../../api/projects");
+  const actual = await vi.importActual<typeof projectsApi>("../../../api/projects");
   return {
     ...actual,
     fetchActiveEmployees: vi.fn(),
@@ -29,8 +29,15 @@ describe("CreateProjectModal", () => {
     },
   ];
 
+  const defaultProps = {
+    isOpen: true,
+    onClose: vi.fn(),
+    onSubmit: vi.fn(),
+    isLoading: false,
+  };
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
     vi.mocked(projectsApi.fetchActiveEmployees).mockResolvedValue({
       count: 2,
       next: null,
@@ -39,81 +46,64 @@ describe("CreateProjectModal", () => {
     });
   });
 
-  it("renders modal form and disables submit when name is empty", async () => {
-    render(
-      <CreateProjectModal
-        isOpen={true}
-        onClose={vi.fn()}
-        onSubmit={vi.fn()}
-      />
-    );
-
-    expect(screen.getByRole("heading", { name: "Create Project" })).toBeInTheDocument();
-    expect(screen.getByTestId("create-project-name-input")).toBeInTheDocument();
-    expect(screen.getByTestId("create-project-client-input")).toBeInTheDocument();
-    expect(screen.getByTestId("create-project-description-input")).toBeInTheDocument();
-
-    const submitBtn = screen.getByTestId("submit-create-project-btn");
-    expect(submitBtn).toBeDisabled();
+  it("loads active employees when opened", async () => {
+    render(<CreateProjectModal {...defaultProps} />);
 
     await waitFor(() => {
-      expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
-      expect(screen.getByText("Bob Builder")).toBeInTheDocument();
+      expect(projectsApi.fetchActiveEmployees).toHaveBeenCalled();
     });
+
+    expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
+    expect(screen.getByText("Bob Builder")).toBeInTheDocument();
   });
 
-  it("submits project with entered details and selected members", async () => {
-    const handleSubmit = vi.fn().mockResolvedValue(undefined);
+  it("validates required fields on submission", async () => {
+    render(<CreateProjectModal {...defaultProps} />);
 
-    render(
-      <CreateProjectModal
-        isOpen={true}
-        onClose={vi.fn()}
-        onSubmit={handleSubmit}
-      />
-    );
+    fireEvent.submit(screen.getByTestId("create-project-form"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Project name is required.")).toBeInTheDocument();
+    });
+
+    expect(defaultProps.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("submits valid project data", async () => {
+    render(<CreateProjectModal {...defaultProps} />);
 
     await waitFor(() => {
       expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
     });
 
-    const nameInput = screen.getByTestId("create-project-name-input");
-    fireEvent.change(nameInput, { target: { value: "Gas Turbine Unit 4" } });
+    fireEvent.change(screen.getByLabelText(/Project Name/i), {
+      target: { value: "New Automation Line" },
+    });
+    fireEvent.change(screen.getByLabelText(/Client Name/i), {
+      target: { value: "Apex Industries" },
+    });
+    fireEvent.change(screen.getByLabelText(/Description/i), {
+      target: { value: "Project scope" },
+    });
 
-    const clientInput = screen.getByTestId("create-project-client-input");
-    fireEvent.change(clientInput, { target: { value: "Apex Corp" } });
+    fireEvent.click(screen.getByTestId("member-checkbox-10"));
 
-    const descInput = screen.getByTestId("create-project-description-input");
-    fireEvent.change(descInput, { target: { value: "Turbine installation and testing" } });
-
-    const memberCheckbox = screen.getByTestId("member-checkbox-10");
-    fireEvent.click(memberCheckbox);
-
-    const submitBtn = screen.getByTestId("submit-create-project-btn");
-    expect(submitBtn).toBeEnabled();
-    fireEvent.click(submitBtn);
+    fireEvent.submit(screen.getByTestId("create-project-form"));
 
     await waitFor(() => {
-      expect(handleSubmit).toHaveBeenCalledWith({
-        name: "Gas Turbine Unit 4",
-        client_name: "Apex Corp",
-        description: "Turbine installation and testing",
+      expect(defaultProps.onSubmit).toHaveBeenCalledWith({
+        name: "New Automation Line",
+        client_name: "Apex Industries",
+        description: "Project scope",
         member_ids: [10],
       });
     });
   });
 
-  it("calls onClose when Cancel is clicked", () => {
-    const handleClose = vi.fn();
-    render(
-      <CreateProjectModal
-        isOpen={true}
-        onClose={handleClose}
-        onSubmit={vi.fn()}
-      />
-    );
+  it("calls onClose when Cancel button is clicked", () => {
+    render(<CreateProjectModal {...defaultProps} />);
 
-    fireEvent.click(screen.getByText("Cancel"));
-    expect(handleClose).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(defaultProps.onClose).toHaveBeenCalled();
   });
 });

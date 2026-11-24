@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
   Topbar,
@@ -10,10 +10,14 @@ import {
   DropdownMenu,
   Avatar,
   Badge,
-  IconCalendar,
-  IconProjects,
+  IconDashboard,
+  IconBriefcase,
   IconUsers,
-  IconLogs,
+  IconMessageSquare,
+  IconImage,
+  IconFileText,
+  IconBarChart,
+  IconShieldAlert,
   IconSettings,
   IconLogout,
   type SidebarItem,
@@ -91,17 +95,17 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
   const navItems: SidebarItem[] = [];
 
   navItems.push({
-    key: "timesheets",
-    label: "Timesheets",
-    icon: <IconCalendar size={18} />,
+    key: "dashboard",
+    label: "Dashboard",
+    icon: <IconDashboard size={17} />,
     isActive: location.pathname === "/" || location.pathname.startsWith("/timesheets"),
     onClick: () => navigate("/timesheets"),
   });
 
   navItems.push({
     key: "projects",
-    label: "Projects",
-    icon: <IconProjects size={18} />,
+    label: "Project Management",
+    icon: <IconBriefcase size={17} />,
     isActive: location.pathname.startsWith("/projects"),
     onClick: () => navigate("/projects"),
   });
@@ -109,20 +113,60 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
   if (isAdmin || isSuperAdmin) {
     navItems.push({
       key: "employees",
-      label: isSuperAdmin ? "Admins & Staff" : "Employees",
-      icon: <IconUsers size={18} />,
+      label: "Employee Management",
+      icon: <IconUsers size={17} />,
       isActive: location.pathname.startsWith("/employees"),
       onClick: () => navigate("/employees"),
     });
 
     navItems.push({
+      key: "cta",
+      label: "CTA Inquiries",
+      icon: <IconMessageSquare size={17} />,
+      isActive: location.pathname.startsWith("/cta"),
+      onClick: () => navigate("/timesheets"),
+    });
+
+    navItems.push({
+      key: "media",
+      label: "Media CMS",
+      icon: <IconImage size={17} />,
+      isActive: location.pathname.startsWith("/media"),
+      onClick: () => navigate("/timesheets"),
+    });
+
+    navItems.push({
+      key: "careers",
+      label: "Careers & Jobs",
+      icon: <IconFileText size={17} />,
+      isActive: location.pathname.startsWith("/careers"),
+      onClick: () => navigate("/timesheets"),
+    });
+
+    navItems.push({
+      key: "analytics",
+      label: "Analytics",
+      icon: <IconBarChart size={17} />,
+      isActive: location.pathname.startsWith("/analytics"),
+      onClick: () => navigate("/timesheets"),
+    });
+
+    navItems.push({
       key: "audit",
-      label: isSuperAdmin ? "System Telemetry" : "Audit Logs",
-      icon: <IconLogs size={18} />,
+      label: "Audit Trail",
+      icon: <IconShieldAlert size={17} />,
       isActive: location.pathname.startsWith("/audit"),
       onClick: () => navigate("/audit"),
     });
   }
+
+  navItems.push({
+    key: "settings",
+    label: "Settings",
+    icon: <IconSettings size={17} />,
+    isActive: location.pathname.startsWith("/settings"),
+    onClick: () => navigate("/settings"),
+  });
 
   const handleLogout = async () => {
     try {
@@ -178,30 +222,9 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       <Sidebar
         collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
-        logo={
-          <Link to="/" className={styles.brandLogo}>
-            <img src="/logo-mark.png" alt="sysTrol" className={styles.logoImg} />
-            <span>sysTrol ERP</span>
-          </Link>
-        }
-        collapsedLogo={
-          <Link to="/" className={styles.brandLogoCollapsed}>
-            <img src="/logo-mark.png" alt="sysTrol" className={styles.logoImg} />
-          </Link>
-        }
+        onLogout={handleLogout}
+        version="v2.11.0"
         items={navItems}
-        bottomSlot={
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={styles.sidebarLogoutBtn}
-            aria-label="Sidebar Sign Out"
-            title="Sign Out"
-          >
-            <IconLogout size={16} />
-            {!collapsed && <span>Sign Out</span>}
-          </button>
-        }
       />
 
       <div className={styles.mainWrapper}>

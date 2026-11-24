@@ -1,6 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, FormField, Input, PasswordInput, IconCheck } from "@systrol/ui";
+import {
+  IconMail,
+  IconLock,
+  IconEye,
+  IconEyeOff,
+  IconArrowRight,
+  IconWarning,
+  IconError,
+} from "@systrol/ui";
 import { useAuth } from "../../auth";
 import { ApiClientError } from "../../api";
 import styles from "./LoginPage.module.css";
@@ -8,6 +16,7 @@ import styles from "./LoginPage.module.css";
 export function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<"general" | "lockout" | "revoked" | null>(null);
@@ -60,105 +69,118 @@ export function LoginPage() {
 
   return (
     <div className={styles.container}>
-      <aside className={styles.brandPanel} aria-label="Brand Overview">
-        <div className={styles.brandHeader}>
-          <img src="/logo-mark.png" alt="sysTrol logo" className={styles.logoImage} />
-          <h1 className={styles.brandTitle}>sysTrol ERP</h1>
+      <h1 className={styles.srOnly}>sysTrol ERP</h1>
+
+      <div className={styles.lockup}>
+        <div className={styles.leftWindow}>
+          <img
+            src="/logo-full.png"
+            alt="sysTROL Engineering Redefined"
+            className={styles.logoFull}
+          />
         </div>
 
-        <div className={styles.brandBody}>
-          <div className={styles.brandHeroText}>Precision Operations & Project Execution</div>
-          <p className={styles.brandDescription}>
-            Unified enterprise project lifecycle management, automated weekly timesheets, and authoritative auditing for mission-critical engineering.
-          </p>
-
-          <ul className={styles.featureList}>
-            <li className={styles.featureItem}>
-              <IconCheck size={18} />
-              <span>14-Step Ordered Project Progression & Milestone Tracking</span>
-            </li>
-            <li className={styles.featureItem}>
-              <IconCheck size={18} />
-              <span>Strict Company Timezone Weekly Timesheet Authorization</span>
-            </li>
-            <li className={styles.featureItem}>
-              <IconCheck size={18} />
-              <span>Tamper-Proof Append-Only Audit & Telemetry Logging</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className={styles.brandFooter}>
-          &copy; {new Date().getFullYear()} sysTrol Engineering &amp; Automation. All rights reserved.
-        </div>
-      </aside>
-
-      <main className={styles.formPanel}>
-        <div className={styles.formCard}>
-          <div className={styles.formHeader}>
-            <h2 className={styles.formTitle}>Sign In</h2>
-            <p className={styles.formSubtitle}>Enter your employee code or email address to continue</p>
-          </div>
-
-          {errorMessage && (
-            <div
-              role="alert"
-              className={[
-                styles.alertBanner,
-                errorType === "lockout" || errorType === "revoked"
-                  ? styles.alertDanger
-                  : styles.alertWarning,
-              ].join(" ")}
-              data-testid={`banner-${errorType}`}
-            >
-              <strong>
-                {errorType === "lockout" && "Account Locked: "}
-                {errorType === "revoked" && "Access Revoked: "}
-              </strong>
-              {errorMessage}
+        <div className={styles.rightWindow}>
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.formTitle}>Sign In</h2>
+              <p className={styles.formSubtitle}>Enter your credentials to access the workspace</p>
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className={styles.form} noValidate>
-            <FormField id="identifier" label="Employee Code or Email" required>
-              <Input
-                id="identifier"
-                name="identifier"
-                type="text"
-                autoComplete="username"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="e.g. SYS-0001 or name@company.com"
+            {errorMessage && (
+              <div
+                role="alert"
+                className={[
+                  styles.alertBanner,
+                  errorType === "lockout" || errorType === "revoked"
+                    ? styles.alertDanger
+                    : styles.alertWarning,
+                ].join(" ")}
+                data-testid={`banner-${errorType}`}
+              >
+                {errorType === "lockout" || errorType === "revoked" ? (
+                  <IconError size={16} />
+                ) : (
+                  <IconWarning size={16} />
+                )}
+                <span>
+                  <strong>
+                    {errorType === "lockout" && "Account Locked: "}
+                    {errorType === "revoked" && "Access Revoked: "}
+                  </strong>
+                  {errorMessage}
+                </span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className={styles.form} noValidate>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="identifier" className={styles.label}>
+                  Email<span className={styles.srOnly}> (Employee Code or Email)</span>
+                </label>
+                <div className={styles.inputWrapper}>
+                  <span className={styles.inputIcon} aria-hidden="true">
+                    <IconMail size={16} />
+                  </span>
+                  <input
+                    id="identifier"
+                    name="identifier"
+                    type="text"
+                    autoComplete="username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="operator@systrol.com"
+                    disabled={isSubmitting}
+                    required
+                    className={styles.input}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label htmlFor="password" className={styles.label}>
+                  Password
+                </label>
+                <div className={styles.inputWrapper}>
+                  <span className={styles.inputIcon} aria-hidden="true">
+                    <IconLock size={16} />
+                  </span>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    disabled={isSubmitting}
+                    required
+                    className={[styles.input, styles.inputPassword].join(" ")}
+                  />
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className={styles.eyeToggleBtn}
+                  >
+                    {showPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
                 disabled={isSubmitting}
-                required
-              />
-            </FormField>
-
-            <FormField id="password" label="Password" required>
-              <PasswordInput
-                id="password"
-                name="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                disabled={isSubmitting}
-                required
-              />
-            </FormField>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              loading={isSubmitting}
-              className={styles.submitBtn}
-            >
-              Sign In
-            </Button>
-          </form>
+                className={styles.submitBtn}
+              >
+                <span>{isSubmitting ? "Signing In..." : "Sign In"}</span>
+                <IconArrowRight size={16} />
+              </button>
+            </form>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
