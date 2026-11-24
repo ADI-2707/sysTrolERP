@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import { DataGrid, Button, type DataGridColumn } from "@systrol/ui";
 import type { TimesheetData, TimesheetRowData } from "../types";
+import type { CellSaveStatus } from "../hooks/useTimesheetAutosave";
 import { getDayLabel } from "../utils/dateUtils";
 import { validateQuarterHours, parseClipboardHours } from "../utils/validation";
 import { TimesheetCellEditor } from "./TimesheetCellEditor";
@@ -12,6 +13,8 @@ export interface TimesheetGridProps {
   onCellChange?: (projectId: number, date: string, hours: string) => void;
   onAddRow?: (projectId: number, description: string) => Promise<void> | void;
   onDeleteRow?: (rowId: number) => Promise<void> | void;
+  cellStatuses?: Record<string, CellSaveStatus>;
+  globalStatus?: CellSaveStatus;
   className?: string;
   readOnly?: boolean;
 }
@@ -21,6 +24,8 @@ export function TimesheetGrid({
   onCellChange,
   onAddRow,
   onDeleteRow,
+  cellStatuses,
+  globalStatus,
   className,
   readOnly = false,
 }: TimesheetGridProps) {
@@ -104,16 +109,36 @@ export function TimesheetGrid({
           const hours = entry ? parseFloat(entry.hours).toFixed(1) : "0.0";
           const isEditable = canEdit && (entry?.is_editable ?? false);
           const hasNote = Boolean(entry?.note);
+          const cellKey = `${row.project.id}:${dayDate}`;
+          const cellStatus = cellStatuses?.[cellKey];
 
           return (
             <div
-              className={[styles.hourCell, !isEditable && styles.nonEditable]
+              className={[
+                styles.hourCell,
+                !isEditable && styles.nonEditable,
+                cellStatus === "error" && styles.cellError,
+              ]
                 .filter(Boolean)
                 .join(" ")}
               data-testid={`cell-${row.project.id}-${dayDate}`}
             >
               <span>{hours}</span>
               {hasNote && <span className={styles.hasNote} aria-label="Has task note" />}
+              {cellStatus && cellStatus !== "idle" && (
+                <span
+                  className={[
+                    styles.statusIndicator,
+                    cellStatus === "saving" && styles.statusSaving,
+                    cellStatus === "saved" && styles.statusSaved,
+                    cellStatus === "error" && styles.statusError,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  aria-label={`Status: ${cellStatus}`}
+                  data-testid={`cell-status-${cellKey}`}
+                />
+              )}
             </div>
           );
         },
@@ -157,7 +182,7 @@ export function TimesheetGrid({
     });
 
     return cols;
-  }, [timesheet.days, canEdit, timesheet.policy, onCellChange, onDeleteRow]);
+  }, [timesheet.days, canEdit, timesheet.policy, onCellChange, onDeleteRow, cellStatuses]);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     if (!onCellChange || !canEdit) return;
@@ -269,8 +294,8 @@ export function TimesheetGrid({
       onPaste={handlePaste}
       className={[styles.gridWrapper, className].filter(Boolean).join(" ")}
     >
-      {canEdit && onAddRow && (
-        <div className={styles.toolbar}>
+      <div className={styles.toolbar}>
+        {canEdit && onAddRow && (
           <Button
             type="button"
             variant="secondary"
@@ -279,8 +304,19 @@ export function TimesheetGrid({
           >
             Add Project Row
           </Button>
-        </div>
-      )}
+        )}
+
+        {globalStatus && globalStatus !== "idle" && (
+          <span
+            className={[styles.autosaveBadge, styles[globalStatus]].join(" ")}
+            data-testid="autosave-status-badge"
+          >
+            {globalStatus === "saving" && "Saving changes..."}
+            {globalStatus === "saved" && "All changes saved"}
+            {globalStatus === "error" && "Error saving changes"}
+          </span>
+        )}
+      </div>
 
       <DataGrid
         rows={timesheet.rows}

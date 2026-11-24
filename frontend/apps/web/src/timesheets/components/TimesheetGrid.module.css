@@ -173,3 +173,49 @@
   text-align: right;
   padding-right: var(--space-3);
 }
+
+.statusIndicator {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+}
+
+.statusSaving {
+  background-color: var(--color-warning-500);
+}
+
+.statusSaved {
+  background-color: var(--color-success-500);
+}
+
+.statusError {
+  background-color: var(--color-danger-500);
+}
+
+.cellError {
+  outline: 1px solid var(--color-danger-500);
+  background-color: var(--color-danger-50);
+}
+
+.autosaveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.autosaveBadge.saving {
+  color: var(--color-warning-700);
+}
+
+.autosaveBadge.saved {
+  color: var(--color-success-700);
+}
+
+.autosaveBadge.error {
+  color: var(--color-danger-700);
+}

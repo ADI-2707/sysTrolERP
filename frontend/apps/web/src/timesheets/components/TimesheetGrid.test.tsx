@@ -305,4 +305,18 @@ describe("TimesheetGrid", () => {
 
     expect(screen.queryByTestId("delete-row-101")).not.toBeInTheDocument();
   });
+
+  it("renders cell status indicator and global autosave badge", () => {
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        cellStatuses={{ "1:2026-11-23": "saving", "1:2026-11-24": "error" }}
+        globalStatus="saving"
+      />
+    );
+
+    expect(screen.getByTestId("autosave-status-badge")).toHaveTextContent("Saving changes...");
+    expect(screen.getByTestId("cell-status-1:2026-11-23")).toBeInTheDocument();
+    expect(screen.getByTestId("cell-status-1:2026-11-24")).toBeInTheDocument();
+  });
 });
