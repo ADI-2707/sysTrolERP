@@ -8,13 +8,15 @@ import {
   Spinner,
   Button,
   Modal,
+  Input,
+  FormField,
   useToast,
   IconChevronLeft,
   type StepperItem,
   type StepStatus,
 } from "@systrol/ui";
 import { useAuth } from "../auth";
-import { fetchProjectDetail, updateStepStatus } from "../api/projects";
+import { fetchProjectDetail, updateStepStatus, insertSubStep } from "../api/projects";
 import type { ProjectDetailData, ProjectStepDetail, StepStatusType } from "../projects/types";
 import styles from "./ProjectDetailPage.module.css";
 
@@ -38,6 +40,11 @@ export function ProjectDetailPage() {
 
   const [stepToComplete, setStepToComplete] = useState<ProjectStepDetail | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
+
+  const [insertAfterStep, setInsertAfterStep] = useState<ProjectStepDetail | null>(null);
+  const [subStepName, setSubStepName] = useState<string>("");
+  const [insertError, setInsertError] = useState<string | null>(null);
+  const [isInserting, setIsInserting] = useState<boolean>(false);
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -113,11 +120,79 @@ export function ProjectDetailPage() {
     }
   };
 
+  const highestCompletedPosition = useMemo(() => {
+    if (!project) return 0;
+    const completed = project.steps.filter((s) => s.status === "COMPLETED");
+    if (completed.length === 0) return 0;
+    return Math.max(...completed.map((s) => s.position));
+  }, [project]);
+
+  const canInsertAfter = useCallback(
+    (step: StepperItem) => {
+      if (!canManage) return false;
+      if (step.stepType === "AMC") return false;
+      return step.position >= highestCompletedPosition;
+    },
+    [canManage, highestCompletedPosition]
+  );
+
+  const handleOpenInsertModal = (stepIdStr: string) => {
+    if (!project || !canManage) return;
+    const step = project.steps.find((s) => String(s.id) === stepIdStr);
+    if (!step) return;
+    setInsertAfterStep(step);
+    setSubStepName("");
+    setInsertError(null);
+  };
+
+  const handleCloseInsertModal = () => {
+    if (isInserting) return;
+    setInsertAfterStep(null);
+    setSubStepName("");
+    setInsertError(null);
+  };
+
+  const handleConfirmInsert = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!project || !insertAfterStep) return;
+    const trimmed = subStepName.trim();
+    if (!trimmed) {
+      setInsertError("Sub-step name cannot be empty.");
+      return;
+    }
+    setIsInserting(true);
+    setInsertError(null);
+    try {
+      await insertSubStep(project.id, {
+        after_step_id: insertAfterStep.id,
+        name: trimmed,
+      });
+      addToast({
+        type: "success",
+        title: "Sub-step added",
+        description: `Added "${trimmed}" after ${insertAfterStep.name}.`,
+      });
+      handleCloseInsertModal();
+      await loadDetail();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to add sub-step.";
+      setInsertError(msg);
+      addToast({
+        type: "error",
+        title: "Add failed",
+        description: msg,
+      });
+    } finally {
+      setIsInserting(false);
+    }
+  };
+
   const stepperItems: StepperItem[] = useMemo(() => {
     if (!project) return [];
     return project.steps.map((s) => ({
       id: String(s.id),
       title: s.name,
+      stepType: s.key,
       status: s.status as StepStatus,
       isCustom: s.is_custom,
       position: s.position,
@@ -261,6 +336,8 @@ export function ProjectDetailPage() {
             items={stepperItems}
             onStatusChange={canManage ? handleStatusChange : undefined}
             onAdvanceStep={canManage ? handleAdvanceStep : undefined}
+            onInsertAfter={canManage ? handleOpenInsertModal : undefined}
+            canInsertAfter={canInsertAfter}
           />
         </div>
       </div>
@@ -322,6 +399,58 @@ export function ProjectDetailPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!insertAfterStep}
+        onClose={handleCloseInsertModal}
+        title="Add Sub-Step"
+        size="md"
+      >
+        <form onSubmit={handleConfirmInsert} data-testid="add-substep-modal">
+          <p className={styles.modalText}>
+            Inserting a custom sub-step after <strong>{insertAfterStep?.name}</strong>.
+          </p>
+          <FormField
+            id="substep-name-input"
+            label="Sub-step Name"
+            required
+            error={insertError || undefined}
+          >
+            <Input
+              id="substep-name-input"
+              value={subStepName}
+              onChange={(e) => {
+                setSubStepName(e.target.value);
+                if (insertError) setInsertError(null);
+              }}
+              placeholder="e.g. Factory Acceptance Test"
+              data-testid="substep-name-input"
+              autoFocus
+              disabled={isInserting}
+            />
+          </FormField>
+          <div className={styles.modalFooter} style={{ marginTop: "var(--space-5)" }}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseInsertModal}
+              data-testid="cancel-add-substep-btn"
+              disabled={isInserting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              data-testid="confirm-add-substep-btn"
+              loading={isInserting}
+              disabled={!subStepName.trim() || isInserting}
+            >
+              Add Sub-Step
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

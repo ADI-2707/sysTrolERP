@@ -22,6 +22,7 @@ vi.mock("../auth", () => ({
 vi.mock("../api/projects", () => ({
   fetchProjectDetail: vi.fn(),
   updateStepStatus: vi.fn(),
+  insertSubStep: vi.fn(),
 }));
 
 const mockAddToast = vi.fn();
@@ -100,6 +101,16 @@ describe("ProjectDetailPage", () => {
         key: "MANUFACTURING",
         name: "Manufacturing",
         position: 5,
+        is_custom: false,
+        status: "NOT_STARTED",
+        confirmed_at: null,
+        confirmed_by_label: null,
+      },
+      {
+        id: 106,
+        key: "AMC",
+        name: "Annual Maintenance Contract",
+        position: 6,
         is_custom: false,
         status: "NOT_STARTED",
         confirmed_at: null,
@@ -291,5 +302,73 @@ describe("ProjectDetailPage", () => {
 
     expect(screen.queryByTestId("advance-step-btn-104")).not.toBeInTheDocument();
     expect(screen.queryByTestId("advance-step-btn-105")).not.toBeInTheDocument();
+  });
+
+  it("enforces sub-step insertion rules and hides insert before highest completed step and after AMC", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId("insert-substep-after-101")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("insert-substep-after-102")).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("insert-substep-after-103")).toBeInTheDocument();
+    expect(screen.getByTestId("insert-substep-after-104")).toBeInTheDocument();
+    expect(screen.getByTestId("insert-substep-after-105")).toBeInTheDocument();
+
+    expect(screen.queryByTestId("insert-substep-after-106")).not.toBeInTheDocument();
+  });
+
+  it("opens add sub-step modal, validates input, and successfully inserts sub-step", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    vi.mocked(projectsApi.insertSubStep).mockResolvedValue({
+      id: 199,
+      key: "SUB_PROCUREMENT_1",
+      name: "Vendor Quality Audit",
+      position: 4,
+      is_custom: true,
+      status: "NOT_STARTED",
+      confirmed_at: null,
+      confirmed_by_label: null,
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    const insertBtn = screen.getByTestId("insert-substep-after-103");
+    fireEvent.click(insertBtn);
+
+    const modal = screen.getByTestId("add-substep-modal");
+    expect(modal).toBeInTheDocument();
+    expect(within(modal).getByText(/Procurement/)).toBeInTheDocument();
+
+    const submitBtn = screen.getByTestId("confirm-add-substep-btn");
+    expect(submitBtn).toBeDisabled();
+
+    const nameInput = screen.getByTestId("substep-name-input");
+    fireEvent.change(nameInput, { target: { value: "Vendor Quality Audit" } });
+    expect(submitBtn).not.toBeDisabled();
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(projectsApi.insertSubStep).toHaveBeenCalledWith(1, {
+        after_step_id: 103,
+        name: "Vendor Quality Audit",
+      });
+    });
+
+    expect(mockAddToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "success",
+        title: "Sub-step added",
+      })
+    );
   });
 });

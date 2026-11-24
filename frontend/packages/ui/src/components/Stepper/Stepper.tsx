@@ -181,6 +181,7 @@ export function Stepper({
                   className={styles["insert-btn"]}
                   title={`Insert sub-step after ${step.title}`}
                   aria-label={`Insert sub-step after ${step.title}`}
+                  data-testid={`insert-substep-after-${step.id}`}
                 >
                   <IconPlus size={12} />
                 </button>

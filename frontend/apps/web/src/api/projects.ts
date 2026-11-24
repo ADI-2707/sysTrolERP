@@ -74,3 +74,18 @@ export async function updateStepStatus(
     { status, confirm }
   );
 }
+
+export interface InsertSubStepPayload {
+  after_step_id: number;
+  name: string;
+}
+
+export async function insertSubStep(
+  projectId: number | string,
+  payload: InsertSubStepPayload
+): Promise<ProjectStepDetail> {
+  return apiClient.post<ProjectStepDetail>(
+    `/api/projects/${projectId}/sub-steps/`,
+    payload
+  );
+}
