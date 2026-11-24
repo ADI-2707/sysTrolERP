@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Badge, Button, Table, Pagination, EmptyState, Spinner, useToast, type TableColumn } from "@systrol/ui";
 import { useAuth } from "../auth";
-import { fetchEmployees, createEmployee, updateEmployee } from "../api/employees";
+import { fetchEmployees, createEmployee, updateEmployee, revokeEmployee, restoreEmployee, resetEmployeePassword } from "../api/employees";
 import type { EmployeeListItem, CreateEmployeePayload, EmployeeCreatedResponse, EmployeeDetailData, UpdateEmployeePayload } from "../employees/types";
 import { CreateEmployeeModal } from "../employees/components/CreateEmployeeModal";
 import { TemporaryPasswordModal } from "../employees/components/TemporaryPasswordModal";
 import { EmployeeDetailDrawer } from "../employees/components/EmployeeDetailDrawer";
 import { EditEmployeeModal } from "../employees/components/EditEmployeeModal";
+import { ActionReasonModal } from "../employees/components/ActionReasonModal";
 import styles from "./EmployeesPage.module.css";
 
 export function EmployeesPage() {
@@ -23,6 +24,22 @@ export function EmployeesPage() {
   const [createdEmployee, setCreatedEmployee] = useState<EmployeeCreatedResponse | null>(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
   const [editingEmployee, setEditingEmployee] = useState<EmployeeDetailData | null>(null);
+  const [actionReasonState, setActionReasonState] = useState<{
+    isOpen: boolean;
+    mode: "revoke" | "restore";
+    employee: EmployeeDetailData | null;
+  }>({
+    isOpen: false,
+    mode: "revoke",
+    employee: null,
+  });
+  const [temporaryResetPassword, setTemporaryResetPassword] = useState<{
+    temporaryPassword: string;
+    employeeName: string;
+    employeeCode: string;
+    email: string;
+    role: string;
+  } | null>(null);
 
   const [search, setSearch] = useState<string>("");
   const [roleFilter, setRoleFilter] = useState<string>("");
@@ -83,6 +100,69 @@ export function EmployeesPage() {
     });
     loadEmployees();
     setEditingEmployee(null);
+  };
+
+  const handleRevokeClick = (emp: EmployeeDetailData) => {
+    setActionReasonState({
+      isOpen: true,
+      mode: "revoke",
+      employee: emp,
+    });
+  };
+
+  const handleRestoreClick = (emp: EmployeeDetailData) => {
+    setActionReasonState({
+      isOpen: true,
+      mode: "restore",
+      employee: emp,
+    });
+  };
+
+  const handleResetPasswordClick = async (emp: EmployeeDetailData) => {
+    try {
+      const res = await resetEmployeePassword(emp.id);
+      setTemporaryResetPassword({
+        temporaryPassword: res.temporary_password,
+        employeeName: emp.full_name,
+        employeeCode: emp.employee_code,
+        email: emp.email,
+        role: emp.role,
+      });
+      addToast({
+        title: "Password Reset",
+        description: `New temporary password generated for ${emp.employee_code}.`,
+        type: "success",
+      });
+    } catch (err: unknown) {
+      addToast({
+        title: "Reset Failed",
+        description: err instanceof Error ? err.message : "Failed to reset password.",
+        type: "error",
+      });
+    }
+  };
+
+  const handleActionReasonSubmit = async (reason: string) => {
+    const emp = actionReasonState.employee;
+    if (!emp) return;
+
+    if (actionReasonState.mode === "revoke") {
+      await revokeEmployee(emp.id, reason);
+      addToast({
+        title: "Account Revoked",
+        description: `Access for ${emp.employee_code} has been revoked.`,
+        type: "warning",
+      });
+    } else {
+      await restoreEmployee(emp.id, reason);
+      addToast({
+        title: "Account Restored",
+        description: `Access for ${emp.employee_code} has been restored.`,
+        type: "success",
+      });
+    }
+    loadEmployees();
+    setSelectedEmployeeId(null);
   };
 
   const columns: TableColumn<EmployeeListItem>[] = useMemo(
@@ -339,6 +419,9 @@ export function EmployeesPage() {
         canManage={canManage}
         isSuperAdmin={isSuperAdmin}
         onEditProfile={(emp) => setEditingEmployee(emp)}
+        onRevokeAccess={handleRevokeClick}
+        onRestoreAccess={handleRestoreClick}
+        onResetPassword={handleResetPasswordClick}
       />
 
       <EditEmployeeModal
@@ -347,6 +430,36 @@ export function EmployeesPage() {
         employee={editingEmployee}
         onSubmit={handleUpdateEmployee}
       />
+
+      <ActionReasonModal
+        isOpen={actionReasonState.isOpen}
+        onClose={() => setActionReasonState({ isOpen: false, mode: "revoke", employee: null })}
+        title={actionReasonState.mode === "revoke" ? "Revoke Staff Account" : "Restore Staff Account"}
+        description={
+          actionReasonState.mode === "revoke"
+            ? "Revoking an employee terminates all active sessions immediately and prevents future logins."
+            : "Restoring an account reactivates login capabilities for this employee."
+        }
+        employeeName={actionReasonState.employee?.full_name}
+        employeeCode={actionReasonState.employee?.employee_code}
+        confirmLabel={actionReasonState.mode === "revoke" ? "Revoke Access" : "Restore Access"}
+        confirmVariant={actionReasonState.mode === "revoke" ? "danger" : "primary"}
+        reasonLabel="Reason (audited)"
+        onSubmit={handleActionReasonSubmit}
+      />
+
+      {temporaryResetPassword && (
+        <TemporaryPasswordModal
+          isOpen={true}
+          onClose={() => setTemporaryResetPassword(null)}
+          title="Temporary Password Issued"
+          temporaryPassword={temporaryResetPassword.temporaryPassword}
+          employeeName={temporaryResetPassword.employeeName}
+          employeeCode={temporaryResetPassword.employeeCode}
+          email={temporaryResetPassword.email}
+          role={temporaryResetPassword.role}
+        />
+      )}
     </div>
   );
 }
