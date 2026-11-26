@@ -53,7 +53,7 @@ export function Sidebar({
           >
             {collapsedLogo || (
               <>
-                <img src="/icon.jpeg" alt="sysTrol ERP" className={styles["icon-img"]} />
+                <img src="/logo-collapsed.png" alt="sysTrol ERP" className={styles["icon-img"]} />
                 <span className={styles["sr-only"]}>sysTrol ERP</span>
               </>
             )}
