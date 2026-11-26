@@ -44,16 +44,18 @@ def test_timesheet_row_management_lifecycle():
             creator=admin,
             member_ids=[emp2.id],
         )
+        project2.is_active = False
+        project2.save()
 
         client = APIClient()
         client.force_login(emp1)
 
-        res_unassigned = client.post(
+        res_inactive = client.post(
             "/api/timesheets/me/rows/",
             {"project_id": project2.id},
             format="json",
         )
-        assert res_unassigned.status_code == 400
+        assert res_inactive.status_code == 400
 
         res_create = client.post(
             "/api/timesheets/me/rows/",

@@ -88,10 +88,6 @@ def upsert_timesheet_cell(
     if not project.is_active:
         raise ValidationError({"project_id": ["Cannot enter hours for an inactive project."]})
 
-    is_assigned = ProjectAssignment.objects.filter(project=project, employee=user).exists()
-    if not is_assigned:
-        raise ValidationError({"project_id": ["You are not assigned to this project."]})
-
     monday, _ = week_bounds(cell_date)
     today = company_today()
 
@@ -106,7 +102,7 @@ def upsert_timesheet_cell(
             week_start_date=monday,
             week_status=timesheet.status,
             project_is_active=project.is_active,
-            is_assigned=is_assigned,
+            is_assigned=True,
             today=today,
         )
         if not editable:
@@ -119,7 +115,7 @@ def upsert_timesheet_cell(
 
         old_entry = TimesheetEntry.objects.filter(row=row, date=cell_date).first()
 
-        if hours == Decimal("0.00"):
+        if hours == Decimal("0.00") and not note.strip():
             if old_entry:
                 old_entry.delete()
         else:
@@ -198,9 +194,6 @@ def create_timesheet_row(
 
     if not project.is_active:
         raise ValidationError({"project_id": ["Cannot add row for inactive project."]})
-
-    if not ProjectAssignment.objects.filter(project=project, employee=user).exists():
-        raise ValidationError({"project_id": ["You are not assigned to this project."]})
 
     if week_date is None:
         week_date = company_today()

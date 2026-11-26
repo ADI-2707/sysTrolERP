@@ -79,18 +79,26 @@ def test_timesheet_models_and_constraints():
                 hours=Decimal("4.00"),
             )
 
+    zero_entry = TimesheetEntry.objects.create(
+        row=row,
+        date=datetime.date(2026, 11, 24),
+        hours=Decimal("0.00"),
+        note="Planning only, no hours yet",
+    )
+    assert zero_entry.hours == Decimal("0.00")
+
     with transaction.atomic():
         with pytest.raises(IntegrityError):
             TimesheetEntry.objects.create(
                 row=row,
-                date=datetime.date(2026, 11, 24),
-                hours=Decimal("0.00"),
+                date=datetime.date(2026, 11, 25),
+                hours=Decimal("-1.00"),
             )
 
     with transaction.atomic():
         with pytest.raises(IntegrityError):
             TimesheetEntry.objects.create(
                 row=row,
-                date=datetime.date(2026, 11, 24),
+                date=datetime.date(2026, 11, 26),
                 hours=Decimal("24.50"),
             )

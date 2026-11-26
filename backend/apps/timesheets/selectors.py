@@ -27,6 +27,9 @@ def get_own_timesheet(
     target_date = parse_week_param(week_str)
     monday, sunday = week_bounds(target_date)
     today = company_today()
+    current_monday, _ = week_bounds(today)
+    if monday > current_monday:
+        raise ValidationError({"week": ["Cannot navigate to a future week."]})
 
     timesheet, _ = Timesheet.objects.get_or_create(
         employee=user,
@@ -35,9 +38,10 @@ def get_own_timesheet(
 
     policy = TimesheetPolicy.get_current()
 
-    assigned_projects = list(
-        Project.objects.filter(is_active=True, assignments__employee=user).order_by("code")
+    active_projects = list(
+        Project.objects.filter(is_active=True).order_by("code")
     )
+    assigned_projects = active_projects
     assigned_project_ids = {p.id for p in assigned_projects}
 
     rows = list(
@@ -142,6 +146,16 @@ def get_own_timesheet(
                 "slug": p.slug,
             }
             for p in assigned_projects
+        ],
+        "available_projects": [
+            {
+                "id": p.id,
+                "code": p.code,
+                "name": p.name,
+                "slug": p.slug,
+                "is_active": p.is_active,
+            }
+            for p in active_projects
         ],
     }
 

@@ -25,7 +25,7 @@ def is_cell_editable(
     week_start_date: datetime.date,
     week_status: str,
     project_is_active: bool,
-    is_assigned: bool,
+    is_assigned: bool = True,
     today: datetime.date | None = None,
 ) -> bool:
     if today is None:
@@ -36,7 +36,7 @@ def is_cell_editable(
     if cell_date > today:
         return False
 
-    if not (project_is_active and is_assigned):
+    if not project_is_active:
         return False
 
     if week_status not in (TimesheetWeekStatus.OPEN, TimesheetWeekStatus.RETURNED):

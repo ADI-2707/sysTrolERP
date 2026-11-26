@@ -72,14 +72,6 @@ def test_cell_and_week_editability_with_time_machine():
         assert is_cell_editable(
             cell_date=monday,
             week_start_date=monday,
-            week_status=TimesheetWeekStatus.OPEN,
-            project_is_active=True,
-            is_assigned=False,
-        ) is False
-
-        assert is_cell_editable(
-            cell_date=monday,
-            week_start_date=monday,
             week_status=TimesheetWeekStatus.SUBMITTED,
             project_is_active=True,
             is_assigned=True,

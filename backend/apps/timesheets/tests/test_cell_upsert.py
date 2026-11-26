@@ -42,25 +42,26 @@ def test_cell_upsert_lifecycle():
             member_ids=[emp1.id],
         )
 
-        unassigned_project = create_project(
-            name="Unassigned Project",
+        inactive_project = create_project(
+            name="Inactive Project",
             creator=admin,
-            member_ids=[emp2.id],
         )
+        inactive_project.is_active = False
+        inactive_project.save()
 
         client = APIClient()
         client.force_login(emp1)
 
-        res_unassigned = client.put(
+        res_inactive = client.put(
             "/api/timesheets/me/cells/",
             {
-                "project_id": unassigned_project.id,
+                "project_id": inactive_project.id,
                 "date": "2026-11-23",
                 "hours": "8.00",
             },
             format="json",
         )
-        assert res_unassigned.status_code == 400
+        assert res_inactive.status_code == 400
 
         res_future = client.put(
             "/api/timesheets/me/cells/",

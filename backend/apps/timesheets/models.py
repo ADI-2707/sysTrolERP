@@ -134,7 +134,7 @@ class TimesheetEntry(TimestampedModel):
                 name="unique_row_date_entry",
             ),
             models.CheckConstraint(
-                condition=models.Q(hours__gt=0) & models.Q(hours__lte=24),
+                condition=models.Q(hours__gte=0) & models.Q(hours__lte=24),
                 name="hours_between_0_and_24",
             ),
         ]
