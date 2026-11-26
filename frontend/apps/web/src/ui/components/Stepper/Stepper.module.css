@@ -155,8 +155,8 @@
 .add-substep-container {
   position: absolute;
   left: 24px;
-  bottom: 0px;
-  transform: translateX(-50%);
+  top: calc(50% + 13px);
+  transform: translate(-50%, -50%);
   z-index: 3;
   pointer-events: auto;
 }
