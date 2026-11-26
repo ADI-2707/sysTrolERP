@@ -54,6 +54,14 @@ def test_project_list_view_permissions_and_filtering():
     assert search_resp.data["count"] == 1
     assert search_resp.data["results"][0]["code"] == proj2.code
 
+    active_resp = admin_client.get(f"{reverse('project_list_create')}?status=ACTIVE")
+    assert active_resp.status_code == 200
+    assert active_resp.data["count"] == 2
+
+    completed_resp = admin_client.get(f"{reverse('project_list_create')}?status=COMPLETED")
+    assert completed_resp.status_code == 200
+    assert completed_resp.data["count"] == 0
+
     create_payload = {
         "name": "New Project Via API",
         "client_name": "API Client",

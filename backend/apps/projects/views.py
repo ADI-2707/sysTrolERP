@@ -45,9 +45,6 @@ class ProjectListCreateView(APIView):
             status_filter=status_filter,
         )
 
-        if status_filter:
-            qs = [p for p in qs if p.status == status_filter.upper()]
-
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(qs, request)
         serializer = ProjectListSerializer(page, many=True)

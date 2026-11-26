@@ -1,8 +1,8 @@
-from django.db.models import Q, QuerySet
+from django.db.models import Count, F, Q, QuerySet
 
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
-from apps.projects.models import Project, ProjectAssignment
+from apps.projects.models import Project, ProjectAssignment, StepStatus
 
 
 def list_projects_for_user(
@@ -22,6 +22,19 @@ def list_projects_for_user(
         qs = qs.filter(
             Q(name__icontains=search) | Q(code__icontains=search) | Q(client_name__icontains=search)
         )
+
+    if status_filter:
+        sf = status_filter.strip().upper()
+        if sf == "COMPLETED":
+            qs = qs.annotate(
+                total_steps=Count("steps", distinct=True),
+                completed_steps=Count("steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True),
+            ).filter(total_steps__gt=0, total_steps=F("completed_steps"))
+        elif sf == "ACTIVE":
+            qs = qs.annotate(
+                total_steps=Count("steps", distinct=True),
+                completed_steps=Count("steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True),
+            ).filter(Q(total_steps=0) | Q(completed_steps__lt=F("total_steps")))
 
     return qs.order_by("-created_at")
 
