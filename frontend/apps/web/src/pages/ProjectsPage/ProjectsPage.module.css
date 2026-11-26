@@ -60,3 +60,19 @@
   font-size: var(--font-size-sm);
   margin-bottom: var(--space-4);
 }
+
+.paginationFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-4);
+}
+
+.paginationMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}

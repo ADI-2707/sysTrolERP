@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, EmptyState, Button } from "@systrol/ui";
+import { Tabs, EmptyState, Button, Pagination } from "@systrol/ui";
 import { useAuth } from "../../auth";
 import { fetchProjects, createProject, type CreateProjectPayload } from "../../api/projects";
 import type { ProjectListItem } from "../../projects/types";
@@ -22,6 +22,9 @@ export function ProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 12;
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
 
   const handleCreateProject = async (payload: CreateProjectPayload) => {
@@ -29,11 +32,24 @@ export function ProjectsPage() {
     await loadProjects();
   };
 
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+  };
+
+  const handleStatusFilterChange = (val: string) => {
+    setStatusFilter(val);
+    setPage(1);
+  };
+
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const params: { search?: string; status?: string; is_active?: boolean } = {};
+      const params: { search?: string; status?: string; is_active?: boolean; page?: number; page_size?: number } = {
+        page,
+        page_size: pageSize,
+      };
       if (search.trim()) params.search = search.trim();
       if (statusFilter) params.status = statusFilter;
       if (!canManageProjects) {
@@ -42,6 +58,7 @@ export function ProjectsPage() {
 
       const res = await fetchProjects(params);
       setProjects(res.results || []);
+      setTotalCount(res.count || 0);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -51,7 +68,7 @@ export function ProjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [search, statusFilter, canManageProjects]);
+  }, [search, statusFilter, canManageProjects, page]);
 
   useEffect(() => {
     loadProjects();
@@ -105,9 +122,9 @@ export function ProjectsPage() {
         >
           <ProjectListToolbar
             search={search}
-            onSearchChange={setSearch}
+            onSearchChange={handleSearchChange}
             statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
+            onStatusFilterChange={handleStatusFilterChange}
             canCreateProject={canManageProjects}
             onCreateProject={() => setIsCreateModalOpen(true)}
           />
@@ -140,15 +157,30 @@ export function ProjectsPage() {
               />
             </div>
           ) : (
-            <div className={styles.projectsGrid} data-testid="projects-grid">
-              {displayedProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onClick={handleCardClick}
-                />
-              ))}
-            </div>
+            <>
+              <div className={styles.projectsGrid} data-testid="projects-grid">
+                {displayedProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onClick={handleCardClick}
+                  />
+                ))}
+              </div>
+              {totalCount > 0 && (
+                <div className={styles.paginationFooter} data-testid="projects-pagination-footer">
+                  <span className={styles.paginationMeta} data-testid="projects-pagination-meta">
+                    Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} of {totalCount} projects
+                  </span>
+                  <Pagination
+                    page={page}
+                    pageSize={pageSize}
+                    total={totalCount}
+                    onChange={setPage}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
