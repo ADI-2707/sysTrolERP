@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal, IsSuper
+from apps.accounts.principals import SuperAdminPrincipal
 from apps.core.pagination import StandardPageNumberPagination
 from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
 from apps.timesheets.selectors import (
@@ -15,6 +16,7 @@ from apps.timesheets.selectors import (
 from apps.timesheets.serializers import (
     BulkCellSaveSerializer,
     CellUpsertSerializer,
+    OwnTimesheetHistorySerializer,
     SuperAdminOverrideSerializer,
     TimesheetAdminListSerializer,
     TimesheetPolicySerializer,
@@ -64,6 +66,32 @@ class OwnTimesheetView(APIView):
         week_param = request.query_params.get("week")
         data = get_own_timesheet(user=request.user, week_str=week_param)
         return Response(data, status=status.HTTP_200_OK)
+
+
+class OwnTimesheetHistoryView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def get(self, request):
+        if isinstance(request.user, SuperAdminPrincipal) or getattr(request.user, "role", None) == "SUPER":
+            return Response(
+                {
+                    "count": 0,
+                    "next": None,
+                    "previous": None,
+                    "results": [],
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        qs = (
+            Timesheet.objects.filter(employee=request.user)
+            .prefetch_related("rows__entries")
+            .order_by("-week_start_date")
+        )
+        paginator = StandardPageNumberPagination()
+        page = paginator.paginate_queryset(qs, request)
+        serializer = OwnTimesheetHistorySerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class OwnTimesheetCellView(APIView):

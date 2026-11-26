@@ -103,6 +103,35 @@ class SuperAdminOverrideSerializer(serializers.Serializer):
         return val
 
 
+class OwnTimesheetHistorySerializer(serializers.ModelSerializer):
+    week_end_date = serializers.SerializerMethodField()
+    total_hours = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Timesheet
+        fields = [
+            "id",
+            "week_start_date",
+            "week_end_date",
+            "status",
+            "total_hours",
+            "submitted_at",
+            "approved_at",
+            "returned_at",
+            "return_reason",
+        ]
+
+    def get_week_end_date(self, obj):
+        return (obj.week_start_date + datetime.timedelta(days=6)).isoformat()
+
+    def get_total_hours(self, obj):
+        total = Decimal("0.00")
+        for row in obj.rows.all():
+            for entry in row.entries.all():
+                total += entry.hours
+        return str(total)
+
+
 class TimesheetAdminListSerializer(serializers.ModelSerializer):
     employee = serializers.SerializerMethodField()
     week_end_date = serializers.SerializerMethodField()

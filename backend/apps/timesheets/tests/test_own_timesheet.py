@@ -58,6 +58,12 @@ def test_own_timesheet_endpoint():
 
         res_invalid = client.get("/api/timesheets/me/?week=not-a-date")
         assert res_invalid.status_code == 400
+
+        res_history = client.get("/api/timesheets/me/history/")
+        assert res_history.status_code == 200
+        history_data = res_history.json()
+        assert history_data["count"] >= 1
+        assert history_data["results"][0]["week_start_date"] == "2026-11-23"
         assert "week" in res_invalid.json()["fields"]
 
         super_client = APIClient()
