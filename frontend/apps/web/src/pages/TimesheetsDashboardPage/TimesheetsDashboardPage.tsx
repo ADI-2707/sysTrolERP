@@ -56,10 +56,29 @@ export function TimesheetsDashboardPage() {
   const [ownTimesheet, setOwnTimesheet] = useState<TimesheetData | null>(null);
   const [adminSummary, setAdminSummary] = useState<DashboardSummaryData | null>(null);
   const [teamTimesheets, setTeamTimesheets] = useState<TeamTimesheetItem[]>([]);
+  const [reviewPage, setReviewPage] = useState<number>(1);
+  const reviewPageSize = 20;
+  const [reviewSearch, setReviewSearch] = useState<string>("");
+  const [reviewStatus, setReviewStatus] = useState<string>("ALL");
+  const [totalReviewCount, setTotalReviewCount] = useState<number>(0);
   const [healthData, setHealthData] = useState<HealthCheckData | null>(null);
   const [telemetryData, setTelemetryData] = useState<TelemetrySummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
+
+  const handleReviewSearchChange = (val: string) => {
+    setReviewSearch(val);
+    setReviewPage(1);
+  };
+
+  const handleReviewStatusChange = (val: string) => {
+    setReviewStatus(val);
+    setReviewPage(1);
+  };
+
+  useEffect(() => {
+    setReviewPage(1);
+  }, [currentWeekStart]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -70,12 +89,27 @@ export function TimesheetsDashboardPage() {
       }
 
       if (canReviewTeam) {
+        const teamParams: {
+          week: string;
+          page: number;
+          page_size: number;
+          search?: string;
+          status?: string;
+        } = {
+          week: currentWeekStart,
+          page: reviewPage,
+          page_size: reviewPageSize,
+        };
+        if (reviewSearch.trim()) teamParams.search = reviewSearch.trim();
+        if (reviewStatus !== "ALL") teamParams.status = reviewStatus;
+
         const [sumData, teamData] = await Promise.all([
           fetchTimesheetSummary(currentWeekStart),
-          fetchTeamTimesheets({ week: currentWeekStart }),
+          fetchTeamTimesheets(teamParams),
         ]);
         setAdminSummary(sumData);
         setTeamTimesheets(teamData.results || []);
+        setTotalReviewCount(teamData.count || 0);
       }
 
       if (isSuper) {
@@ -90,7 +124,7 @@ export function TimesheetsDashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentWeekStart, isSuper, canReviewTeam]);
+  }, [currentWeekStart, isSuper, canReviewTeam, reviewPage, reviewSearch, reviewStatus]);
 
   useEffect(() => {
     loadData();
@@ -292,6 +326,14 @@ export function TimesheetsDashboardPage() {
             isSuper={isSuper}
             isLoading={isLoading}
             isProcessingId={processingId}
+            page={reviewPage}
+            pageSize={reviewPageSize}
+            totalCount={totalReviewCount}
+            onPageChange={setReviewPage}
+            searchTerm={reviewSearch}
+            onSearchChange={handleReviewSearchChange}
+            statusFilter={reviewStatus}
+            onStatusFilterChange={handleReviewStatusChange}
           />
         </div>
       )}

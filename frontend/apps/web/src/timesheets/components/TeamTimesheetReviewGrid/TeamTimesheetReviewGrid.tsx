@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Button } from "@systrol/ui";
+import { Button, Pagination } from "@systrol/ui";
 import type { TeamTimesheetItem, TimesheetStatus } from "../../types";
 import { ReturnTimesheetModal } from "../ReturnTimesheetModal";
 import { SuperAdminOverrideModal } from "../SuperAdminOverrideModal";
@@ -14,6 +14,14 @@ export interface TeamTimesheetReviewGridProps {
   isLoading?: boolean;
   isProcessingId?: number | null;
   className?: string;
+  page?: number;
+  pageSize?: number;
+  totalCount?: number;
+  onPageChange?: (page: number) => void;
+  searchTerm?: string;
+  onSearchChange?: (val: string) => void;
+  statusFilter?: string;
+  onStatusFilterChange?: (val: string) => void;
 }
 
 export function TeamTimesheetReviewGrid({
@@ -25,19 +33,42 @@ export function TeamTimesheetReviewGrid({
   isLoading = false,
   isProcessingId = null,
   className,
+  page = 1,
+  pageSize = 20,
+  totalCount,
+  onPageChange,
+  searchTerm = "",
+  onSearchChange,
+  statusFilter = "ALL",
+  onStatusFilterChange,
 }: TeamTimesheetReviewGridProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [localSearch, setLocalSearch] = useState("");
+  const [localStatus, setLocalStatus] = useState<string>("ALL");
   const [returnItem, setReturnItem] = useState<TeamTimesheetItem | null>(null);
   const [overrideItem, setOverrideItem] = useState<TeamTimesheetItem | null>(null);
 
+  const isServerFiltered = onSearchChange !== undefined;
+  const currentSearch = isServerFiltered ? searchTerm : localSearch;
+  const currentStatus = isServerFiltered ? statusFilter : localStatus;
+
+  const handleSearchChange = (val: string) => {
+    if (onSearchChange) onSearchChange(val);
+    else setLocalSearch(val);
+  };
+
+  const handleStatusChange = (val: string) => {
+    if (onStatusFilterChange) onStatusFilterChange(val);
+    else setLocalStatus(val);
+  };
+
   const filteredTimesheets = useMemo(() => {
+    if (isServerFiltered) return timesheets;
     return timesheets.filter((ts) => {
-      if (statusFilter !== "ALL" && ts.status !== statusFilter) {
+      if (currentStatus !== "ALL" && ts.status !== currentStatus) {
         return false;
       }
-      if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase().trim();
+      if (currentSearch.trim()) {
+        const query = currentSearch.toLowerCase().trim();
         const empName = ts.employee.name.toLowerCase();
         const empCode = ts.employee.code.toLowerCase();
         if (!empName.includes(query) && !empCode.includes(query)) {
@@ -46,7 +77,7 @@ export function TeamTimesheetReviewGrid({
       }
       return true;
     });
-  }, [timesheets, statusFilter, searchTerm]);
+  }, [timesheets, currentStatus, currentSearch, isServerFiltered]);
 
   const handleReturnConfirm = async (reason: string) => {
     if (!returnItem) return;
@@ -71,15 +102,15 @@ export function TeamTimesheetReviewGrid({
             type="text"
             className={styles.searchInput}
             placeholder="Search employee..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={currentSearch}
+            onChange={(e) => handleSearchChange(e.target.value)}
             data-testid="search-employee-input"
           />
 
           <select
             className={styles.selectInput}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={currentStatus}
+            onChange={(e) => handleStatusChange(e.target.value)}
             data-testid="filter-status-select"
           >
             <option value="ALL">All Statuses</option>
@@ -91,7 +122,9 @@ export function TeamTimesheetReviewGrid({
         </div>
 
         <span className={styles.countNotice}>
-          Showing {filteredTimesheets.length} of {timesheets.length} timesheets
+          {totalCount !== undefined
+            ? `Showing ${(page - 1) * pageSize + (filteredTimesheets.length ? 1 : 0)}–${Math.min(page * pageSize, totalCount)} of ${totalCount} timesheets`
+            : `Showing ${filteredTimesheets.length} of ${timesheets.length} timesheets`}
         </span>
       </div>
 
@@ -249,6 +282,20 @@ export function TeamTimesheetReviewGrid({
           currentStatus={overrideItem.status}
           isLoading={isProcessingId === overrideItem.id}
         />
+      )}
+
+      {totalCount !== undefined && totalCount > 0 && onPageChange && (
+        <div className={styles.paginationFooter} data-testid="review-pagination-footer">
+          <span className={styles.paginationMeta}>
+            Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} of {totalCount} timesheets
+          </span>
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={totalCount}
+            onChange={onPageChange}
+          />
+        </div>
       )}
     </div>
   );

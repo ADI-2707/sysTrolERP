@@ -156,3 +156,20 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
+
+.paginationFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.paginationMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
