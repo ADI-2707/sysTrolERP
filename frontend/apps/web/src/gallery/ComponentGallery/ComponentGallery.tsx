@@ -42,6 +42,7 @@ import {
   type StepperItem,
   Sidebar,
   Topbar,
+  UiLock,
   IconCalendar,
   IconCheck,
   IconLock,
@@ -399,6 +400,17 @@ export function ComponentGallery() {
             <div className={styles.themePane} data-theme="dark">
               <h3>Dark Theme Preview</h3>
               <InteractiveShowcase />
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>UI Lock (Rotating Collapsed Emblem)</h2>
+            <div style={{ position: "relative", minHeight: "180px", border: "1px solid var(--color-border-subtle)", borderRadius: "8px", overflow: "hidden" }}>
+              <div style={{ padding: "16px" }}>
+                <p>Background content underneath the dimmed UI lock overlay.</p>
+                <Button variant="primary">Sample Action</Button>
+              </div>
+              <UiLock active={true} fullScreen={false} message="Processing request..." />
             </div>
           </div>
 

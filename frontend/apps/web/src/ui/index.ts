@@ -13,6 +13,7 @@ export * from "./components/DataGrid";
 export * from "./components/Stepper";
 export * from "./components/Layout";
 export * from "./components/Charts";
+export * from "./components/UiLock";
 export * from "./tokens/colors";
 export * from "./tokens/foundation";
 export * from "./theme/ThemeProvider";

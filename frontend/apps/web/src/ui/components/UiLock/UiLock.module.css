@@ -1,0 +1,163 @@
+@keyframes uilock-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes uilock-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes uilock-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.containerWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.uilockOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  user-select: none;
+  cursor: wait;
+  box-sizing: border-box;
+}
+
+.uilockOverlay.isFullScreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+.uilockOverlay.isContainer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  border-radius: inherit;
+}
+
+.uilockOverlay.isDimmed {
+  background-color: rgba(15, 23, 42, 0.65);
+}
+
+.uilockOverlay.isBlurred {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.centerStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: uilock-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.emblemContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rotatingEmblem {
+  display: block;
+  object-fit: contain;
+  animation: uilock-spin 1.8s linear infinite;
+  will-change: transform;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+}
+
+.orbitalRing {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px dashed rgba(34, 197, 94, 0.65);
+  animation: uilock-pulse 2s ease-in-out infinite, uilock-spin 6s linear infinite reverse;
+  pointer-events: none;
+}
+
+.statusMessage {
+  margin: 16px 0 0 0;
+  color: #f8fafc;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.015em;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  max-width: 280px;
+}
+
+.size-sm .rotatingEmblem {
+  width: 44px;
+  height: 44px;
+}
+
+.size-sm .orbitalRing {
+  inset: -4px;
+  border-width: 1.5px;
+}
+
+.size-sm .statusMessage {
+  margin-top: 10px;
+  font-size: 0.8125rem;
+}
+
+.size-md .rotatingEmblem {
+  width: 68px;
+  height: 68px;
+}
+
+.size-md .orbitalRing {
+  inset: -6px;
+  border-width: 2px;
+}
+
+.size-md .statusMessage {
+  margin-top: 14px;
+  font-size: 0.9375rem;
+}
+
+.size-lg .rotatingEmblem {
+  width: 92px;
+  height: 92px;
+}
+
+.size-lg .orbitalRing {
+  inset: -8px;
+  border-width: 2.5px;
+}
+
+.size-lg .statusMessage {
+  margin-top: 18px;
+  font-size: 1.0625rem;
+}
