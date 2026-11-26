@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider, ToastProvider } from "@systrol/ui";
+import { ThemeProvider, ToastProvider, UiLockProvider } from "@systrol/ui";
 import { queryClient } from "./query/queryClient";
 import { AuthProvider } from "./auth";
 import { RequireAnonymous, RequireAuth, RequireRole } from "./routes";
@@ -56,11 +56,13 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
-          <AuthProvider>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </AuthProvider>
+          <UiLockProvider>
+            <AuthProvider>
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </AuthProvider>
+          </UiLockProvider>
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
