@@ -1,9 +1,11 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit.models import AuditLog
+
 
 @pytest.mark.django_db
 def test_employee_mutations_and_permissions_audit_edges():
@@ -39,7 +41,10 @@ def test_employee_mutations_and_permissions_audit_edges():
     assert emp_client.get(reverse("employee_list_create")).status_code == 403
     assert emp_client.get(reverse("employee_detail", kwargs={"pk": emp.id})).status_code == 403
     assert emp_client.post(reverse("employee_revoke", kwargs={"pk": emp.id})).status_code == 403
-    assert emp_client.post(reverse("employee_reset_password", kwargs={"pk": emp.id})).status_code == 403
+    assert (
+        emp_client.post(reverse("employee_reset_password", kwargs={"pk": emp.id})).status_code
+        == 403
+    )
 
     admin1_client = APIClient()
     admin1_client.force_authenticate(user=admin1)
@@ -76,7 +81,9 @@ def test_employee_mutations_and_permissions_audit_edges():
     assert create_emp_resp.status_code == 201
     new_emp_id = create_emp_resp.data["id"]
 
-    create_log = AuditLog.objects.filter(action="EMPLOYEE_CREATE", entity_id=str(new_emp_id)).first()
+    create_log = AuditLog.objects.filter(
+        action="EMPLOYEE_CREATE", entity_id=str(new_emp_id)
+    ).first()
     assert create_log is not None
     assert create_log.actor_user == admin1
     assert create_log.super_only is False
@@ -91,6 +98,8 @@ def test_employee_mutations_and_permissions_audit_edges():
     )
     assert super_revoke.status_code == 200
 
-    admin_revoke_log = AuditLog.objects.filter(action="EMPLOYEE_REVOKE", entity_id=str(admin2.id)).first()
+    admin_revoke_log = AuditLog.objects.filter(
+        action="EMPLOYEE_REVOKE", entity_id=str(admin2.id)
+    ).first()
     assert admin_revoke_log is not None
     assert admin_revoke_log.super_only is True

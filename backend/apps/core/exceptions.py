@@ -1,8 +1,11 @@
 import traceback
+
 from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)

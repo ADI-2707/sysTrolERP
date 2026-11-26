@@ -1,4 +1,5 @@
 from django.urls import path
+
 from apps.accounts.password_views import PasswordChangeView
 from apps.accounts.views import CsrfCookieView, LoginView, LogoutView, MeView
 

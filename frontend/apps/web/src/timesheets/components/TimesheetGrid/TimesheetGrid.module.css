@@ -42,7 +42,6 @@
   color: var(--color-neutral-60-text-primary);
 }
 
-/* === TOP ROW 0: Week Navigation Header === */
 .weekNavRow {
   position: sticky;
   top: 0;
@@ -192,7 +191,6 @@
   box-shadow: 0 2px 8px rgba(31, 122, 77, 0.3);
 }
 
-/* === ROW 1: Main Column Headers === */
 .mainHeaderRow {
   position: sticky;
   top: 0;
@@ -245,7 +243,6 @@
   font-weight: 500;
 }
 
-/* Total Column - Normal table column at the end, not sticky right */
 .totalHeader {
   width: 90px;
   min-width: 90px;
@@ -260,7 +257,6 @@
   box-sizing: border-box;
 }
 
-/* === ROW 2: Sub-Column Headers (Desc & Hours) === */
 .subHeaderRow {
   position: sticky;
   top: 30px;
@@ -310,7 +306,6 @@
   box-sizing: border-box;
 }
 
-/* === BODY CELLS === */
 .gridRow:hover td {
   background-color: var(--color-neutral-60-surface-raised);
 }
@@ -387,7 +382,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Placeholder Row */
 .placeholderRow {
   position: relative;
   z-index: 60;
@@ -413,7 +407,6 @@
   font-size: 11px;
 }
 
-/* === FOOTER SUMMARY ROWS === */
 .gridFooter {
   position: sticky;
   bottom: 0;

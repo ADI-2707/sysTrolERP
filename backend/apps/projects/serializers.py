@@ -1,15 +1,19 @@
 from rest_framework import serializers
+
 from apps.projects.models import Project, ProjectStep, StepStatus
+
 
 class ProjectStepBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectStep
         fields = ["id", "key", "name", "position", "is_custom", "status"]
 
+
 class ProjectMemberBriefSerializer(serializers.Serializer):
     id = serializers.IntegerField(source="employee.id")
     employee_code = serializers.CharField(source="employee.employee_code")
     full_name = serializers.CharField(source="employee.full_name")
+
 
 class ProjectListSerializer(serializers.ModelSerializer):
     total_steps = serializers.SerializerMethodField()
@@ -54,10 +58,22 @@ class ProjectListSerializer(serializers.ModelSerializer):
         steps = sorted(obj.steps.all(), key=lambda s: s.position)
         for s in steps:
             if s.status != StepStatus.COMPLETED:
-                return {"id": s.id, "key": s.key, "name": s.name, "status": s.status, "position": s.position}
+                return {
+                    "id": s.id,
+                    "key": s.key,
+                    "name": s.name,
+                    "status": s.status,
+                    "position": s.position,
+                }
         if steps:
             last = steps[-1]
-            return {"id": last.id, "key": last.key, "name": last.name, "status": last.status, "position": last.position}
+            return {
+                "id": last.id,
+                "key": last.key,
+                "name": last.name,
+                "status": last.status,
+                "position": last.position,
+            }
         return None
 
     def get_member_count(self, obj):
@@ -73,6 +89,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
             for a in obj.assignments.all()
         ]
 
+
 class ProjectStepDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectStep
@@ -86,6 +103,7 @@ class ProjectStepDetailSerializer(serializers.ModelSerializer):
             "confirmed_at",
             "confirmed_by_label",
         ]
+
 
 class ProjectDetailSerializer(serializers.ModelSerializer):
     creator = serializers.SerializerMethodField()
@@ -123,7 +141,11 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
                 "employee_code": obj.created_by.employee_code,
                 "full_name": obj.created_by.full_name,
             }
-        return {"id": None, "employee_code": obj.created_by_label, "full_name": obj.created_by_label}
+        return {
+            "id": None,
+            "employee_code": obj.created_by_label,
+            "full_name": obj.created_by_label,
+        }
 
     def get_steps(self, obj):
         ordered_steps = sorted(obj.steps.all(), key=lambda s: s.position)
@@ -150,9 +172,12 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     def get_completed_steps(self, obj):
         return sum(1 for s in obj.steps.all() if s.status == StepStatus.COMPLETED)
 
+
 class ProjectCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200, required=True)
-    client_name = serializers.CharField(max_length=200, required=False, allow_blank=True, default="")
+    client_name = serializers.CharField(
+        max_length=200, required=False, allow_blank=True, default=""
+    )
     description = serializers.CharField(required=False, allow_blank=True, default="")
     member_ids = serializers.ListField(
         child=serializers.IntegerField(),
@@ -160,9 +185,11 @@ class ProjectCreateSerializer(serializers.Serializer):
         default=list,
     )
 
+
 class StepStatusUpdateSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=StepStatus.choices, required=True)
     confirm = serializers.BooleanField(required=False, default=False)
+
 
 class SubStepCreateSerializer(serializers.Serializer):
     after_step_id = serializers.IntegerField(required=True)
@@ -174,6 +201,7 @@ class SubStepCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Sub-step name cannot be empty.")
         return val
 
+
 class CustomStepUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200, required=True)
 
@@ -183,14 +211,17 @@ class CustomStepUpdateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Step name cannot be empty.")
         return val
 
+
 class ProjectMemberAddSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=True)
+
 
 class ProjectMembersSyncSerializer(serializers.Serializer):
     user_ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=True,
     )
+
 
 class ProjectMemberItemSerializer(serializers.Serializer):
     id = serializers.IntegerField(source="employee.id")

@@ -6,6 +6,7 @@ from rest_framework import permissions, status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.accounts.serializers import LoginSerializer, SuperAdminMeSerializer, UserMeSerializer
 from apps.accounts.services import (
@@ -15,11 +16,13 @@ from apps.accounts.services import (
 )
 from apps.audit import services as audit_services
 
+
 def get_client_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
         return x_forwarded_for.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "127.0.0.1")
+
 
 class CsrfCookieView(APIView):
     authentication_classes = []
@@ -28,6 +31,7 @@ class CsrfCookieView(APIView):
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
         return Response({"csrfToken": get_token(request)}, status=status.HTTP_200_OK)
+
 
 class LoginView(APIView):
     authentication_classes = []
@@ -95,6 +99,7 @@ class LoginView(APIView):
         data = UserMeSerializer(principal).data
         return Response(data, status=status.HTTP_200_OK)
 
+
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -111,6 +116,7 @@ class LogoutView(APIView):
         if hasattr(request, "session"):
             request.session.flush()
         return Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
+
 
 class MeView(APIView):
     permission_classes = [permissions.IsAuthenticated]

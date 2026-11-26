@@ -1,7 +1,9 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.telemetry.models import ErrorLog, RequestLog
+
 
 @pytest.mark.django_db
 def test_telemetry_endpoints():

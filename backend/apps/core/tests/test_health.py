@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 
+
 @pytest.mark.django_db
 def test_health_check_healthy():
     client = APIClient()
@@ -10,6 +11,7 @@ def test_health_check_healthy():
     assert response.data["status"] == "healthy"
     assert response.data["database"] == "connected"
     assert "timestamp" in response.data
+
 
 @pytest.mark.django_db
 def test_openapi_schema_endpoint():

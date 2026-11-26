@@ -1,8 +1,10 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit import services as audit_services
+
 
 @pytest.mark.django_db
 def test_employee_detail_success():
@@ -40,6 +42,7 @@ def test_employee_detail_success():
     assert response.data["designation"] == "Quality Specialist"
     assert "assigned_projects" in response.data
     assert len(response.data["recent_activity"]) >= 1
+
 
 @pytest.mark.django_db
 def test_employee_detail_not_found():

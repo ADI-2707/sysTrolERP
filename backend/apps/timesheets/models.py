@@ -1,19 +1,28 @@
 import datetime
 from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from rest_framework.exceptions import ValidationError
+
 from apps.core.models import TimestampedModel
 from apps.projects.models import Project
+
 
 class TimesheetPolicy(TimestampedModel):
     singleton_id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
     standard_start_time = models.TimeField(default=datetime.time(9, 0))
     standard_end_time = models.TimeField(default=datetime.time(18, 0))
-    break_duration_hours = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("1.00"))
-    daily_regular_hours = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("8.00"))
+    break_duration_hours = models.DecimalField(
+        max_digits=4, decimal_places=2, default=Decimal("1.00")
+    )
+    daily_regular_hours = models.DecimalField(
+        max_digits=4, decimal_places=2, default=Decimal("8.00")
+    )
     hour_step = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("0.25"))
-    overtime_threshold_daily = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("8.00"))
+    overtime_threshold_daily = models.DecimalField(
+        max_digits=4, decimal_places=2, default=Decimal("8.00")
+    )
 
     class Meta:
         verbose_name = "Timesheet Policy"
@@ -21,7 +30,9 @@ class TimesheetPolicy(TimestampedModel):
 
     def clean(self):
         if self.daily_regular_hours <= 0:
-            raise ValidationError({"daily_regular_hours": ["Daily regular hours must be positive."]})
+            raise ValidationError(
+                {"daily_regular_hours": ["Daily regular hours must be positive."]}
+            )
         if self.hour_step <= 0 or self.hour_step > 1:
             raise ValidationError({"hour_step": ["Hour step must be between 0.05 and 1.00."]})
 
@@ -34,11 +45,13 @@ class TimesheetPolicy(TimestampedModel):
         policy, _ = cls.objects.get_or_create(singleton_id=1)
         return policy
 
+
 class TimesheetWeekStatus(models.TextChoices):
     OPEN = "OPEN", "Open"
     SUBMITTED = "SUBMITTED", "Submitted"
     APPROVED = "APPROVED", "Approved"
     RETURNED = "RETURNED", "Returned"
+
 
 class Timesheet(TimestampedModel):
     employee = models.ForeignKey(
@@ -88,6 +101,7 @@ class Timesheet(TimestampedModel):
     def __str__(self):
         return f"{self.employee.employee_code} - Week {self.week_start_date} ({self.status})"
 
+
 class TimesheetRow(TimestampedModel):
     timesheet = models.ForeignKey(
         Timesheet,
@@ -114,6 +128,7 @@ class TimesheetRow(TimestampedModel):
 
     def __str__(self):
         return f"{self.timesheet} -> {self.project.code}"
+
 
 class TimesheetEntry(TimestampedModel):
     row = models.ForeignKey(

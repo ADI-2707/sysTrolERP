@@ -2,7 +2,9 @@ from django.conf import settings
 from django.contrib.auth import get_user
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 class UnifiedSessionAuthentication(SessionAuthentication):
     def authenticate(self, request):

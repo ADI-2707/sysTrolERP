@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from apps.audit.models import AuditLog
+
 
 class AuditLogSerializer(serializers.ModelSerializer):
     actor_user = serializers.SerializerMethodField()

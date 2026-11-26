@@ -1,11 +1,13 @@
-from datetime import timedelta
 import io
+from datetime import timedelta
+
 import pytest
 from django.core.management import call_command
 from django.utils import timezone
+
 from apps.accounts.models import LoginAttempt
-from apps.audit.models import AuditLog
-from apps.telemetry.models import ErrorLog, RequestLog
+from apps.telemetry.models import RequestLog
+
 
 @pytest.mark.django_db
 def test_prune_logs_command():

@@ -1,9 +1,11 @@
 import pytest
 from rest_framework.exceptions import PermissionDenied
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
 from apps.audit.selectors import query_audit_logs
+
 
 @pytest.mark.django_db
 def test_audit_query_and_filtering():

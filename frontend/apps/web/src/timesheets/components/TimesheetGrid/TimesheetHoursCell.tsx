@@ -54,7 +54,7 @@ export function TimesheetHoursCell({
     const validation = validateQuarterHours(trimmed, step);
     if (!validation.valid) {
       setError(validation.error || "Invalid hours");
-      setVal(value || "0.0"); // revert on invalid
+      setVal(value || "0.0");
       return;
     }
 

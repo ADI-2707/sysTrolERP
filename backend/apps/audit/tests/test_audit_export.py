@@ -1,9 +1,12 @@
 import gzip
+
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
+
 
 @pytest.mark.django_db
 def test_streaming_csv_export():

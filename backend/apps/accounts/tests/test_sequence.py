@@ -1,7 +1,10 @@
 from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 from django.db import connection
+
 from apps.accounts.services import generate_next_employee_code
+
 
 @pytest.mark.django_db(transaction=True)
 def test_generate_next_employee_code_sequential():
@@ -12,6 +15,7 @@ def test_generate_next_employee_code_sequential():
     assert code1 == "SYS-0001"
     assert code2 == "SYS-0002"
     assert code3 == "SYS-0003"
+
 
 @pytest.mark.django_db(transaction=True)
 def test_generate_next_employee_code_concurrency():

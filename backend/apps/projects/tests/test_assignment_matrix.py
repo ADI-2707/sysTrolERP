@@ -1,8 +1,9 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
-from apps.projects.models import ProjectAssignment
 from apps.projects.services import create_project
+
 
 @pytest.mark.django_db
 def test_assignment_matrix_endpoint():

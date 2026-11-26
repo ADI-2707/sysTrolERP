@@ -2,12 +2,14 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+
 class ActorKind(models.TextChoices):
     SUPER = "SUPER", "Super Admin"
     ADMIN = "ADMIN", "Admin"
     EMPLOYEE = "EMPLOYEE", "Employee"
     SYSTEM = "SYSTEM", "System"
     ANONYMOUS = "ANONYMOUS", "Anonymous"
+
 
 class AuditLog(models.Model):
     actor_kind = models.CharField(

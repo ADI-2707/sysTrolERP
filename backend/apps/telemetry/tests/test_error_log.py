@@ -1,9 +1,10 @@
 import pytest
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
-from rest_framework.views import APIView
+
 from apps.core.exceptions import custom_exception_handler
 from apps.telemetry.models import ErrorLog
+
 
 @pytest.mark.django_db
 def test_error_capture_in_exception_handler():

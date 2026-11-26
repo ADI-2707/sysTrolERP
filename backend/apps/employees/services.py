@@ -1,12 +1,15 @@
 import secrets
 import string
+
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.accounts.services import generate_next_employee_code, terminate_user_sessions
 from apps.audit import services as audit_services
+
 
 def generate_temporary_password(length: int = 14) -> str:
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*()"
@@ -19,6 +22,7 @@ def generate_temporary_password(length: int = 14) -> str:
     password += [secrets.choice(alphabet) for _ in range(length - 4)]
     secrets.SystemRandom().shuffle(password)
     return "".join(password)
+
 
 def create_employee(
     *,
@@ -70,6 +74,7 @@ def create_employee(
 
     return user, temp_password
 
+
 def update_employee(
     *,
     user: User,
@@ -106,6 +111,7 @@ def update_employee(
 
     return user
 
+
 def revoke_employee(
     *,
     user: User,
@@ -137,6 +143,7 @@ def revoke_employee(
         super_only=(user.role == UserRole.ADMIN),
     )
 
+
 def restore_employee(
     *,
     user: User,
@@ -162,6 +169,7 @@ def restore_employee(
         request=request,
         super_only=(user.role == UserRole.ADMIN),
     )
+
 
 def reset_employee_password(
     *,

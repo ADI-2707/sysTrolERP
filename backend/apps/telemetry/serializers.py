@@ -1,5 +1,7 @@
 from rest_framework import serializers
+
 from apps.telemetry.models import ErrorLog, RequestLog
+
 
 class RequestLogSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,6 +19,7 @@ class RequestLogSerializer(serializers.ModelSerializer):
             "request_id",
             "created_at",
         ]
+
 
 class ErrorLogSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,10 +1,12 @@
 import pytest
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
+
 from apps.accounts.models import User, UserRole
 from apps.audit import services as audit_services
 from apps.audit.models import AuditLog
 from apps.audit.pagination import AuditCursorPagination
+
 
 @pytest.mark.django_db
 def test_audit_cursor_pagination():

@@ -1,5 +1,7 @@
 from django.http import JsonResponse
+
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 class RevocationCheckMiddleware:
     def __init__(self, get_response):
@@ -20,6 +22,7 @@ class RevocationCheckMiddleware:
                     status=401,
                 )
         return self.get_response(request)
+
 
 class MustChangePasswordGateMiddleware:
     ALLOWED_PATHS = {

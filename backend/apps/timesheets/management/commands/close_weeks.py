@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
+
 from apps.timesheets.services import close_expired_weeks
+
 
 class Command(BaseCommand):
     help = "Close expired open timesheet weeks and mark them submitted"

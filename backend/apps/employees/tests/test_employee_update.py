@@ -1,8 +1,10 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
+
 
 @pytest.mark.django_db
 def test_update_employee_profile_success():
@@ -30,7 +32,9 @@ def test_update_employee_profile_success():
         "designation": "Senior Dev",
         "phone": "+919999988888",
     }
-    response = client.patch(reverse("employee_detail", kwargs={"pk": user.id}), payload, format="json")
+    response = client.patch(
+        reverse("employee_detail", kwargs={"pk": user.id}), payload, format="json"
+    )
     assert response.status_code == 200
     assert response.data["full_name"] == "Emp After"
     assert response.data["designation"] == "Senior Dev"
@@ -43,6 +47,7 @@ def test_update_employee_profile_success():
     audit_log = AuditLog.objects.filter(action="EMPLOYEE_UPDATE", entity_id=str(user.id)).first()
     assert audit_log is not None
     assert "designation" in audit_log.changes
+
 
 @pytest.mark.django_db
 def test_update_employee_duplicate_email():

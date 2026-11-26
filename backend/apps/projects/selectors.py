@@ -1,7 +1,9 @@
-from django.db.models import Count, Q, QuerySet
+from django.db.models import Q, QuerySet
+
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
-from apps.projects.models import Project, ProjectAssignment, StepStatus
+from apps.projects.models import Project, ProjectAssignment
+
 
 def list_projects_for_user(
     user: User | SuperAdminPrincipal,
@@ -18,12 +20,11 @@ def list_projects_for_user(
     if search:
         search = search.strip()
         qs = qs.filter(
-            Q(name__icontains=search)
-            | Q(code__icontains=search)
-            | Q(client_name__icontains=search)
+            Q(name__icontains=search) | Q(code__icontains=search) | Q(client_name__icontains=search)
         )
 
     return qs.order_by("-created_at")
+
 
 def get_assignment_matrix() -> dict:
     employees = User.objects.filter(is_active=True).order_by("employee_code")

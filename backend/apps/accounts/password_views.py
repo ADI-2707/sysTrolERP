@@ -7,7 +7,9 @@ from rest_framework import permissions, serializers, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 class PasswordChangeSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True, write_only=True)
@@ -19,12 +21,15 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise ValidationError({"confirm_password": ["New passwords do not match."]})
         return attrs
 
+
 class PasswordChangeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         if isinstance(request.user, SuperAdminPrincipal):
-            raise PermissionDenied("Super admin password cannot be changed via UI. Use the management command.")
+            raise PermissionDenied(
+                "Super admin password cannot be changed via UI. Use the management command."
+            )
 
         serializer = PasswordChangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -63,6 +68,7 @@ class PasswordChangeView(APIView):
         update_session_auth_hash(request, user)
 
         from apps.audit import services as audit_services
+
         audit_services.record(
             action="PASSWORD_CHANGE",
             actor=user,

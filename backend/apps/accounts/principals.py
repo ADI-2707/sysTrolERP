@@ -1,5 +1,6 @@
 from django.conf import settings
 
+
 class SuperAdminPrincipal:
     is_authenticated = True
     is_anonymous = False

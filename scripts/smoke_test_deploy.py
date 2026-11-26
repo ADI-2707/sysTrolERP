@@ -4,6 +4,7 @@ import sys
 import urllib.error
 import urllib.request
 
+
 def check_endpoint(
     url: str,
     expected_status: int = 200,
@@ -23,6 +24,7 @@ def check_endpoint(
         return e.code, headers_dict, body
     except urllib.error.URLError as e:
         return 0, {}, str(e)
+
 
 def run_smoke_test(base_url: str = "http://localhost:8000", return_errors: bool = False):
     errors = []
@@ -63,6 +65,7 @@ def run_smoke_test(base_url: str = "http://localhost:8000", return_errors: bool 
         return (len(errors) == 0, errors)
 
     return len(errors) == 0
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="sysTrol ERP deployment smoke test")

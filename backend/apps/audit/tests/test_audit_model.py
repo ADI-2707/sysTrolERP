@@ -1,5 +1,7 @@
 import pytest
+
 from apps.audit.models import ActorKind, AuditLog
+
 
 @pytest.mark.django_db
 def test_audit_log_append_only():

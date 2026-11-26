@@ -1,6 +1,8 @@
 from getpass import getpass
+
 from django.contrib.auth.hashers import Argon2PasswordHasher
 from django.core.management.base import BaseCommand
+
 
 class Command(BaseCommand):
     help = "Generate Argon2 password hash for the super admin environment variable"

@@ -1,8 +1,9 @@
 import pytest
-from django.contrib.auth.hashers import Argon2PasswordHasher
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
+
 
 @pytest.mark.django_db
 def test_employee_list_permissions():
@@ -31,6 +32,7 @@ def test_employee_list_permissions():
     admin_resp = admin_client.get(reverse("employee_list_create"))
     assert admin_resp.status_code == 200
     assert admin_resp.data["count"] == 2
+
 
 @pytest.mark.django_db
 def test_employee_list_filtering_and_search():

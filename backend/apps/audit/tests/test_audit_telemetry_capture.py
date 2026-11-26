@@ -1,12 +1,11 @@
 import pytest
-from django.test import RequestFactory
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
-from apps.audit import services as audit_services
-from apps.audit.middleware import RequestIdMiddleware
 from apps.audit.models import ActorKind, AuditLog
-from apps.telemetry.models import ErrorLog, RequestLog
+from apps.telemetry.models import RequestLog
+
 
 @pytest.mark.django_db
 def test_audit_log_append_only_guarantee():
@@ -24,6 +23,7 @@ def test_audit_log_append_only_guarantee():
 
     with pytest.raises(RuntimeError, match="cannot be individually deleted"):
         log.delete()
+
 
 @pytest.mark.django_db
 def test_audit_telemetry_full_roundtrip():

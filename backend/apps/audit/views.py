@@ -1,44 +1,53 @@
 import csv
 import gzip
 import io
+
 from django.http import StreamingHttpResponse
 from rest_framework.views import APIView
+
 from apps.accounts.permissions import IsAdminOrSuper
 from apps.audit.pagination import AuditCursorPagination
 from apps.audit.selectors import query_audit_logs
 from apps.audit.serializers import AuditLogSerializer
 
+
 class EchoWriter:
     def write(self, value):
         return value
 
+
 def csv_generator(queryset):
     writer = csv.writer(EchoWriter())
-    yield writer.writerow([
-        "id",
-        "timestamp",
-        "actor_kind",
-        "actor_label",
-        "action",
-        "entity_type",
-        "entity_id",
-        "summary",
-        "ip_address",
-        "request_id",
-    ])
+    yield writer.writerow(
+        [
+            "id",
+            "timestamp",
+            "actor_kind",
+            "actor_label",
+            "action",
+            "entity_type",
+            "entity_id",
+            "summary",
+            "ip_address",
+            "request_id",
+        ]
+    )
     for log in queryset.iterator(chunk_size=1000):
-        yield writer.writerow([
-            log.id,
-            log.created_at.isoformat(),
-            log.actor_kind,
-            log.actor_label,
-            log.action,
-            log.entity_type,
-            log.entity_id,
-            log.summary,
-            log.ip_address or "",
-            log.request_id,
-        ])
+        yield writer.writerow(
+            [
+                log.id,
+                log.created_at.isoformat(),
+                log.actor_kind,
+                log.actor_label,
+                log.action,
+                log.entity_type,
+                log.entity_id,
+                log.summary,
+                log.ip_address or "",
+                log.request_id,
+            ]
+        )
+
 
 def gzip_compress_generator(generator):
     for chunk in generator:
@@ -48,6 +57,7 @@ def gzip_compress_generator(generator):
         with gzip.GzipFile(mode="wb", fileobj=out) as gz:
             gz.write(chunk)
         yield out.getvalue()
+
 
 class AuditLogListView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -68,6 +78,7 @@ class AuditLogListView(APIView):
         page = paginator.paginate_queryset(qs, request)
         serializer = AuditLogSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
+
 
 class AuditLogExportView(APIView):
     permission_classes = [IsAdminOrSuper]

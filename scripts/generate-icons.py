@@ -1,4 +1,3 @@
-import os
 import re
 from pathlib import Path
 
@@ -17,18 +16,21 @@ ATTR_MAP = {
     "stop-opacity": "stopOpacity",
 }
 
+
 def to_pascal_case(name: str) -> str:
     parts = re.split(r"[-_]", name)
     return "".join(p.capitalize() for p in parts if p)
+
 
 def convert_attrs(svg_str: str) -> str:
     for kebab, camel in ATTR_MAP.items():
         svg_str = svg_str.replace(kebab + "=", camel + "=")
     return svg_str
 
+
 def main():
     ICONS_OUT.mkdir(parents=True, exist_ok=True)
-    
+
     icon_wrapper = """import type { ReactNode, SVGAttributes } from "react";
 
 export type IconSize = number | "xs" | "sm" | "md" | "lg" | "xl";
@@ -119,6 +121,7 @@ export function {comp_name}(props: Omit<IconProps, "children">) {{
         f.writelines(index_exports)
 
     print(f"Generated {len(svg_files)} icon components in {ICONS_OUT}")
+
 
 if __name__ == "__main__":
     main()

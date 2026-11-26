@@ -1,7 +1,11 @@
 from django.db.models import Q, QuerySet
+
 from apps.accounts.models import User
 
-def list_employees(*, search: str = "", role: str = "", status: str = "", ordering: str = "employee_code") -> QuerySet[User]:
+
+def list_employees(
+    *, search: str = "", role: str = "", status: str = "", ordering: str = "employee_code"
+) -> QuerySet[User]:
     qs = User.objects.all()
     if search:
         search = search.strip()
@@ -20,11 +24,16 @@ def list_employees(*, search: str = "", role: str = "", status: str = "", orderi
         qs = qs.filter(Q(is_active=False) | Q(revoked_at__isnull=False))
 
     valid_orderings = {
-        "employee_code", "-employee_code",
-        "full_name", "-full_name",
-        "email", "-email",
-        "date_joined", "-date_joined",
-        "last_login", "-last_login",
+        "employee_code",
+        "-employee_code",
+        "full_name",
+        "-full_name",
+        "email",
+        "-email",
+        "date_joined",
+        "-date_joined",
+        "last_login",
+        "-last_login",
     }
     if ordering in valid_orderings:
         qs = qs.order_by(ordering)
@@ -32,6 +41,7 @@ def list_employees(*, search: str = "", role: str = "", status: str = "", orderi
         qs = qs.order_by("employee_code")
 
     return qs
+
 
 def get_employee_by_id(employee_id: int | str) -> User | None:
     return User.objects.filter(id=employee_id).first()

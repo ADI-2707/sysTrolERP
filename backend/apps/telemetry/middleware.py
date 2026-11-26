@@ -1,7 +1,9 @@
 import time
+
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit.services import get_client_ip_from_meta
 from apps.telemetry.models import RequestLog
+
 
 class RequestLoggingMiddleware:
     EXCLUDED_PREFIXES = ("/static/", "/media/", "/favicon")
@@ -28,7 +30,9 @@ class RequestLoggingMiddleware:
             if isinstance(user, SuperAdminPrincipal):
                 actor_label = f"SUPER:{user.username}"
             else:
-                actor_label = getattr(user, "employee_code", getattr(user, "email", "authenticated"))
+                actor_label = getattr(
+                    user, "employee_code", getattr(user, "email", "authenticated")
+                )
 
         resolver_match = getattr(request, "resolver_match", None)
         route_template = resolver_match.route if resolver_match else path

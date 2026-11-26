@@ -1,7 +1,8 @@
-from rest_framework import permissions, status
+from rest_framework import status
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import NotFound, PermissionDenied
+
 from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal
 from apps.core.pagination import StandardPageNumberPagination
 from apps.projects.models import Project, ProjectStep
@@ -29,6 +30,7 @@ from apps.projects.services import (
     update_step_status,
 )
 
+
 class ProjectListCreateView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
     pagination_class = StandardPageNumberPagination
@@ -55,7 +57,11 @@ class ProjectListCreateView(APIView):
         role = getattr(request.user, "role", "")
         if role not in ("ADMIN", "SUPER"):
             return Response(
-                {"code": "permission_denied", "message": "Only admins can create projects.", "fields": {}},
+                {
+                    "code": "permission_denied",
+                    "message": "Only admins can create projects.",
+                    "fields": {},
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -70,6 +76,7 @@ class ProjectListCreateView(APIView):
 
         resp_serializer = ProjectListSerializer(project)
         return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+
 
 class ProjectDetailView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
@@ -87,12 +94,15 @@ class ProjectDetailView(APIView):
         serializer = ProjectDetailSerializer(project)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class ProjectStepStatusView(APIView):
     permission_classes = [IsAdminOrSuper]
 
     def post(self, request, project_id, step_id):
         try:
-            step = ProjectStep.objects.select_related("project").get(pk=step_id, project_id=project_id)
+            step = ProjectStep.objects.select_related("project").get(
+                pk=step_id, project_id=project_id
+            )
         except ProjectStep.DoesNotExist:
             raise NotFound("Project step not found.")
 
@@ -108,6 +118,7 @@ class ProjectStepStatusView(APIView):
         )
 
         return Response(ProjectStepDetailSerializer(updated_step).data, status=status.HTTP_200_OK)
+
 
 class ProjectSubStepCreateView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -125,6 +136,7 @@ class ProjectSubStepCreateView(APIView):
         )
 
         return Response(ProjectStepDetailSerializer(new_step).data, status=status.HTTP_201_CREATED)
+
 
 class ProjectStepDetailManageView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -151,6 +163,7 @@ class ProjectStepDetailManageView(APIView):
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class ProjectMemberManageView(APIView):
     permission_classes = [IsAdminOrSuper]
 
@@ -164,7 +177,9 @@ class ProjectMemberManageView(APIView):
             actor=request.user,
             request=request,
         )
-        return Response(ProjectMemberItemSerializer(assignment).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ProjectMemberItemSerializer(assignment).data, status=status.HTTP_201_CREATED
+        )
 
     def put(self, request, project_id):
         serializer = ProjectMembersSyncSerializer(data=request.data)
@@ -176,7 +191,10 @@ class ProjectMemberManageView(APIView):
             actor=request.user,
             request=request,
         )
-        return Response(ProjectMemberItemSerializer(assignments, many=True).data, status=status.HTTP_200_OK)
+        return Response(
+            ProjectMemberItemSerializer(assignments, many=True).data, status=status.HTTP_200_OK
+        )
+
 
 class ProjectMemberDeleteView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -189,6 +207,7 @@ class ProjectMemberDeleteView(APIView):
             request=request,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ProjectMatrixView(APIView):
     permission_classes = [IsAdminOrSuper]

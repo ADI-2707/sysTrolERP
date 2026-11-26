@@ -1,9 +1,12 @@
 import datetime
+
 from django.db.models import Q, QuerySet
 from rest_framework.exceptions import PermissionDenied
+
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit.models import AuditLog
+
 
 def query_audit_logs(
     user: User | SuperAdminPrincipal,

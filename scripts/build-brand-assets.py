@@ -1,7 +1,7 @@
 import json
-import os
 import sys
 from pathlib import Path
+
 from PIL import Image
 
 CANDIDATE_PATHS = [
@@ -10,11 +10,13 @@ CANDIDATE_PATHS = [
     Path(r"C:\Users\hp\Desktop\sysTrol\apps\web-public\public\favicon.ico"),
 ]
 
+
 def find_favicon():
     for p in CANDIDATE_PATHS:
         if p.exists():
             return p
     return None
+
 
 def sample_colors(img):
     rgb_img = img.convert("RGB")
@@ -29,7 +31,7 @@ def sample_colors(img):
                 green_candidates.append((r, g, b))
             elif r < 60 and g < 60 and b < 75:
                 dark_candidates.append((r, g, b))
-    
+
     brand_green = "#2e7d32"
     if green_candidates:
         avg_r = sum(c[0] for c in green_candidates) // len(green_candidates)
@@ -55,8 +57,9 @@ def sample_colors(img):
         "borderLight": "#e2e8f0",
         "borderDark": "#334155",
         "textLight": "#0f172a",
-        "textDark": "#f8fafc"
+        "textDark": "#f8fafc",
     }
+
 
 def main():
     ico_path = find_favicon()
@@ -71,7 +74,7 @@ def main():
 
     with Image.open(ico_path) as orig:
         img = orig.convert("RGBA")
-        
+
         w, h = img.size
         pixels = img.load()
         non_bg_coords = []
@@ -102,8 +105,8 @@ def main():
                 "logo192": "/logo-192x192.png",
                 "logo512": "/logo-512x512.png",
                 "logoMark": "/logo-mark.png",
-                "logoFull": "/logo.png"
-            }
+                "logoFull": "/logo.png",
+            },
         }
 
         with open(web_public / "brand.json", "w", encoding="utf-8") as f:
@@ -145,9 +148,12 @@ def main():
             resized = base_for_icons.resize((size, size), Image.Resampling.LANCZOS)
             resized.save(web_public / filename, format="PNG")
 
-        base_for_icons.resize((32, 32), Image.Resampling.LANCZOS).save(web_public / "favicon.ico", format="ICO")
+        base_for_icons.resize((32, 32), Image.Resampling.LANCZOS).save(
+            web_public / "favicon.ico", format="ICO"
+        )
 
         print("Brand assets successfully generated in", web_public)
+
 
 if __name__ == "__main__":
     main()

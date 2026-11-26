@@ -1,13 +1,16 @@
 import datetime
+
 import pytest
-from rest_framework.test import APIClient
 import time_machine
+from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
 from apps.timesheets.models import (
     Timesheet,
     TimesheetWeekStatus,
 )
+
 
 @pytest.mark.django_db
 def test_authorization_workflow():
@@ -52,7 +55,9 @@ def test_authorization_workflow():
         res_emp_approve = emp_client.post(f"/api/timesheets/{ts_emp.id}/approve/", {})
         assert res_emp_approve.status_code == 403
 
-        res_emp_return = emp_client.post(f"/api/timesheets/{ts_emp.id}/return/", {"reason": "Reason"})
+        res_emp_return = emp_client.post(
+            f"/api/timesheets/{ts_emp.id}/return/", {"reason": "Reason"}
+        )
         assert res_emp_return.status_code == 403
 
         admin_client = APIClient()
@@ -62,14 +67,20 @@ def test_authorization_workflow():
         assert res_self_approve.status_code == 400
         assert "own" in str(res_self_approve.json()).lower()
 
-        res_self_return = admin_client.post(f"/api/timesheets/{ts_admin.id}/return/", {"reason": "Self return"})
+        res_self_return = admin_client.post(
+            f"/api/timesheets/{ts_admin.id}/return/", {"reason": "Self return"}
+        )
         assert res_self_return.status_code == 400
         assert "own" in str(res_self_return.json()).lower()
 
-        res_return_blank = admin_client.post(f"/api/timesheets/{ts_emp.id}/return/", {"reason": "   "})
+        res_return_blank = admin_client.post(
+            f"/api/timesheets/{ts_emp.id}/return/", {"reason": "   "}
+        )
         assert res_return_blank.status_code == 400
 
-        res_return = admin_client.post(f"/api/timesheets/{ts_emp.id}/return/", {"reason": "Missing hours for Wednesday"})
+        res_return = admin_client.post(
+            f"/api/timesheets/{ts_emp.id}/return/", {"reason": "Missing hours for Wednesday"}
+        )
         assert res_return.status_code == 200
         assert res_return.json()["status"] == "RETURNED"
         assert res_return.json()["return_reason"] == "Missing hours for Wednesday"
@@ -92,7 +103,9 @@ def test_authorization_workflow():
         assert ts_emp.status == TimesheetWeekStatus.APPROVED
         assert ts_emp.approved_by == admin1
         assert ts_emp.approved_at is not None
-        assert AuditLog.objects.filter(action="TIMESHEET_APPROVE", entity_id=str(ts_emp.id)).exists()
+        assert AuditLog.objects.filter(
+            action="TIMESHEET_APPROVE", entity_id=str(ts_emp.id)
+        ).exists()
 
         super_client = APIClient()
         session = super_client.session

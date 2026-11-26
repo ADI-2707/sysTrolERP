@@ -1,4 +1,5 @@
 from django.urls import path
+
 from apps.telemetry.views import (
     ErrorLogListView,
     RequestLogListView,

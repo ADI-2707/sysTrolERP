@@ -1,13 +1,15 @@
 import datetime
 from decimal import Decimal
+
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
+
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
 from apps.core.timezone import company_today, week_bounds
-from apps.projects.models import Project, ProjectAssignment
+from apps.projects.models import Project
 from apps.timesheets.models import (
     Timesheet,
     TimesheetEntry,
@@ -17,6 +19,7 @@ from apps.timesheets.models import (
 )
 from apps.timesheets.rules import can_edit_week, is_cell_editable
 from apps.timesheets.selectors import get_own_timesheet
+
 
 def update_timesheet_policy(
     *,
@@ -51,9 +54,7 @@ def update_timesheet_policy(
     }
 
     changes = {
-        k: [old_values[k], new_values[k]]
-        for k in old_values
-        if old_values[k] != new_values[k]
+        k: [old_values[k], new_values[k]] for k in old_values if old_values[k] != new_values[k]
     }
 
     audit_services.record(
@@ -67,6 +68,7 @@ def update_timesheet_policy(
     )
 
     return policy
+
 
 def upsert_timesheet_cell(
     *,
@@ -106,7 +108,9 @@ def upsert_timesheet_cell(
             today=today,
         )
         if not editable:
-            raise ValidationError({"cell": ["This cell is not editable (past deadline, future day, or locked week)."]})
+            raise ValidationError(
+                {"cell": ["This cell is not editable (past deadline, future day, or locked week)."]}
+            )
 
         row, _ = TimesheetRow.objects.select_for_update().get_or_create(
             timesheet=timesheet,
@@ -127,7 +131,10 @@ def upsert_timesheet_cell(
 
         row_total = sum((e.hours for e in row.entries.all()), Decimal("0.00"))
         day_total = sum(
-            (e.hours for e in TimesheetEntry.objects.filter(row__timesheet=timesheet, date=cell_date)),
+            (
+                e.hours
+                for e in TimesheetEntry.objects.filter(row__timesheet=timesheet, date=cell_date)
+            ),
             Decimal("0.00"),
         )
         week_total = sum(
@@ -144,6 +151,7 @@ def upsert_timesheet_cell(
             "day_total": str(day_total),
             "total_week_hours": str(week_total),
         }
+
 
 def bulk_upsert_timesheet_cells(
     *,
@@ -175,6 +183,7 @@ def bulk_upsert_timesheet_cells(
             "saved_count": len(cells),
             "week": week_data,
         }
+
 
 def create_timesheet_row(
     *,
@@ -211,7 +220,9 @@ def create_timesheet_row(
             raise ValidationError({"week": ["This timesheet week is not editable."]})
 
         if TimesheetRow.objects.filter(timesheet=timesheet, project=project).exists():
-            raise ValidationError({"project_id": ["A row for this project already exists in this timesheet."]})
+            raise ValidationError(
+                {"project_id": ["A row for this project already exists in this timesheet."]}
+            )
 
         row = TimesheetRow.objects.create(
             timesheet=timesheet,
@@ -230,13 +241,15 @@ def create_timesheet_row(
                 is_assigned=True,
                 today=today,
             )
-            row_entries.append({
-                "entry_id": None,
-                "date": d.isoformat(),
-                "hours": "0.00",
-                "note": "",
-                "is_editable": editable,
-            })
+            row_entries.append(
+                {
+                    "entry_id": None,
+                    "date": d.isoformat(),
+                    "hours": "0.00",
+                    "note": "",
+                    "is_editable": editable,
+                }
+            )
 
         return {
             "id": row.id,
@@ -252,6 +265,7 @@ def create_timesheet_row(
             "entries": row_entries,
         }
 
+
 def delete_timesheet_row(
     *,
     user: User,
@@ -265,15 +279,22 @@ def delete_timesheet_row(
 
     with transaction.atomic():
         try:
-            row = TimesheetRow.objects.select_related("timesheet").get(pk=row_id, timesheet__employee=user)
+            row = TimesheetRow.objects.select_related("timesheet").get(
+                pk=row_id, timesheet__employee=user
+            )
         except TimesheetRow.DoesNotExist:
             raise ValidationError({"row_id": ["Timesheet row not found."]})
 
         timesheet = row.timesheet
-        if not can_edit_week(week_start_date=timesheet.week_start_date, status=timesheet.status, today=today):
-            raise ValidationError({"week": ["Cannot delete row from a locked or submitted timesheet."]})
+        if not can_edit_week(
+            week_start_date=timesheet.week_start_date, status=timesheet.status, today=today
+        ):
+            raise ValidationError(
+                {"week": ["Cannot delete row from a locked or submitted timesheet."]}
+            )
 
         row.delete()
+
 
 def submit_own_timesheet(
     *,
@@ -302,7 +323,9 @@ def submit_own_timesheet(
             )
 
         if timesheet.status not in (TimesheetWeekStatus.OPEN, TimesheetWeekStatus.RETURNED):
-            raise ValidationError({"status": [f"Cannot submit timesheet with status {timesheet.status}."]})
+            raise ValidationError(
+                {"status": [f"Cannot submit timesheet with status {timesheet.status}."]}
+            )
 
         old_status = timesheet.status
         timesheet.status = TimesheetWeekStatus.SUBMITTED
@@ -320,6 +343,7 @@ def submit_own_timesheet(
         )
 
         return get_own_timesheet(user=user, week_str=monday.isoformat())
+
 
 def close_expired_weeks(*, dry_run: bool = False) -> int:
     today = company_today()
@@ -348,6 +372,7 @@ def close_expired_weeks(*, dry_run: bool = False) -> int:
 
     return count
 
+
 def approve_timesheet(
     *,
     timesheet_id: int,
@@ -361,7 +386,9 @@ def approve_timesheet(
             raise ValidationError({"timesheet": ["Timesheet not found."]})
 
         if timesheet.status != TimesheetWeekStatus.SUBMITTED:
-            raise ValidationError({"status": [f"Cannot approve timesheet in status {timesheet.status}."]})
+            raise ValidationError(
+                {"status": [f"Cannot approve timesheet in status {timesheet.status}."]}
+            )
 
         if isinstance(actor, User) and actor.id == timesheet.employee_id:
             raise ValidationError({"timesheet": ["You cannot approve your own timesheet."]})
@@ -379,17 +406,19 @@ def approve_timesheet(
         timesheet.returned_by = None
         timesheet.returned_by_label = ""
         timesheet.return_reason = ""
-        timesheet.save(update_fields=[
-            "status",
-            "approved_at",
-            "approved_by",
-            "approved_by_label",
-            "returned_at",
-            "returned_by",
-            "returned_by_label",
-            "return_reason",
-            "updated_at",
-        ])
+        timesheet.save(
+            update_fields=[
+                "status",
+                "approved_at",
+                "approved_by",
+                "approved_by_label",
+                "returned_at",
+                "returned_by",
+                "returned_by_label",
+                "return_reason",
+                "updated_at",
+            ]
+        )
 
         audit_services.record(
             action="TIMESHEET_APPROVE",
@@ -402,6 +431,7 @@ def approve_timesheet(
         )
 
         return timesheet
+
 
 def return_timesheet(
     *,
@@ -417,7 +447,9 @@ def return_timesheet(
             raise ValidationError({"timesheet": ["Timesheet not found."]})
 
         if timesheet.status != TimesheetWeekStatus.SUBMITTED:
-            raise ValidationError({"status": [f"Cannot return timesheet in status {timesheet.status}."]})
+            raise ValidationError(
+                {"status": [f"Cannot return timesheet in status {timesheet.status}."]}
+            )
 
         if isinstance(actor, User) and actor.id == timesheet.employee_id:
             raise ValidationError({"timesheet": ["You cannot return your own timesheet."]})
@@ -435,17 +467,19 @@ def return_timesheet(
         timesheet.approved_at = None
         timesheet.approved_by = None
         timesheet.approved_by_label = ""
-        timesheet.save(update_fields=[
-            "status",
-            "returned_at",
-            "returned_by",
-            "returned_by_label",
-            "return_reason",
-            "approved_at",
-            "approved_by",
-            "approved_by_label",
-            "updated_at",
-        ])
+        timesheet.save(
+            update_fields=[
+                "status",
+                "returned_at",
+                "returned_by",
+                "returned_by_label",
+                "return_reason",
+                "approved_at",
+                "approved_by",
+                "approved_by_label",
+                "updated_at",
+            ]
+        )
 
         audit_services.record(
             action="TIMESHEET_RETURN",
@@ -453,11 +487,15 @@ def return_timesheet(
             entity_type="Timesheet",
             entity_id=str(timesheet.id),
             summary=f"Returned timesheet {timesheet.id} for {timesheet.employee.employee_code}: {reason}",
-            changes={"status": [old_status, TimesheetWeekStatus.RETURNED], "reason": [None, reason]},
+            changes={
+                "status": [old_status, TimesheetWeekStatus.RETURNED],
+                "reason": [None, reason],
+            },
             request=request,
         )
 
         return timesheet
+
 
 def override_timesheet_by_super(
     *,
@@ -492,7 +530,13 @@ def override_timesheet_by_super(
             for c in cells:
                 cell_date = c["date"]
                 if not (monday <= cell_date <= sunday):
-                    raise ValidationError({"cells": [f"Date {cell_date} is outside the timesheet week {monday} to {sunday}."]})
+                    raise ValidationError(
+                        {
+                            "cells": [
+                                f"Date {cell_date} is outside the timesheet week {monday} to {sunday}."
+                            ]
+                        }
+                    )
 
                 try:
                     project = Project.objects.get(pk=c["project_id"])
@@ -520,11 +564,13 @@ def override_timesheet_by_super(
                         defaults={"hours": hours, "note": note},
                     )
 
-                cell_changes.append({
-                    "project_code": project.code,
-                    "date": cell_date.isoformat(),
-                    "hours": [old_h, str(hours)],
-                })
+                cell_changes.append(
+                    {
+                        "project_code": project.code,
+                        "date": cell_date.isoformat(),
+                        "hours": [old_h, str(hours)],
+                    }
+                )
 
             changes["cells"] = cell_changes
 

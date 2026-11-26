@@ -1,4 +1,5 @@
 from django.urls import path
+
 from apps.timesheets.views import (
     AdminPendingTimesheetsView,
     AdminTimesheetListView,
@@ -21,7 +22,11 @@ urlpatterns = [
     path("pending/", AdminPendingTimesheetsView.as_view(), name="admin_pending_timesheets"),
     path("<int:pk>/approve/", TimesheetApproveView.as_view(), name="timesheet_approve"),
     path("<int:pk>/return/", TimesheetReturnView.as_view(), name="timesheet_return"),
-    path("<int:pk>/override/", SuperAdminTimesheetOverrideView.as_view(), name="timesheet_super_override"),
+    path(
+        "<int:pk>/override/",
+        SuperAdminTimesheetOverrideView.as_view(),
+        name="timesheet_super_override",
+    ),
     path("me/", OwnTimesheetView.as_view(), name="own_timesheet"),
     path("me/cells/", OwnTimesheetCellView.as_view(), name="own_timesheet_cells"),
     path("me/cells/bulk/", OwnTimesheetBulkCellsView.as_view(), name="own_timesheet_cells_bulk"),

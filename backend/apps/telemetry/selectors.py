@@ -1,16 +1,20 @@
 import datetime
+
 from django.db.models import Q, QuerySet
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
+
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.telemetry.models import ErrorLog, RequestLog
+
 
 def check_telemetry_access(user: User | SuperAdminPrincipal) -> None:
     is_super = isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER"
     is_admin = isinstance(user, User) and getattr(user, "role", None) == "ADMIN"
     if not (is_super or is_admin):
         raise PermissionDenied("Access to telemetry logs is restricted to administrators.")
+
 
 def query_request_logs(
     user: User | SuperAdminPrincipal,
@@ -40,6 +44,7 @@ def query_request_logs(
 
     return qs.order_by("-id")
 
+
 def query_error_logs(
     user: User | SuperAdminPrincipal,
     *,
@@ -63,6 +68,7 @@ def query_error_logs(
         )
 
     return qs.order_by("-id")
+
 
 def calculate_metrics_for_window(start_time: datetime.datetime) -> dict:
     req_qs = RequestLog.objects.filter(created_at__gte=start_time)
@@ -89,6 +95,7 @@ def calculate_metrics_for_window(start_time: datetime.datetime) -> dict:
         "avg_duration_ms": avg_duration,
         "p95_duration_ms": p95_duration,
     }
+
 
 def get_telemetry_summary() -> dict:
     now = timezone.now()

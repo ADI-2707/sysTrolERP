@@ -4,14 +4,17 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
+
 from apps.accounts.authentication import UnifiedSessionAuthentication
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 def add_session_to_request(request):
     middleware = SessionMiddleware(lambda req: None)
     middleware.process_request(request)
     request.session.save()
+
 
 @pytest.mark.django_db
 def test_authenticate_user_session():
@@ -32,6 +35,7 @@ def test_authenticate_user_session():
     assert principal == user
     assert principal.role == "EMPLOYEE"
 
+
 @pytest.mark.django_db
 def test_authenticate_super_admin_session(settings):
     settings.SUPER_ADMIN_USERNAME = "superadmin"
@@ -47,6 +51,7 @@ def test_authenticate_super_admin_session(settings):
     assert isinstance(principal, SuperAdminPrincipal)
     assert principal.role == "SUPER"
     assert principal.username == "superadmin"
+
 
 @pytest.mark.django_db
 def test_authenticate_revoked_user_session():

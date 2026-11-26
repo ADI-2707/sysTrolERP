@@ -1,9 +1,11 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
 from apps.projects.models import ProjectAssignment
 from apps.projects.services import create_project
+
 
 @pytest.mark.django_db
 def test_project_member_assignment_workflow():
@@ -61,7 +63,9 @@ def test_project_member_assignment_workflow():
     assert res_add.status_code == 201
     assert res_add.json()["employee_code"] == "SYS-0002"
     assert ProjectAssignment.objects.filter(project=project, employee=emp1).exists()
-    assert AuditLog.objects.filter(action="PROJECT_MEMBER_ADD", entity_id=str(project.assignments.first().id)).exists()
+    assert AuditLog.objects.filter(
+        action="PROJECT_MEMBER_ADD", entity_id=str(project.assignments.first().id)
+    ).exists()
 
     res_duplicate = client.post(
         f"/api/projects/{project.id}/members/",
@@ -87,4 +91,6 @@ def test_project_member_assignment_workflow():
     assert len(synced_members) == 2
     assigned_codes = {m["employee_code"] for m in synced_members}
     assert assigned_codes == {"SYS-0003", "SYS-0004"}
-    assert AuditLog.objects.filter(action="PROJECT_MEMBERS_SYNC", entity_id=str(project.id)).exists()
+    assert AuditLog.objects.filter(
+        action="PROJECT_MEMBERS_SYNC", entity_id=str(project.id)
+    ).exists()

@@ -1,8 +1,10 @@
 import pytest
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
-from apps.projects.models import CORE_STEPS, Project, ProjectStep, StepStatus
+from apps.projects.models import CORE_STEPS, StepStatus
 from apps.projects.services import create_project
+
 
 @pytest.mark.django_db
 def test_create_project_seeds_fourteen_steps_and_members():

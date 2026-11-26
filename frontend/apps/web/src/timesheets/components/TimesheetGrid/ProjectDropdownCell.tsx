@@ -26,7 +26,6 @@ export function ProjectDropdownCell({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -35,7 +34,6 @@ export function ProjectDropdownCell({
     }
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      // Auto-focus search input
       setTimeout(() => searchInputRef.current?.focus(), 50);
     }
     return () => {
@@ -43,7 +41,6 @@ export function ProjectDropdownCell({
     };
   }, [isOpen]);
 
-  // Filter available projects (active and not already added to the week)
   const selectableProjects = useMemo(() => {
     return availableProjects.filter((p) => {
       if (existingProjectIds.includes(p.id) && p.id !== project?.id) {
@@ -61,7 +58,6 @@ export function ProjectDropdownCell({
     setSearch("");
   };
 
-  // If this is an existing row with a project assigned
   if (project) {
     return (
       <div className={styles.assignedContainer}>

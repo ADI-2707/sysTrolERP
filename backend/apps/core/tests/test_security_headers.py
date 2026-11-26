@@ -1,6 +1,6 @@
-import importlib
 import pytest
-from django.test import Client, override_settings
+from django.test import Client
+
 
 @pytest.mark.django_db
 def test_security_headers_present_on_api_responses():
@@ -15,8 +15,10 @@ def test_security_headers_present_on_api_responses():
     assert response.headers.get("X-Frame-Options") == "DENY"
     assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
 
+
 def test_prod_settings_security_configuration():
     from config.settings import prod
+
     assert prod.DEBUG is False
     assert prod.SECURE_BROWSER_XSS_FILTER is True
     assert prod.SECURE_CONTENT_TYPE_NOSNIFF is True

@@ -1,11 +1,15 @@
 import sys
 
+
 def luminance(hex_color: str) -> float:
     c = hex_color.lstrip("#")
-    r, g, b = [int(c[i:i+2], 16) / 255.0 for i in (0, 2, 4)]
+    r, g, b = [int(c[i : i + 2], 16) / 255.0 for i in (0, 2, 4)]
+
     def adjust(channel: float) -> float:
         return channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4
+
     return 0.2126 * adjust(r) + 0.7152 * adjust(g) + 0.0722 * adjust(b)
+
 
 def contrast_ratio(hex1: str, hex2: str) -> float:
     l1 = luminance(hex1)
@@ -13,6 +17,7 @@ def contrast_ratio(hex1: str, hex2: str) -> float:
     lighter = max(l1, l2)
     darker = min(l1, l2)
     return (lighter + 0.05) / (darker + 0.05)
+
 
 PAIRS_TO_AUDIT = [
     ("Light: text primary on app bg", "#0f172a", "#f8fafc", 4.5),
@@ -31,6 +36,7 @@ PAIRS_TO_AUDIT = [
     ("Dark: brand chip text on chip bg", "#86efac", "#14532d", 4.5),
 ]
 
+
 def main() -> None:
     failures = []
     print("Running WCAG AA contrast audit...")
@@ -47,6 +53,7 @@ def main() -> None:
             print(" ", f)
         sys.exit(1)
     print("\nAll color pairs passed WCAG AA compliance.")
+
 
 if __name__ == "__main__":
     main()

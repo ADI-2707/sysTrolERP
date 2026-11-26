@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+
 from apps.core.models import TimestampedModel
 
 CORE_STEPS = (
@@ -20,11 +21,13 @@ CORE_STEPS = (
     ("AMC", "AMC"),
 )
 
+
 class StepStatus(models.TextChoices):
     NOT_STARTED = "NOT_STARTED", "Not Started"
     INITIATED = "INITIATED", "Initiated"
     IN_PROGRESS = "IN_PROGRESS", "In Progress"
     COMPLETED = "COMPLETED", "Completed"
+
 
 STEP_STATUS_ORDER = {
     StepStatus.NOT_STARTED: 0,
@@ -32,6 +35,7 @@ STEP_STATUS_ORDER = {
     StepStatus.IN_PROGRESS: 2,
     StepStatus.COMPLETED: 3,
 }
+
 
 class Project(TimestampedModel):
     code = models.CharField(max_length=50, unique=True, db_index=True)
@@ -74,6 +78,7 @@ class Project(TimestampedModel):
         completed = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
         return round((completed / total) * 100.0, 1)
 
+
 class ProjectStep(TimestampedModel):
     project = models.ForeignKey(
         Project,
@@ -108,6 +113,7 @@ class ProjectStep(TimestampedModel):
     def __str__(self):
         return f"{self.project.code} Step {self.position}: {self.name} ({self.status})"
 
+
 class ProjectAssignment(TimestampedModel):
     project = models.ForeignKey(
         Project,
@@ -137,6 +143,7 @@ class ProjectAssignment(TimestampedModel):
 
     def __str__(self):
         return f"{self.employee.employee_code} -> {self.project.code}"
+
 
 class ProjectCodeSequence(models.Model):
     year = models.PositiveIntegerField(unique=True)

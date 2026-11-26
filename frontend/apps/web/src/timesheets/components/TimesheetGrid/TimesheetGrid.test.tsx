@@ -199,7 +199,6 @@ describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
     fireEvent.click(prevBtn);
     expect(handlePrevious).toHaveBeenCalledTimes(1);
 
-    // Next button should be disabled for future week restriction
     const nextBtn = screen.getByLabelText("Next week");
     expect(nextBtn).toBeDisabled();
   });
@@ -213,7 +212,6 @@ describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
     expect(screen.getByText("Sun")).toBeInTheDocument();
     expect(screen.getByText("29")).toBeInTheDocument();
 
-    // Sub-column headers
     const descHeaders = screen.getAllByText("Desc");
     expect(descHeaders.length).toBe(7);
     const hoursHeaders = screen.getAllByText("Hours");
@@ -226,12 +224,10 @@ describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
     expect(screen.getByText("PRJ-0001")).toBeInTheDocument();
     expect(screen.getByText("Automation Plant")).toBeInTheDocument();
 
-    // Mon 23 description input with note
     const descInput = screen.getByLabelText("Description for PRJ-0001 on 2026-11-23") as HTMLInputElement;
     expect(descInput).toBeInTheDocument();
     expect(descInput.value).toBe("Commissioning trial run");
 
-    // Mon 23 hours
     const hoursCell = screen.getByTestId("cell-1-2026-11-23");
     expect(hoursCell).toHaveTextContent("9.0");
   });
@@ -298,7 +294,6 @@ describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
     expect(selectBtn).toHaveTextContent("+ Select Project");
     fireEvent.click(selectBtn);
 
-    // Dropdown popover opens listing unassigned projects
     expect(screen.getByText("Conveyor Line")).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Conveyor Line"));

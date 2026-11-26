@@ -1,9 +1,12 @@
 import datetime
+
 import pytest
-from rest_framework.test import APIClient
 import time_machine
+from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.telemetry.models import ErrorLog, RequestLog
+
 
 @pytest.mark.django_db
 def test_telemetry_summary_endpoint():
@@ -23,7 +26,15 @@ def test_telemetry_summary_endpoint():
             password="ValidPassword123!",
         )
 
-        now = datetime.datetime(2026, 11, 25, 12, 0, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=5, minutes=30)))
+        now = datetime.datetime(
+            2026,
+            11,
+            25,
+            12,
+            0,
+            0,
+            tzinfo=datetime.timezone(datetime.timedelta(hours=5, minutes=30)),
+        )
 
         for d in [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0]:
             RequestLog.objects.create(

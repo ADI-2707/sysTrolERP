@@ -1,8 +1,10 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
-from apps.accounts.models import LoginAttempt, User
+
+from apps.accounts.models import User
 from apps.accounts.services import clear_login_lockout, is_login_locked
+
 
 @pytest.mark.django_db
 def test_login_lockout_after_five_failed_attempts():

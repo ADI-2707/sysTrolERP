@@ -1,6 +1,8 @@
 import pytest
+
 from apps.projects.models import Project
 from apps.projects.services import generate_next_project_code, generate_unique_project_slug
+
 
 @pytest.mark.django_db
 def test_project_code_generation():
@@ -11,6 +13,7 @@ def test_project_code_generation():
     assert code1 == "PRJ-2026-001"
     assert code2 == "PRJ-2026-002"
     assert code3 == "PRJ-2027-001"
+
 
 @pytest.mark.django_db
 def test_project_slug_generation_uniqueness():

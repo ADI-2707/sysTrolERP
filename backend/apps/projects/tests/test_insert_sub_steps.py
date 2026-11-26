@@ -1,9 +1,11 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
 from apps.projects.models import ProjectStep, StepStatus
 from apps.projects.services import create_project
+
 
 @pytest.mark.django_db
 def test_insert_sub_step_lifecycle():
@@ -54,7 +56,9 @@ def test_insert_sub_step_lifecycle():
     step_3 = project.steps.get(position=3)
     assert step_3.key == "SALES_VISIT"
 
-    audit_entry = AuditLog.objects.filter(action="SUB_STEP_CREATE", entity_id=str(data["id"])).first()
+    audit_entry = AuditLog.objects.filter(
+        action="SUB_STEP_CREATE", entity_id=str(data["id"])
+    ).first()
     assert audit_entry is not None
     assert audit_entry.actor_user == admin
 
@@ -87,6 +91,7 @@ def test_insert_sub_step_lifecycle():
     )
     assert res_after_completed.status_code == 201
     assert res_after_completed.json()["position"] == target_step.position + 1
+
 
 @pytest.mark.django_db
 def test_insert_sub_step_limit_30():

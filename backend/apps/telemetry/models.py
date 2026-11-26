@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
+
 class RequestLog(models.Model):
     method = models.CharField(max_length=10)
     route_template = models.CharField(max_length=255, blank=True, db_index=True)
@@ -20,6 +21,7 @@ class RequestLog(models.Model):
 
     def __str__(self):
         return f"{self.method} {self.path} {self.status_code} ({self.duration_ms:.1f}ms)"
+
 
 class ErrorLog(models.Model):
     error_class = models.CharField(max_length=150, db_index=True)

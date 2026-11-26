@@ -1,5 +1,7 @@
 import pytest
+
 from apps.accounts.models import User, UserRole
+
 
 @pytest.mark.django_db
 def test_create_user_employee():
@@ -15,6 +17,7 @@ def test_create_user_employee():
     assert user.check_password("ValidPassword123!") is True
     assert str(user) == "SYS-0001 - Test Employee"
 
+
 @pytest.mark.django_db
 def test_create_user_missing_email():
     with pytest.raises(ValueError, match="The Email field must be set"):
@@ -23,6 +26,7 @@ def test_create_user_missing_email():
             employee_code="SYS-0002",
             full_name="No Email",
         )
+
 
 @pytest.mark.django_db
 def test_create_user_missing_code():

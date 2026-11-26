@@ -3,7 +3,9 @@ from django.contrib.auth.hashers import Argon2PasswordHasher
 from django.contrib.sessions.models import Session
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
+
 
 @pytest.mark.django_db
 def test_password_change_success():
@@ -30,8 +32,7 @@ def test_password_change_success():
     )
 
     user_sessions_before = [
-        s for s in Session.objects.all()
-        if s.get_decoded().get("_auth_user_id") == str(user.id)
+        s for s in Session.objects.all() if s.get_decoded().get("_auth_user_id") == str(user.id)
     ]
     assert len(user_sessions_before) == 2
 
@@ -56,6 +57,7 @@ def test_password_change_success():
 
     me_resp2 = client2.get(reverse("auth_me"))
     assert me_resp2.status_code in (401, 403)
+
 
 @pytest.mark.django_db
 def test_password_change_wrong_current_password():
@@ -82,6 +84,7 @@ def test_password_change_wrong_current_password():
     )
     assert resp.status_code == 400
     assert "current_password" in resp.data["fields"]
+
 
 @pytest.mark.django_db
 def test_password_change_blocked_for_super_admin(settings):

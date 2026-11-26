@@ -1,8 +1,10 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
+
 
 @pytest.mark.django_db
 def test_auth_audit_events_recorded():

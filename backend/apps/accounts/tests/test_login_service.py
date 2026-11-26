@@ -2,9 +2,11 @@ import pytest
 from django.contrib.auth.hashers import Argon2PasswordHasher
 from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
+
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.accounts.services import authenticate_principal
+
 
 @pytest.mark.django_db
 def test_authenticate_super_admin(settings):
@@ -17,6 +19,7 @@ def test_authenticate_super_admin(settings):
     assert isinstance(principal, SuperAdminPrincipal)
     assert principal.username == "superadmin"
 
+
 @pytest.mark.django_db
 def test_authenticate_super_admin_invalid_password(settings):
     hasher = Argon2PasswordHasher()
@@ -26,6 +29,7 @@ def test_authenticate_super_admin_invalid_password(settings):
 
     with pytest.raises(AuthenticationFailed, match="Invalid credentials."):
         authenticate_principal("superadmin", "WrongPassword123!")
+
 
 @pytest.mark.django_db
 def test_authenticate_database_user():
@@ -42,6 +46,7 @@ def test_authenticate_database_user():
     auth_by_code = authenticate_principal("SYS-0010", "ValidPassword123!")
     assert auth_by_code.pk == user.pk
 
+
 @pytest.mark.django_db
 def test_authenticate_database_user_invalid_password():
     User.objects.create_user(
@@ -52,6 +57,7 @@ def test_authenticate_database_user_invalid_password():
     )
     with pytest.raises(AuthenticationFailed, match="Invalid credentials."):
         authenticate_principal("emp2@company.com", "WrongPassword123!")
+
 
 @pytest.mark.django_db
 def test_authenticate_revoked_user():
@@ -64,6 +70,7 @@ def test_authenticate_revoked_user():
     )
     with pytest.raises(AuthenticationFailed, match="Account is deactivated or revoked."):
         authenticate_principal("revoked@company.com", "ValidPassword123!")
+
 
 @pytest.mark.django_db
 def test_authenticate_nonexistent_user():

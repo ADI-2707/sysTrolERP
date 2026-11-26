@@ -1,9 +1,11 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit.models import AuditLog
+
 
 @pytest.mark.django_db
 def test_admin_revoke_and_restore_employee():
@@ -54,6 +56,7 @@ def test_admin_revoke_and_restore_employee():
     assert emp.revoked_at is None
     assert emp.revoked_by is None
 
+
 @pytest.mark.django_db
 def test_admin_self_revoke_blocked():
     admin = User.objects.create_user(
@@ -73,6 +76,7 @@ def test_admin_self_revoke_blocked():
     )
     assert resp.status_code == 403
     assert "Self-revocation is not allowed" in resp.data["message"]
+
 
 @pytest.mark.django_db
 def test_admin_cannot_revoke_admin_only_super_can():

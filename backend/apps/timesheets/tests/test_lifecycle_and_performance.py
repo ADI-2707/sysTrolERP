@@ -1,8 +1,10 @@
 import datetime
 from decimal import Decimal
+
 import pytest
-from rest_framework.test import APIClient
 import time_machine
+from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
 from apps.projects.services import create_project
@@ -12,6 +14,7 @@ from apps.timesheets.models import (
     TimesheetRow,
     TimesheetWeekStatus,
 )
+
 
 @pytest.mark.django_db
 def test_full_timesheet_lifecycle():
@@ -168,7 +171,10 @@ def test_full_timesheet_lifecycle():
         assert AuditLog.objects.filter(action="TIMESHEET_SUBMIT", entity_id=str(ts_id)).exists()
         assert AuditLog.objects.filter(action="TIMESHEET_RETURN", entity_id=str(ts_id)).exists()
         assert AuditLog.objects.filter(action="TIMESHEET_APPROVE", entity_id=str(ts_id)).exists()
-        assert AuditLog.objects.filter(action="TIMESHEET_SUPER_OVERRIDE", entity_id=str(ts_id)).exists()
+        assert AuditLog.objects.filter(
+            action="TIMESHEET_SUPER_OVERRIDE", entity_id=str(ts_id)
+        ).exists()
+
 
 @pytest.mark.django_db
 def test_admin_timesheet_listing_query_count(django_assert_num_queries):
@@ -188,7 +194,7 @@ def test_admin_timesheet_listing_query_count(django_assert_num_queries):
 
     for i in range(10):
         emp = User.objects.create_user(
-            employee_code=f"SYS-{1000+i}",
+            employee_code=f"SYS-{1000 + i}",
             email=f"emp{i}@example.com",
             full_name=f"Emp {i}",
             role=UserRole.EMPLOYEE,
@@ -217,7 +223,7 @@ def test_admin_timesheet_listing_query_count(django_assert_num_queries):
 
     for i in range(10, 20):
         emp = User.objects.create_user(
-            employee_code=f"SYS-{1000+i}",
+            employee_code=f"SYS-{1000 + i}",
             email=f"emp{i}@example.com",
             full_name=f"Emp {i}",
             role=UserRole.EMPLOYEE,

@@ -1,10 +1,12 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
-from apps.accounts.models import LoginAttempt, User, UserRole
+
+from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.accounts.services import is_login_locked, record_login_attempt
 from apps.audit.models import AuditLog
+
 
 @pytest.mark.django_db
 def test_super_admin_recovery_endpoints():

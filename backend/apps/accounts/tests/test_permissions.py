@@ -1,14 +1,16 @@
 import pytest
-from django.test import RequestFactory
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
-from apps.accounts.permissions import IsAdmin, IsAdminOrSuper, IsAuthenticatedPrincipal, IsSuper
+from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal, IsSuper
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 class DummyRequest:
     def __init__(self, user):
         self.user = user
+
 
 def test_permissions_matrix():
     super_principal = SuperAdminPrincipal()
@@ -38,6 +40,7 @@ def test_permissions_matrix():
     assert is_auth.has_permission(DummyRequest(admin_user), None) is True
     assert is_auth.has_permission(DummyRequest(employee_user), None) is True
     assert is_auth.has_permission(DummyRequest(anon_user), None) is False
+
 
 @pytest.mark.django_db
 def test_must_change_password_gate_middleware():

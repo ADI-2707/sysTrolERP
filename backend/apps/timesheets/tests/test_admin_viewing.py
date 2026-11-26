@@ -1,8 +1,10 @@
 import datetime
 from decimal import Decimal
+
 import pytest
-from rest_framework.test import APIClient
 import time_machine
+from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.projects.services import create_project
 from apps.timesheets.models import (
@@ -11,6 +13,7 @@ from apps.timesheets.models import (
     TimesheetRow,
     TimesheetWeekStatus,
 )
+
 
 @pytest.mark.django_db
 def test_admin_timesheet_viewing():
@@ -70,14 +73,18 @@ def test_admin_timesheet_viewing():
         admin_client = APIClient()
         admin_client.force_login(admin1)
 
-        res_detail = admin_client.get(f"/api/timesheets/?employee={emp.employee_code}&week=2026-11-23")
+        res_detail = admin_client.get(
+            f"/api/timesheets/?employee={emp.employee_code}&week=2026-11-23"
+        )
         assert res_detail.status_code == 200
         detail_data = res_detail.json()
         assert detail_data["employee"]["code"] == "SYS-0003"
         assert detail_data["total_week_hours"] == "8.00"
         assert detail_data["can_approve"] is True
 
-        res_own_detail = admin_client.get(f"/api/timesheets/?employee={admin1.employee_code}&week=2026-11-23")
+        res_own_detail = admin_client.get(
+            f"/api/timesheets/?employee={admin1.employee_code}&week=2026-11-23"
+        )
         assert res_own_detail.status_code == 200
         assert res_own_detail.json()["can_approve"] is False
 

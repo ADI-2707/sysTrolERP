@@ -1,8 +1,10 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.projects.models import StepStatus
 from apps.projects.services import create_project, insert_sub_step
+
 
 @pytest.mark.django_db
 def test_derived_project_status_and_completion():

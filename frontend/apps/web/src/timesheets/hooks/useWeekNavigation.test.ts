@@ -12,7 +12,6 @@ describe("useWeekNavigation", () => {
     expect(result.current.isCurrent).toBe(true);
     expect(result.current.canGoNext).toBe(false);
 
-    // Attempting to go to next week should do nothing because it is in the future
     act(() => {
       result.current.goToNextWeek();
     });
@@ -28,7 +27,6 @@ describe("useWeekNavigation", () => {
     expect(result.current.isCurrent).toBe(false);
     expect(result.current.canGoNext).toBe(true);
 
-    // Go next should return to current week
     act(() => {
       result.current.goToNextWeek();
     });

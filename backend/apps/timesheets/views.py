@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal, IsSuper
 from apps.core.pagination import StandardPageNumberPagination
 from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
@@ -33,6 +34,7 @@ from apps.timesheets.services import (
     upsert_timesheet_cell,
 )
 
+
 class TimesheetPolicyView(APIView):
     permission_classes = [IsSuper]
 
@@ -54,6 +56,7 @@ class TimesheetPolicyView(APIView):
     def patch(self, request):
         return self.put(request)
 
+
 class OwnTimesheetView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
 
@@ -61,6 +64,7 @@ class OwnTimesheetView(APIView):
         week_param = request.query_params.get("week")
         data = get_own_timesheet(user=request.user, week_str=week_param)
         return Response(data, status=status.HTTP_200_OK)
+
 
 class OwnTimesheetCellView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
@@ -79,6 +83,7 @@ class OwnTimesheetCellView(APIView):
         )
         return Response(result, status=status.HTTP_200_OK)
 
+
 class OwnTimesheetBulkCellsView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
 
@@ -92,6 +97,7 @@ class OwnTimesheetBulkCellsView(APIView):
             request=request,
         )
         return Response(result, status=status.HTTP_200_OK)
+
 
 class OwnTimesheetRowManageView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
@@ -109,6 +115,7 @@ class OwnTimesheetRowManageView(APIView):
         )
         return Response(row_data, status=status.HTTP_201_CREATED)
 
+
 class OwnTimesheetRowDetailView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
 
@@ -119,6 +126,7 @@ class OwnTimesheetRowDetailView(APIView):
             request=request,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class OwnTimesheetSubmitView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
@@ -134,6 +142,7 @@ class OwnTimesheetSubmitView(APIView):
         )
         return Response(result, status=status.HTTP_200_OK)
 
+
 class TimesheetSummaryView(APIView):
     permission_classes = [IsAdminOrSuper]
 
@@ -141,6 +150,7 @@ class TimesheetSummaryView(APIView):
         week_param = request.query_params.get("week")
         data = get_timesheet_dashboard_summary(week_str=week_param)
         return Response(data, status=status.HTTP_200_OK)
+
 
 class AdminTimesheetListView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -167,6 +177,7 @@ class AdminTimesheetListView(APIView):
         serializer = TimesheetAdminListSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
+
 class AdminPendingTimesheetsView(APIView):
     permission_classes = [IsAdminOrSuper]
 
@@ -182,6 +193,7 @@ class AdminPendingTimesheetsView(APIView):
         serializer = TimesheetAdminListSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
+
 class TimesheetApproveView(APIView):
     permission_classes = [IsAdminOrSuper]
 
@@ -193,6 +205,7 @@ class TimesheetApproveView(APIView):
         )
         data = build_timesheet_detail_for_admin(timesheet, current_user=request.user)
         return Response(data, status=status.HTTP_200_OK)
+
 
 class TimesheetReturnView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -209,6 +222,7 @@ class TimesheetReturnView(APIView):
         )
         data = build_timesheet_detail_for_admin(timesheet, current_user=request.user)
         return Response(data, status=status.HTTP_200_OK)
+
 
 class SuperAdminTimesheetOverrideView(APIView):
     permission_classes = [IsSuper]

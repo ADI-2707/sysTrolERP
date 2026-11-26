@@ -1,6 +1,8 @@
 import math
+
 from rest_framework.pagination import CursorPagination, PageNumberPagination
 from rest_framework.response import Response
+
 
 class StandardPageNumberPagination(PageNumberPagination):
     page_size = 20
@@ -20,6 +22,7 @@ class StandardPageNumberPagination(PageNumberPagination):
                 "results": data,
             }
         )
+
 
 class StandardCursorPagination(CursorPagination):
     page_size = 50

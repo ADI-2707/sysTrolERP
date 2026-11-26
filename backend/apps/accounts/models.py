@@ -2,9 +2,11 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.utils import timezone
 
+
 class UserRole(models.TextChoices):
     ADMIN = "ADMIN", "Admin"
     EMPLOYEE = "EMPLOYEE", "Employee"
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, employee_code, full_name, password=None, **extra_fields):
@@ -37,6 +39,7 @@ class UserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self.create_user(email, employee_code, full_name, password, **extra_fields)
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     employee_code = models.CharField(max_length=20, unique=True, db_index=True)
@@ -76,6 +79,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.employee_code} - {self.full_name}"
 
+
 class EmployeeCodeSequence(models.Model):
     name = models.CharField(max_length=50, unique=True, default="employee_code")
     last_number = models.PositiveIntegerField(default=0)
@@ -86,6 +90,7 @@ class EmployeeCodeSequence(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.last_number}"
+
 
 class LoginAttempt(models.Model):
     identifier = models.CharField(max_length=255, db_index=True)

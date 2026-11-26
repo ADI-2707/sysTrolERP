@@ -1,9 +1,10 @@
-import pytest
 from rest_framework import exceptions
-from rest_framework.test import APIRequestFactory
 from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
+
 from apps.core.exceptions import custom_exception_handler
 from apps.core.pagination import StandardPageNumberPagination
+
 
 def test_custom_exception_handler_validation_error():
     factory = APIRequestFactory()
@@ -18,6 +19,7 @@ def test_custom_exception_handler_validation_error():
     assert "email" in response.data["fields"]
     assert response.data["fields"]["email"] == ["Enter a valid email address."]
 
+
 def test_custom_exception_handler_not_found():
     factory = APIRequestFactory()
     request = factory.get("/")
@@ -30,6 +32,7 @@ def test_custom_exception_handler_not_found():
     assert response.data["message"] == "Item not found."
     assert response.data["fields"] == {}
 
+
 def test_custom_exception_handler_unhandled():
     factory = APIRequestFactory()
     request = factory.get("/")
@@ -41,6 +44,7 @@ def test_custom_exception_handler_unhandled():
     assert response.data["code"] == "server_error"
     assert response.data["message"] == "An unexpected error occurred."
     assert response.data["fields"] == {}
+
 
 def test_standard_pagination():
     class DummyQueryset:

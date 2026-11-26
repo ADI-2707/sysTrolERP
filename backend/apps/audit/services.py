@@ -3,11 +3,13 @@ from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit.context import get_current_request
 from apps.audit.models import ActorKind, AuditLog
 
+
 def get_client_ip_from_meta(meta):
     x_forwarded = meta.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded:
         return x_forwarded.split(",")[0].strip()
     return meta.get("REMOTE_ADDR")
+
 
 def record(
     *,

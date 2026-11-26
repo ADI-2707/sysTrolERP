@@ -1,7 +1,10 @@
 import io
+
 from django.contrib.auth.hashers import Argon2PasswordHasher
 from django.core.management import call_command
+
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 def test_super_admin_principal_attributes():
     principal = SuperAdminPrincipal("admin_root")
@@ -15,6 +18,7 @@ def test_super_admin_principal_attributes():
     assert principal.must_change_password is False
     assert principal.has_perm("any_perm") is True
     assert str(principal) == "SUPER:admin_root"
+
 
 def test_generate_super_admin_hash_command():
     out = io.StringIO()

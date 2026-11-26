@@ -1,20 +1,22 @@
-from concurrent.futures import ThreadPoolExecutor
-import datetime
-from decimal import Decimal
 import time
+from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
+
 import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
+
 from apps.accounts.models import User
 from apps.core.timezone import company_today, week_bounds
 from apps.projects.models import Project, ProjectAssignment
 from apps.timesheets.models import (
     Timesheet,
-    TimesheetRow,
     TimesheetEntry,
+    TimesheetRow,
     TimesheetWeekStatus,
 )
 from apps.timesheets.services import bulk_upsert_timesheet_cells
+
 
 @pytest.mark.django_db(transaction=True)
 def test_concurrent_timesheet_cell_upserts():
@@ -76,6 +78,7 @@ def test_concurrent_timesheet_cell_upserts():
 
     assert TimesheetEntry.objects.filter(row_id=row_id).count() == 1
 
+
 @pytest.mark.django_db
 def test_bulk_cell_upsert_query_efficiency():
     employee = User.objects.create_user(
@@ -103,12 +106,14 @@ def test_bulk_cell_upsert_query_efficiency():
 
     payload = []
     for r in rows:
-        payload.append({
-            "project_id": r.project_id,
-            "date": monday,
-            "hours": Decimal("2.00"),
-            "note": "Bulk efficiency test",
-        })
+        payload.append(
+            {
+                "project_id": r.project_id,
+                "date": monday,
+                "hours": Decimal("2.00"),
+                "note": "Bulk efficiency test",
+            }
+        )
 
     with CaptureQueriesContext(connection) as ctx:
         res = bulk_upsert_timesheet_cells(
@@ -119,6 +124,7 @@ def test_bulk_cell_upsert_query_efficiency():
     assert res["saved_count"] == 5
     assert len(ctx.captured_queries) <= 100
     assert TimesheetEntry.objects.filter(row__timesheet=timesheet).count() == 5
+
 
 @pytest.mark.django_db
 def test_database_indexes_and_constraints_present():

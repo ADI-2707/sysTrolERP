@@ -2,7 +2,9 @@ import pytest
 from django.contrib.auth.hashers import Argon2PasswordHasher
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
+
 
 @pytest.mark.django_db
 def test_csrf_endpoint():
@@ -10,6 +12,7 @@ def test_csrf_endpoint():
     response = client.get(reverse("auth_csrf"))
     assert response.status_code == 200
     assert "csrfToken" in response.data
+
 
 @pytest.mark.django_db
 def test_login_and_me_database_user():
@@ -40,6 +43,7 @@ def test_login_and_me_database_user():
 
     unauth_resp = client.get(reverse("auth_me"))
     assert unauth_resp.status_code == 403 or unauth_resp.status_code == 401
+
 
 @pytest.mark.django_db
 def test_login_and_me_super_admin(settings):

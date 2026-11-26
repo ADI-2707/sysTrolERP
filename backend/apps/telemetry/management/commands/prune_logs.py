@@ -1,10 +1,13 @@
 from datetime import timedelta
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+
 from apps.accounts.models import LoginAttempt
 from apps.audit.models import AuditLog
 from apps.telemetry.models import ErrorLog, RequestLog
+
 
 class Command(BaseCommand):
     help = "Prune expired audit, telemetry and authentication logs based on retention policies"
@@ -45,7 +48,9 @@ class Command(BaseCommand):
             self.stdout.write(f"[Dry Run] Would prune {req_count} request logs (>{request_days}d)")
             self.stdout.write(f"[Dry Run] Would prune {err_count} error logs (>{error_days}d)")
             self.stdout.write(f"[Dry Run] Would prune {aud_count} audit logs (>{audit_days}d)")
-            self.stdout.write(f"[Dry Run] Would prune {att_count} login attempts (>{attempt_days}d)")
+            self.stdout.write(
+                f"[Dry Run] Would prune {att_count} login attempts (>{attempt_days}d)"
+            )
             return
 
         req_deleted, _ = req_qs.delete()

@@ -1,13 +1,14 @@
 from rest_framework import status
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from apps.accounts.permissions import IsAdminOrSuper
 from apps.core.pagination import StandardPageNumberPagination
-from rest_framework.exceptions import NotFound
 from apps.employees.selectors import get_employee_by_id, list_employees
 from apps.employees.serializers import (
-    EmployeeCreateSerializer,
     EmployeeCreatedResponseSerializer,
+    EmployeeCreateSerializer,
     EmployeeDetailSerializer,
     EmployeeListSerializer,
     EmployeeUpdateSerializer,
@@ -20,6 +21,7 @@ from apps.employees.services import (
     revoke_employee,
     update_employee,
 )
+
 
 class EmployeeListCreateView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -59,6 +61,7 @@ class EmployeeListCreateView(APIView):
 
         return Response(data, status=status.HTTP_201_CREATED)
 
+
 class EmployeeDetailView(APIView):
     permission_classes = [IsAdminOrSuper]
 
@@ -87,6 +90,7 @@ class EmployeeDetailView(APIView):
         resp_serializer = EmployeeDetailSerializer(updated_user)
         return Response(resp_serializer.data, status=status.HTTP_200_OK)
 
+
 class EmployeeRevokeView(APIView):
     permission_classes = [IsAdminOrSuper]
 
@@ -105,7 +109,10 @@ class EmployeeRevokeView(APIView):
             request=request,
         )
 
-        return Response({"message": "Employee access revoked successfully."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Employee access revoked successfully."}, status=status.HTTP_200_OK
+        )
+
 
 class EmployeeRestoreView(APIView):
     permission_classes = [IsAdminOrSuper]
@@ -125,7 +132,10 @@ class EmployeeRestoreView(APIView):
             request=request,
         )
 
-        return Response({"message": "Employee access restored successfully."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Employee access restored successfully."}, status=status.HTTP_200_OK
+        )
+
 
 class EmployeeResetPasswordView(APIView):
     permission_classes = [IsAdminOrSuper]

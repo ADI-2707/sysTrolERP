@@ -1,8 +1,10 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
 from apps.timesheets.models import TimesheetPolicy
+
 
 @pytest.mark.django_db
 def test_timesheet_policy_defaults_and_permissions():
@@ -31,7 +33,6 @@ def test_timesheet_policy_defaults_and_permissions():
     client = APIClient()
     client.force_login(employee)
 
-    # Regular employee cannot view timesheet policy (403 Forbidden)
     res_get_emp = client.get("/api/timesheets/policy/")
     assert res_get_emp.status_code == 403
 
@@ -42,7 +43,6 @@ def test_timesheet_policy_defaults_and_permissions():
     )
     assert res_put_emp.status_code == 403
 
-    # Admin cannot view or update timesheet policy (403 Forbidden)
     client.force_login(admin)
     res_get_admin = client.get("/api/timesheets/policy/")
     assert res_get_admin.status_code == 403
@@ -54,7 +54,6 @@ def test_timesheet_policy_defaults_and_permissions():
     )
     assert res_put_admin.status_code == 403
 
-    # Super admin can both view and update timesheet policy
     super_client = APIClient()
     session = super_client.session
     session["is_super_admin"] = True

@@ -1,8 +1,10 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
+
 
 @pytest.mark.django_db
 def test_admin_create_employee_success():
@@ -32,6 +34,7 @@ def test_admin_create_employee_success():
     assert len(response.data["temporary_password"]) >= 10
     assert response.data["must_change_password"] is True
 
+
 @pytest.mark.django_db
 def test_admin_cannot_create_admin():
     admin = User.objects.create_user(
@@ -53,6 +56,7 @@ def test_admin_cannot_create_admin():
     assert response.status_code == 403
     assert "Only super admin can create administrators" in response.data["message"]
 
+
 @pytest.mark.django_db
 def test_super_admin_can_create_admin():
     super_admin = SuperAdminPrincipal("superadmin")
@@ -68,6 +72,7 @@ def test_super_admin_can_create_admin():
     assert response.status_code == 201
     assert response.data["role"] == "ADMIN"
     assert "temporary_password" in response.data
+
 
 @pytest.mark.django_db
 def test_create_employee_duplicate_email():

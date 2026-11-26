@@ -2,6 +2,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
+
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
@@ -14,6 +15,7 @@ from apps.projects.models import (
     ProjectStep,
     StepStatus,
 )
+
 
 def generate_next_project_code(year: int | None = None) -> str:
     if year is None:
@@ -28,6 +30,7 @@ def generate_next_project_code(year: int | None = None) -> str:
         seq.save(update_fields=["last_number"])
         return f"PRJ-{year}-{seq.last_number:03d}"
 
+
 def generate_unique_project_slug(name: str) -> str:
     base_slug = slugify(name)
     if not base_slug:
@@ -40,6 +43,7 @@ def generate_unique_project_slug(name: str) -> str:
         slug = f"{base_slug}-{counter}"
 
     return slug
+
 
 def create_project(
     *,
@@ -114,6 +118,7 @@ def create_project(
 
     return project
 
+
 def update_step_status(
     *,
     step: ProjectStep,
@@ -129,7 +134,9 @@ def update_step_status(
         raise ValidationError({"status": ["Step status can only move forward."]})
 
     if new_status == StepStatus.COMPLETED and not confirm:
-        raise ValidationError({"confirm": ["Confirmation is required to mark a step as completed."]})
+        raise ValidationError(
+            {"confirm": ["Confirmation is required to mark a step as completed."]}
+        )
 
     old_status = step.status
     step.status = new_status
@@ -143,7 +150,9 @@ def update_step_status(
             else actor.employee_code
         )
 
-    step.save(update_fields=["status", "confirmed_at", "confirmed_by", "confirmed_by_label", "updated_at"])
+    step.save(
+        update_fields=["status", "confirmed_at", "confirmed_by", "confirmed_by_label", "updated_at"]
+    )
 
     audit_services.record(
         action="STEP_STATUS_CHANGE",
@@ -156,6 +165,7 @@ def update_step_status(
     )
 
     return step
+
 
 def insert_sub_step(
     *,
@@ -174,22 +184,34 @@ def insert_sub_step(
         try:
             after_step = project.steps.select_for_update().get(pk=after_step_id)
         except ProjectStep.DoesNotExist:
-            raise ValidationError({"after_step_id": ["Target step does not exist in this project."]})
+            raise ValidationError(
+                {"after_step_id": ["Target step does not exist in this project."]}
+            )
 
         if after_step.key == "AMC":
             raise ValidationError({"after_step_id": ["Sub-steps cannot be inserted after AMC."]})
 
-        max_completed_pos = (
-            project.steps.filter(status=StepStatus.COMPLETED).aggregate(models.Max("position"))["position__max"]
-        )
+        max_completed_pos = project.steps.filter(status=StepStatus.COMPLETED).aggregate(
+            models.Max("position")
+        )["position__max"]
         if max_completed_pos is not None and after_step.position < max_completed_pos:
-            raise ValidationError({"after_step_id": ["Sub-steps cannot be inserted before or among completed steps."]})
+            raise ValidationError(
+                {"after_step_id": ["Sub-steps cannot be inserted before or among completed steps."]}
+            )
 
         custom_count = project.steps.filter(is_custom=True).count()
         if custom_count >= 30:
-            raise ValidationError({"non_field_errors": ["Maximum limit of 30 custom sub-steps reached for this project."]})
+            raise ValidationError(
+                {
+                    "non_field_errors": [
+                        "Maximum limit of 30 custom sub-steps reached for this project."
+                    ]
+                }
+            )
 
-        shift_steps = list(project.steps.filter(position__gt=after_step.position).order_by("-position"))
+        shift_steps = list(
+            project.steps.filter(position__gt=after_step.position).order_by("-position")
+        )
         for s in shift_steps:
             s.position = s.position + 1
             s.save(update_fields=["position"])
@@ -208,11 +230,16 @@ def insert_sub_step(
             entity_type="ProjectStep",
             entity_id=str(new_step.id),
             summary=f"Inserted sub-step {new_step.name} at position {new_step.position} in project {project.code}",
-            changes={"name": [None, new_step.name], "position": [None, new_step.position], "after_step_id": [None, after_step.id]},
+            changes={
+                "name": [None, new_step.name],
+                "position": [None, new_step.position],
+                "after_step_id": [None, after_step.id],
+            },
             request=request,
         )
 
         return new_step
+
 
 def update_custom_step(
     *,
@@ -249,6 +276,7 @@ def update_custom_step(
 
     return step
 
+
 def delete_custom_step(
     *,
     project_id: int,
@@ -271,7 +299,9 @@ def delete_custom_step(
             raise ValidationError({"step": ["Only custom sub-steps can be deleted."]})
 
         if step.status != StepStatus.NOT_STARTED:
-            raise ValidationError({"step": ["Only sub-steps in NOT_STARTED status can be deleted."]})
+            raise ValidationError(
+                {"step": ["Only sub-steps in NOT_STARTED status can be deleted."]}
+            )
 
         deleted_pos = step.position
         deleted_id = step.id
@@ -289,9 +319,14 @@ def delete_custom_step(
             entity_type="ProjectStep",
             entity_id=str(deleted_id),
             summary=f"Deleted sub-step {deleted_name} from project {project.code}",
-            changes={"id": [deleted_id, None], "name": [deleted_name, None], "position": [deleted_pos, None]},
+            changes={
+                "id": [deleted_id, None],
+                "name": [deleted_name, None],
+                "position": [deleted_pos, None],
+            },
             request=request,
         )
+
 
 def add_project_member(
     *,
@@ -312,9 +347,7 @@ def add_project_member(
 
     assigned_by = actor if isinstance(actor, User) else None
     assigned_by_label = (
-        f"SUPER:{actor.username}"
-        if isinstance(actor, SuperAdminPrincipal)
-        else actor.employee_code
+        f"SUPER:{actor.username}" if isinstance(actor, SuperAdminPrincipal) else actor.employee_code
     )
 
     assignment, created = ProjectAssignment.objects.get_or_create(
@@ -339,6 +372,7 @@ def add_project_member(
         request=request,
     )
     return assignment
+
 
 def remove_project_member(
     *,
@@ -370,6 +404,7 @@ def remove_project_member(
         request=request,
     )
 
+
 def sync_project_members(
     *,
     project_id: int,
@@ -388,7 +423,9 @@ def sync_project_members(
         if len(valid_users) != len(unique_ids):
             found_ids = {u.id for u in valid_users}
             missing = set(unique_ids) - found_ids
-            raise ValidationError({"user_ids": [f"Active users with IDs {sorted(missing)} not found."]})
+            raise ValidationError(
+                {"user_ids": [f"Active users with IDs {sorted(missing)} not found."]}
+            )
 
         current_assignments = {a.employee_id: a for a in project.assignments.all()}
         assigned_by = actor if isinstance(actor, User) else None

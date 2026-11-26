@@ -1,6 +1,8 @@
 import pytest
-from apps.accounts.models import User, UserRole
+
+from apps.accounts.models import User
 from apps.projects.models import CORE_STEPS, Project, ProjectAssignment, ProjectStep, StepStatus
+
 
 @pytest.mark.django_db
 def test_project_domain_models_creation():

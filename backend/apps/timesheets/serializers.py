@@ -1,8 +1,11 @@
 import datetime
 from decimal import Decimal
+
 from rest_framework import serializers
+
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
+
 
 class TimesheetPolicySerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,6 +20,7 @@ class TimesheetPolicySerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["updated_at"]
+
 
 class CellUpsertSerializer(serializers.Serializer):
     project_id = serializers.IntegerField(required=True)
@@ -37,6 +41,7 @@ class CellUpsertSerializer(serializers.Serializer):
             raise serializers.ValidationError(f"Hours must be a multiple of {step}.")
         return value
 
+
 class BulkCellSaveSerializer(serializers.Serializer):
     cells = serializers.ListField(
         child=CellUpsertSerializer(),
@@ -44,13 +49,18 @@ class BulkCellSaveSerializer(serializers.Serializer):
         max_length=100,
     )
 
+
 class TimesheetRowCreateSerializer(serializers.Serializer):
     project_id = serializers.IntegerField(required=True)
     week = serializers.DateField(required=False, default=None)
-    description = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
+    description = serializers.CharField(
+        max_length=255, required=False, allow_blank=True, default=""
+    )
+
 
 class TimesheetSubmitSerializer(serializers.Serializer):
     week = serializers.DateField(required=False, default=None)
+
 
 class TimesheetReturnSerializer(serializers.Serializer):
     reason = serializers.CharField(max_length=1000, required=True)
@@ -60,6 +70,7 @@ class TimesheetReturnSerializer(serializers.Serializer):
         if not val:
             raise serializers.ValidationError("Return reason cannot be empty.")
         return val
+
 
 class SuperAdminOverrideCellSerializer(serializers.Serializer):
     project_id = serializers.IntegerField(required=True)
@@ -73,9 +84,12 @@ class SuperAdminOverrideCellSerializer(serializers.Serializer):
     )
     note = serializers.CharField(max_length=500, required=False, allow_blank=True, default="")
 
+
 class SuperAdminOverrideSerializer(serializers.Serializer):
     reason = serializers.CharField(max_length=1000, required=True)
-    status = serializers.ChoiceField(choices=TimesheetWeekStatus.choices, required=False, default=None)
+    status = serializers.ChoiceField(
+        choices=TimesheetWeekStatus.choices, required=False, default=None
+    )
     cells = serializers.ListField(
         child=SuperAdminOverrideCellSerializer(),
         required=False,
@@ -87,6 +101,7 @@ class SuperAdminOverrideSerializer(serializers.Serializer):
         if not val:
             raise serializers.ValidationError("Override reason is required.")
         return val
+
 
 class TimesheetAdminListSerializer(serializers.ModelSerializer):
     employee = serializers.SerializerMethodField()

@@ -2,10 +2,12 @@ import pytest
 from django.test import RequestFactory
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services
-from apps.audit.models import ActorKind, AuditLog
+from apps.audit.models import ActorKind
+
 
 @pytest.mark.django_db
 def test_request_id_middleware_header():
@@ -14,6 +16,7 @@ def test_request_id_middleware_header():
     assert response.status_code == 200
     assert "X-Request-ID" in response.headers
     assert len(response.headers["X-Request-ID"]) > 10
+
 
 @pytest.mark.django_db
 def test_record_audit_with_user():
@@ -25,7 +28,9 @@ def test_record_audit_with_user():
         role=UserRole.ADMIN,
     )
     factory = RequestFactory()
-    request = factory.post("/api/projects/", HTTP_X_REQUEST_ID="req-test-123", REMOTE_ADDR="10.1.2.3")
+    request = factory.post(
+        "/api/projects/", HTTP_X_REQUEST_ID="req-test-123", REMOTE_ADDR="10.1.2.3"
+    )
     request.request_id = "req-test-123"
     request.user = user
 
@@ -46,6 +51,7 @@ def test_record_audit_with_user():
     assert log.ip_address == "10.1.2.3"
     assert log.request_id == "req-test-123"
     assert log.super_only is False
+
 
 @pytest.mark.django_db
 def test_record_audit_with_super_admin():

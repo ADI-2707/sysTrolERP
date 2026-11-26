@@ -57,7 +57,6 @@ export function TimesheetGrid({
 
   const step = parseFloat(timesheet.policy?.hour_step || "0.25");
 
-  // Determine current week status for next week restriction
   const isCurrent = isCurrentWeek !== undefined ? isCurrentWeek : checkIsCurrentWeek(timesheet.week_start_date);
   const allowNext = canGoNext !== undefined ? canGoNext : !isCurrent;
 
@@ -69,7 +68,6 @@ export function TimesheetGrid({
 
   return (
     <div className={[styles.gridOuterWrapper, className].filter(Boolean).join(" ")} ref={wrapperRef}>
-      {/* Return Reason Alert Banner if Timesheet was Returned */}
       {timesheet.status === "RETURNED" && timesheet.return_reason && (
         <TimesheetStatusBanner
           status={timesheet.status}
@@ -85,9 +83,7 @@ export function TimesheetGrid({
         />
       )}
 
-      {/* Outer Card Wrapper */}
       <div className={styles.gridCardWrapper}>
-        {/* Fixed Week Navigation Header Bar: Not scrollable horizontally */}
         <div className={styles.weekNavCard}>
           <div className={styles.weekNavContent}>
             <div className={styles.weekControls}>

@@ -1,9 +1,11 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit.models import AuditLog
+
 
 @pytest.mark.django_db
 def test_admin_reset_employee_password():
@@ -37,6 +39,7 @@ def test_admin_reset_employee_password():
     audit = AuditLog.objects.filter(action="PASSWORD_RESET_BY_ADMIN", entity_id=str(emp.id)).first()
     assert audit is not None
 
+
 @pytest.mark.django_db
 def test_admin_cannot_reset_admin_password():
     admin1 = User.objects.create_user(
@@ -59,6 +62,7 @@ def test_admin_cannot_reset_admin_password():
     resp = client.post(reverse("employee_reset_password", kwargs={"pk": admin2.id}), format="json")
     assert resp.status_code == 403
     assert "Only the super administrator can reset an admin's password" in resp.data["message"]
+
 
 @pytest.mark.django_db
 def test_super_admin_can_reset_admin_password():

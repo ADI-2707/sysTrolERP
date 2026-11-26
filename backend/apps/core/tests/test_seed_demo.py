@@ -1,8 +1,10 @@
 import pytest
 from django.core.management import call_command
+
 from apps.accounts.models import User, UserRole
 from apps.projects.models import Project, ProjectAssignment
 from apps.timesheets.models import Timesheet, TimesheetEntry, TimesheetWeekStatus
+
 
 @pytest.mark.django_db
 def test_seed_demo_command():

@@ -1,10 +1,11 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
-from apps.projects.models import StepStatus
 from apps.projects.services import create_project
+
 
 @pytest.mark.django_db
 def test_step_status_transitions():
@@ -40,7 +41,9 @@ def test_step_status_transitions():
     admin_client = APIClient()
     admin_client.force_authenticate(user=admin)
 
-    step_url = reverse("project_step_status", kwargs={"project_id": project.id, "step_id": first_step.id})
+    step_url = reverse(
+        "project_step_status", kwargs={"project_id": project.id, "step_id": first_step.id}
+    )
 
     init_resp = admin_client.post(step_url, {"status": "INITIATED"}, format="json")
     assert init_resp.status_code == 200
@@ -54,7 +57,9 @@ def test_step_status_transitions():
     assert complete_no_confirm.status_code == 400
     assert "confirm" in complete_no_confirm.data["fields"]
 
-    complete_resp = admin_client.post(step_url, {"status": "COMPLETED", "confirm": True}, format="json")
+    complete_resp = admin_client.post(
+        step_url, {"status": "COMPLETED", "confirm": True}, format="json"
+    )
     assert complete_resp.status_code == 200
     assert complete_resp.data["status"] == "COMPLETED"
     assert complete_resp.data["confirmed_at"] is not None
@@ -64,5 +69,7 @@ def test_step_status_transitions():
     assert backward_resp.status_code == 400
     assert "status" in backward_resp.data["fields"]
 
-    audit = AuditLog.objects.filter(action="STEP_STATUS_CHANGE", entity_id=str(first_step.id)).first()
+    audit = AuditLog.objects.filter(
+        action="STEP_STATUS_CHANGE", entity_id=str(first_step.id)
+    ).first()
     assert audit is not None

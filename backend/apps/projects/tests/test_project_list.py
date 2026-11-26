@@ -1,9 +1,10 @@
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
-from apps.projects.models import ProjectStep, StepStatus
 from apps.projects.services import create_project
+
 
 @pytest.mark.django_db
 def test_project_list_view_permissions_and_filtering():

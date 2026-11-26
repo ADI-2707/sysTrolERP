@@ -1,5 +1,7 @@
 import uuid
+
 from apps.audit.context import reset_current_request, set_current_request
+
 
 class RequestIdMiddleware:
     def __init__(self, get_response):

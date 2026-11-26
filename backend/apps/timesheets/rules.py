@@ -1,6 +1,8 @@
 import datetime
+
 from apps.core.timezone import company_today, week_bounds
 from apps.timesheets.models import TimesheetWeekStatus
+
 
 def can_edit_week(
     *,
@@ -18,6 +20,7 @@ def can_edit_week(
     elif status == TimesheetWeekStatus.RETURNED:
         return week_start_date <= current_monday
     return False
+
 
 def is_cell_editable(
     *,

@@ -1,6 +1,7 @@
 import pytest
-from rest_framework.test import APIClient
 import time_machine
+from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.projects.services import create_project
 from apps.timesheets.models import (
@@ -8,6 +9,7 @@ from apps.timesheets.models import (
     TimesheetRow,
     TimesheetWeekStatus,
 )
+
 
 @pytest.mark.django_db
 def test_timesheet_row_management_lifecycle():

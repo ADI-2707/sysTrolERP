@@ -2,7 +2,9 @@ from django.db import connection
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from apps.core.timezone import company_now
+
 
 class HealthCheckView(APIView):
     authentication_classes = []

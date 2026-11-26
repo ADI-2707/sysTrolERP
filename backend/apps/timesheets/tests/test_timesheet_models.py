@@ -1,7 +1,9 @@
 import datetime
 from decimal import Decimal
+
 import pytest
 from django.db import IntegrityError, transaction
+
 from apps.accounts.models import User, UserRole
 from apps.projects.services import create_project
 from apps.timesheets.models import (
@@ -10,6 +12,7 @@ from apps.timesheets.models import (
     TimesheetRow,
     TimesheetWeekStatus,
 )
+
 
 @pytest.mark.django_db
 def test_timesheet_models_and_constraints():

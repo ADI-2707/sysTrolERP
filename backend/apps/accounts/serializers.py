@@ -1,10 +1,12 @@
 from rest_framework import serializers
+
 from apps.accounts.models import User
-from apps.accounts.principals import SuperAdminPrincipal
+
 
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True, allow_blank=False)
     password = serializers.CharField(required=True, allow_blank=False, write_only=True)
+
 
 class UserMeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,6 +23,7 @@ class UserMeSerializer(serializers.ModelSerializer):
             "must_change_password",
         ]
         read_only_fields = fields
+
 
 class SuperAdminMeSerializer(serializers.Serializer):
     id = serializers.CharField()

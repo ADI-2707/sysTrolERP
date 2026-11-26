@@ -1,10 +1,12 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit.models import AuditLog
-from apps.projects.models import ProjectStep, StepStatus
+from apps.projects.models import StepStatus
 from apps.projects.services import create_project
+
 
 @pytest.mark.django_db
 def test_step_rules_and_boundaries():
@@ -122,6 +124,7 @@ def test_step_rules_and_boundaries():
     assert AuditLog.objects.filter(action="PROJECT_CREATE", entity_id=str(project.id)).exists()
     assert AuditLog.objects.filter(action="STEP_STATUS_CHANGE", entity_id=str(step_3.id)).exists()
     assert AuditLog.objects.filter(action="SUB_STEP_CREATE", entity_id=str(new_sub["id"])).exists()
+
 
 @pytest.mark.django_db
 def test_super_admin_step_and_substep_operations():

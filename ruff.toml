@@ -1,0 +1,24 @@
+target-version = "py312"
+line-length = 100
+extend-exclude = [
+    "**/migrations/*",
+    "node_modules",
+    "dist",
+    "build",
+    ".venv",
+]
+
+[lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",
+    "F403",
+    "F405",
+    "F841",
+    "E402",
+    "BLE001",
+    "S110",
+]
+
+[lint.isort]
+known-first-party = ["apps", "config"]

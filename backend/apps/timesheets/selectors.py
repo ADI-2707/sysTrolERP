@@ -1,13 +1,16 @@
 import datetime
 from decimal import Decimal
+
 from django.db.models import Q
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.core.timezone import company_today, week_bounds
 from apps.projects.models import Project
 from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
 from apps.timesheets.rules import can_edit_week, is_cell_editable
+
 
 def parse_week_param(week_str: str | None) -> datetime.date:
     if not week_str:
@@ -16,6 +19,7 @@ def parse_week_param(week_str: str | None) -> datetime.date:
         return datetime.date.fromisoformat(week_str.strip())
     except (ValueError, AttributeError):
         raise ValidationError({"week": ["Invalid date format. Use YYYY-MM-DD."]})
+
 
 def get_own_timesheet(
     user: User | SuperAdminPrincipal,
@@ -38,9 +42,7 @@ def get_own_timesheet(
 
     policy = TimesheetPolicy.get_current()
 
-    active_projects = list(
-        Project.objects.filter(is_active=True).order_by("code")
-    )
+    active_projects = list(Project.objects.filter(is_active=True).order_by("code"))
     assigned_projects = active_projects
     assigned_project_ids = {p.id for p in assigned_projects}
 
@@ -89,27 +91,31 @@ def get_own_timesheet(
                 today=today,
             )
 
-            row_entries.append({
-                "entry_id": entry.id if entry else None,
-                "date": d.isoformat(),
-                "hours": str(hours_dec),
-                "note": entry.note if entry else "",
-                "is_editable": editable,
-            })
+            row_entries.append(
+                {
+                    "entry_id": entry.id if entry else None,
+                    "date": d.isoformat(),
+                    "hours": str(hours_dec),
+                    "note": entry.note if entry else "",
+                    "is_editable": editable,
+                }
+            )
 
-        rows_data.append({
-            "id": r.id,
-            "project": {
-                "id": r.project.id,
-                "code": r.project.code,
-                "name": r.project.name,
-                "slug": r.project.slug,
-                "is_active": r.project.is_active,
-            },
-            "description": r.description,
-            "row_total": str(row_total),
-            "entries": row_entries,
-        })
+        rows_data.append(
+            {
+                "id": r.id,
+                "project": {
+                    "id": r.project.id,
+                    "code": r.project.code,
+                    "name": r.project.name,
+                    "slug": r.project.slug,
+                    "is_active": r.project.is_active,
+                },
+                "description": r.description,
+                "row_total": str(row_total),
+                "entries": row_entries,
+            }
+        )
 
     return {
         "id": timesheet.id,
@@ -159,6 +165,7 @@ def get_own_timesheet(
         ],
     }
 
+
 def build_timesheet_detail_for_admin(
     timesheet: Timesheet,
     current_user: User | SuperAdminPrincipal,
@@ -169,7 +176,9 @@ def build_timesheet_detail_for_admin(
     policy = TimesheetPolicy.get_current()
 
     assigned_projects = list(
-        Project.objects.filter(is_active=True, assignments__employee=timesheet.employee).order_by("code")
+        Project.objects.filter(is_active=True, assignments__employee=timesheet.employee).order_by(
+            "code"
+        )
     )
     assigned_project_ids = {p.id for p in assigned_projects}
 
@@ -218,29 +227,36 @@ def build_timesheet_detail_for_admin(
                 today=today,
             )
 
-            row_entries.append({
-                "entry_id": entry.id if entry else None,
-                "date": d.isoformat(),
-                "hours": str(hours_dec),
-                "note": entry.note if entry else "",
-                "is_editable": editable,
-            })
+            row_entries.append(
+                {
+                    "entry_id": entry.id if entry else None,
+                    "date": d.isoformat(),
+                    "hours": str(hours_dec),
+                    "note": entry.note if entry else "",
+                    "is_editable": editable,
+                }
+            )
 
-        rows_data.append({
-            "id": r.id,
-            "project": {
-                "id": r.project.id,
-                "code": r.project.code,
-                "name": r.project.name,
-                "slug": r.project.slug,
-                "is_active": r.project.is_active,
-            },
-            "description": r.description,
-            "row_total": str(row_total),
-            "entries": row_entries,
-        })
+        rows_data.append(
+            {
+                "id": r.id,
+                "project": {
+                    "id": r.project.id,
+                    "code": r.project.code,
+                    "name": r.project.name,
+                    "slug": r.project.slug,
+                    "is_active": r.project.is_active,
+                },
+                "description": r.description,
+                "row_total": str(row_total),
+                "entries": row_entries,
+            }
+        )
 
-    is_super = isinstance(current_user, SuperAdminPrincipal) or getattr(current_user, "role", None) == "SUPER"
+    is_super = (
+        isinstance(current_user, SuperAdminPrincipal)
+        or getattr(current_user, "role", None) == "SUPER"
+    )
     is_own = isinstance(current_user, User) and current_user.id == timesheet.employee_id
     can_authorize = timesheet.status == TimesheetWeekStatus.SUBMITTED and (is_super or not is_own)
 
@@ -275,6 +291,7 @@ def build_timesheet_detail_for_admin(
         "rows": rows_data,
     }
 
+
 def get_timesheet_for_admin(
     *,
     employee_param: str,
@@ -305,20 +322,27 @@ def get_timesheet_for_admin(
 
     return build_timesheet_detail_for_admin(timesheet, current_user=current_user)
 
+
 def list_timesheets_for_admin(
     *,
     employee_filter: str = "",
     week_filter: str = "",
     status_filter: str = "",
 ):
-    qs = Timesheet.objects.select_related("employee").prefetch_related("rows__entries").order_by("-week_start_date", "employee__employee_code")
+    qs = (
+        Timesheet.objects.select_related("employee")
+        .prefetch_related("rows__entries")
+        .order_by("-week_start_date", "employee__employee_code")
+    )
 
     if employee_filter:
         val = employee_filter.strip()
         if val.isdigit():
             qs = qs.filter(Q(employee_id=int(val)) | Q(employee__employee_code=val))
         else:
-            qs = qs.filter(Q(employee__employee_code__icontains=val) | Q(employee__full_name__icontains=val))
+            qs = qs.filter(
+                Q(employee__employee_code__icontains=val) | Q(employee__full_name__icontains=val)
+            )
 
     if week_filter:
         target_date = parse_week_param(week_filter)
@@ -331,6 +355,7 @@ def list_timesheets_for_admin(
             qs = qs.filter(status=status_val)
 
     return qs
+
 
 def get_timesheet_dashboard_summary(week_str: str | None = None) -> dict:
     target_date = parse_week_param(week_str)

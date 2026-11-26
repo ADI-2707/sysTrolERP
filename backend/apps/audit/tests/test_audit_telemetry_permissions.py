@@ -1,9 +1,11 @@
 import pytest
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
 from apps.telemetry.models import ErrorLog, RequestLog
+
 
 @pytest.mark.django_db
 def test_audit_and_telemetry_permission_boundaries():
@@ -31,7 +33,12 @@ def test_audit_and_telemetry_permission_boundaries():
     )
 
     audit_services.record(action="TEST_ACTION_STD", actor=admin, summary="Standard action")
-    audit_services.record(action="TEST_ACTION_SUPER", actor=SuperAdminPrincipal(), summary="Super action", super_only=True)
+    audit_services.record(
+        action="TEST_ACTION_SUPER",
+        actor=SuperAdminPrincipal(),
+        summary="Super action",
+        super_only=True,
+    )
 
     RequestLog.objects.create(
         method="GET",

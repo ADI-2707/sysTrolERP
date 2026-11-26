@@ -1,11 +1,11 @@
 import pytest
 from django.contrib.auth.hashers import Argon2PasswordHasher
-from django.contrib.sessions.models import Session
 from django.urls import reverse
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User, UserRole
-from apps.accounts.principals import SuperAdminPrincipal
-from apps.accounts.services import authenticate_principal, revoke_user
+from apps.accounts.services import revoke_user
+
 
 @pytest.mark.django_db
 def test_full_auth_lifecycle(settings):

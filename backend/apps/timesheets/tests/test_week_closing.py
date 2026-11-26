@@ -1,11 +1,14 @@
 import io
+
 import pytest
+import time_machine
 from django.core.management import call_command
 from rest_framework.test import APIClient
-import time_machine
+
 from apps.accounts.models import User, UserRole
 from apps.audit.models import AuditLog
 from apps.timesheets.models import Timesheet, TimesheetWeekStatus
+
 
 @pytest.mark.django_db
 def test_submit_own_timesheet():
@@ -32,6 +35,7 @@ def test_submit_own_timesheet():
 
         res_repeat = client.post("/api/timesheets/me/submit/", {}, format="json")
         assert res_repeat.status_code == 400
+
 
 @pytest.mark.django_db
 def test_close_weeks_command():
@@ -69,4 +73,6 @@ def test_close_weeks_command():
         current_ts.refresh_from_db()
         assert past_ts.status == TimesheetWeekStatus.SUBMITTED
         assert current_ts.status == TimesheetWeekStatus.OPEN
-        assert AuditLog.objects.filter(action="TIMESHEET_AUTO_SUBMIT", entity_id=str(past_ts.id)).exists()
+        assert AuditLog.objects.filter(
+            action="TIMESHEET_AUTO_SUBMIT", entity_id=str(past_ts.id)
+        ).exists()
