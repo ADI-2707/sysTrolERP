@@ -6,6 +6,7 @@ export interface WeekNavigatorProps {
   sunday: string;
   displayRange: string;
   isCurrent: boolean;
+  canGoNext?: boolean;
   onPrevious: () => void;
   onNext: () => void;
   onCurrentWeek: () => void;
@@ -15,6 +16,7 @@ export interface WeekNavigatorProps {
 export function WeekNavigator({
   displayRange,
   isCurrent,
+  canGoNext = !isCurrent,
   onPrevious,
   onNext,
   onCurrentWeek,
@@ -55,6 +57,7 @@ export function WeekNavigator({
           label="Next week"
           variant="secondary"
           size="sm"
+          disabled={!canGoNext || isCurrent}
           onClick={onNext}
         />
       </div>

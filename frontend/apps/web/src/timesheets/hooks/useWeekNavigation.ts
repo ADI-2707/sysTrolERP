@@ -23,27 +23,45 @@ export function useWeekNavigation(initialDate?: string) {
     return checkIsCurrentWeek(bounds.monday);
   }, [bounds.monday]);
 
+  const currentMonday = useMemo(() => getWeekBounds().monday, []);
+
+  const canGoNext = useMemo(() => {
+    return bounds.monday < currentMonday;
+  }, [bounds.monday, currentMonday]);
+
   const goToPreviousWeek = useCallback(() => {
     setSelectedMonday((prev) => addWeeks(prev, -1));
   }, []);
 
   const goToNextWeek = useCallback(() => {
-    setSelectedMonday((prev) => addWeeks(prev, 1));
-  }, []);
+    setSelectedMonday((prev) => {
+      const nextMonday = addWeeks(prev, 1);
+      if (nextMonday > currentMonday) {
+        return prev;
+      }
+      return nextMonday;
+    });
+  }, [currentMonday]);
 
   const goToCurrentWeek = useCallback(() => {
-    setSelectedMonday(getWeekBounds().monday);
-  }, []);
+    setSelectedMonday(currentMonday);
+  }, [currentMonday]);
 
   const setWeek = useCallback((dateStr: string) => {
-    setSelectedMonday(getWeekBounds(dateStr).monday);
-  }, []);
+    const targetMonday = getWeekBounds(dateStr).monday;
+    if (targetMonday > currentMonday) {
+      setSelectedMonday(currentMonday);
+    } else {
+      setSelectedMonday(targetMonday);
+    }
+  }, [currentMonday]);
 
   return {
     monday: bounds.monday,
     sunday: bounds.sunday,
     days: bounds.days,
     isCurrent,
+    canGoNext,
     displayRange,
     goToPreviousWeek,
     goToNextWeek,

@@ -103,4 +103,5 @@ export interface TimesheetData {
   total_overtime_hours: string;
   rows: TimesheetRowData[];
   assigned_projects: AssignedProject[];
+  available_projects?: AssignedProject[];
 }

@@ -209,10 +209,21 @@ export function useTimesheetAutosave(
     [debounceMs, executeSave]
   );
 
+  const updateNote = useCallback(
+    (projectId: number, date: string, note: string) => {
+      const row = timesheet.rows.find((r) => r.project.id === projectId);
+      const entry = row?.entries.find((e) => e.date === date);
+      const currentHours = entry ? entry.hours : "0.00";
+      updateCell(projectId, date, currentHours, note);
+    },
+    [timesheet.rows, updateCell]
+  );
+
   return {
     timesheet,
     setTimesheet,
     updateCell,
+    updateNote,
     cellStatuses,
     globalStatus,
     errorMessage,
