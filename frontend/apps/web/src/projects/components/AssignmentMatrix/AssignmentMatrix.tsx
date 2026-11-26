@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Spinner, EmptyState, Input, Button, useToast } from "@systrol/ui";
+import { Spinner, EmptyState, Input, Button, Pagination, useToast } from "@systrol/ui";
 import {
   fetchAssignmentMatrix,
   addProjectMember,
@@ -20,13 +20,18 @@ export function AssignmentMatrix() {
 
   const [employeeSearch, setEmployeeSearch] = useState<string>("");
   const [projectSearch, setProjectSearch] = useState<string>("");
+  const [employeePage, setEmployeePage] = useState<number>(1);
+  const employeePageSize = 25;
   const [togglingKeys, setTogglingKeys] = useState<Set<string>>(new Set());
 
-  const loadMatrix = useCallback(async () => {
+  const loadMatrix = useCallback(async (pageToLoad = employeePage) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetchAssignmentMatrix();
+      const res = await fetchAssignmentMatrix({
+        page: pageToLoad,
+        page_size: employeePageSize,
+      });
       setData(res);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -37,11 +42,11 @@ export function AssignmentMatrix() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [employeePage, employeePageSize]);
 
   useEffect(() => {
-    loadMatrix();
-  }, [loadMatrix]);
+    loadMatrix(employeePage);
+  }, [employeePage]);
 
   const assignmentSet = useMemo(() => {
     const set = new Set<string>();
@@ -269,6 +274,20 @@ export function AssignmentMatrix() {
           </tbody>
         </table>
       </div>
+
+      {data.total_employees !== undefined && data.total_employees > 0 && (
+        <div className={styles.paginationFooter} data-testid="matrix-pagination-footer">
+          <span className={styles.paginationMeta} data-testid="matrix-pagination-meta">
+            Showing {(employeePage - 1) * employeePageSize + 1}–{Math.min(employeePage * employeePageSize, data.total_employees)} of {data.total_employees} employees
+          </span>
+          <Pagination
+            page={employeePage}
+            pageSize={employeePageSize}
+            total={data.total_employees}
+            onChange={setEmployeePage}
+          />
+        </div>
+      )}
     </div>
   );
 }

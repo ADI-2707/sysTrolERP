@@ -34,6 +34,10 @@ describe("AssignmentMatrix", () => {
     assignments: [
       { employee_id: 10, project_id: 101 },
     ],
+    total_employees: 2,
+    page: 1,
+    page_size: 25,
+    total_pages: 1,
   };
 
   beforeEach(() => {
@@ -197,5 +201,22 @@ describe("AssignmentMatrix", () => {
     await waitFor(() => {
       expect(screen.getByTestId("assignment-matrix")).toBeInTheDocument();
     });
+  });
+
+  it("renders pagination controls when total_employees exceeds page size", async () => {
+    const paginatedData: AssignmentMatrixData = {
+      ...mockMatrixData,
+      total_employees: 50,
+      page: 1,
+      page_size: 25,
+      total_pages: 2,
+    };
+    vi.mocked(projectsApi.fetchAssignmentMatrix).mockResolvedValue(paginatedData);
+    render(<AssignmentMatrix />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("matrix-pagination-footer")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Showing 1–25 of 50 employees/)).toBeInTheDocument();
   });
 });
