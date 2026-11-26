@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Tabs, type TabItem } from "@systrol/ui";
 import { useAuth } from "../../auth";
 import { ChangePasswordForm } from "../../settings/components/ChangePasswordForm";
-import { AppearanceSettings } from "../../settings/components/AppearanceSettings";
 import { ProfileSection } from "../../settings/components/ProfileSection";
 import { TimesheetPolicyEditor } from "../../settings/components/TimesheetPolicyEditor";
 import styles from "./SettingsPage.module.css";
@@ -14,8 +13,7 @@ export function SettingsPage() {
   const tabs: TabItem[] = [
     { id: "profile", label: "Profile" },
     { id: "security", label: "Security & Password" },
-    { id: "appearance", label: "Appearance" },
-    { id: "policy", label: "Timesheet Policy" },
+    ...(isSuperAdmin ? [{ id: "policy", label: "Timesheet Policy" }] : []),
   ];
 
   return (
@@ -23,7 +21,7 @@ export function SettingsPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Account & System Settings</h1>
         <p className={styles.subtitle}>
-          Manage your credentials, display preferences, and administrative policies.
+          Manage your credentials, profile information{isSuperAdmin ? ", and administrative policies." : "."}
         </p>
       </div>
 
@@ -61,13 +59,7 @@ export function SettingsPage() {
           </div>
         )}
 
-        {activeTab === "appearance" && (
-          <div data-testid="settings-appearance-panel">
-            <AppearanceSettings />
-          </div>
-        )}
-
-        {activeTab === "policy" && (
+        {activeTab === "policy" && isSuperAdmin && (
           <div data-testid="settings-policy-panel">
             <TimesheetPolicyEditor />
           </div>

@@ -38,7 +38,7 @@ describe("TimesheetPolicyEditor", () => {
     vi.clearAllMocks();
   });
 
-  it("renders read-only notice and disables inputs for regular users", async () => {
+  it("renders nothing for regular users", () => {
     vi.mocked(authHook.useAuth).mockReturnValue({
       user: null,
       isLoading: false,
@@ -52,20 +52,10 @@ describe("TimesheetPolicyEditor", () => {
       refreshUser: vi.fn(),
     });
 
-    vi.mocked(policyApi.fetchTimesheetPolicy).mockResolvedValueOnce(mockPolicy);
-
     renderEditor();
 
-    expect(screen.getByTestId("policy-loading")).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByTestId("timesheet-policy-editor")).toBeInTheDocument();
-      expect(screen.getByTestId("policy-readonly-notice")).toBeInTheDocument();
-    });
-
-    expect(screen.getByTestId("input-start-time")).toBeDisabled();
-    expect(screen.getByTestId("input-regular-hours")).toBeDisabled();
-    expect(screen.queryByTestId("submit-policy-btn")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("timesheet-policy-editor")).not.toBeInTheDocument();
+    expect(policyApi.fetchTimesheetPolicy).not.toHaveBeenCalled();
   });
 
   it("allows super admin to edit and save policy parameters", async () => {

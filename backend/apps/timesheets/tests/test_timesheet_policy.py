@@ -31,9 +31,9 @@ def test_timesheet_policy_defaults_and_permissions():
     client = APIClient()
     client.force_login(employee)
 
+    # Regular employee cannot view timesheet policy (403 Forbidden)
     res_get_emp = client.get("/api/timesheets/policy/")
-    assert res_get_emp.status_code == 200
-    assert float(res_get_emp.json()["daily_regular_hours"]) == 8.00
+    assert res_get_emp.status_code == 403
 
     res_put_emp = client.put(
         "/api/timesheets/policy/",
@@ -42,7 +42,11 @@ def test_timesheet_policy_defaults_and_permissions():
     )
     assert res_put_emp.status_code == 403
 
+    # Admin cannot view or update timesheet policy (403 Forbidden)
     client.force_login(admin)
+    res_get_admin = client.get("/api/timesheets/policy/")
+    assert res_get_admin.status_code == 403
+
     res_put_admin = client.put(
         "/api/timesheets/policy/",
         {"daily_regular_hours": "7.50"},
@@ -50,11 +54,16 @@ def test_timesheet_policy_defaults_and_permissions():
     )
     assert res_put_admin.status_code == 403
 
+    # Super admin can both view and update timesheet policy
     super_client = APIClient()
     session = super_client.session
     session["is_super_admin"] = True
     session["super_admin_username"] = "superadmin"
     session.save()
+
+    res_get_super = super_client.get("/api/timesheets/policy/")
+    assert res_get_super.status_code == 200
+    assert float(res_get_super.json()["daily_regular_hours"]) == 8.00
 
     res_put_super = super_client.put(
         "/api/timesheets/policy/",

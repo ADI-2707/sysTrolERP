@@ -1,33 +1,33 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6, 24px);
+  gap: var(--space-6);
   max-width: 640px;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1, 4px);
+  gap: var(--space-1);
 }
 
 .title {
-  font-size: var(--font-size-lg, 18px);
-  font-weight: var(--font-weight-semibold, 600);
-  color: var(--color-neutral-60-text-primary, #0f172a);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-60-text-primary);
   margin: 0;
 }
 
 .subtitle {
-  font-size: var(--font-size-sm, 14px);
-  color: var(--color-neutral-60-text-secondary, #475569);
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-60-text-secondary);
   margin: 0;
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4, 16px);
+  gap: var(--space-4);
 }
 
 .fullWidth {
@@ -37,45 +37,45 @@
 .infoBox {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2, 8px);
-  padding: var(--space-4, 16px);
-  background-color: var(--color-brand-10-chip-bg, #f0fdf4);
-  border: 1px solid var(--color-brand-30-primary, #16a34a);
-  border-radius: var(--radius-md, 6px);
-  font-size: var(--font-size-xs, 12px);
-  color: var(--color-neutral-60-text-primary, #0f172a);
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background-color: var(--color-brand-50);
+  border: 1px solid var(--color-brand-30-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-60-text-primary);
   line-height: 1.5;
 }
 
 .infoTitle {
-  font-weight: var(--font-weight-semibold, 600);
-  color: var(--color-brand-30-header, #166534);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-brand-800);
 }
 
 .errorAlert {
-  padding: var(--space-3, 12px);
-  background-color: var(--color-status-danger-bg, #fef2f2);
-  border: 1px solid var(--color-status-danger, #ef4444);
-  border-radius: var(--radius-md, 6px);
-  color: var(--color-status-danger, #ef4444);
-  font-size: var(--font-size-sm, 14px);
+  padding: var(--space-3);
+  background-color: var(--color-status-danger-bg);
+  border: 1px solid var(--color-status-danger);
+  border-radius: var(--radius-md);
+  color: var(--color-status-danger);
+  font-size: var(--font-size-sm);
 }
 
 .readOnlyNotice {
   display: flex;
   align-items: center;
-  gap: var(--space-2, 8px);
-  padding: var(--space-3, 12px);
-  background-color: var(--color-neutral-60-surface-raised, #f8fafc);
-  border: 1px solid var(--color-neutral-60-border-subtle, #e2e8f0);
-  border-radius: var(--radius-md, 6px);
-  font-size: var(--font-size-xs, 12px);
-  color: var(--color-neutral-60-text-secondary, #475569);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--color-neutral-60-surface-raised);
+  border: 1px solid var(--color-neutral-60-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-60-text-secondary);
 }
 
 .submitBtn {
   align-self: flex-start;
-  margin-top: var(--space-2, 8px);
+  margin-top: var(--space-2);
 }
 
 .spinnerContainer {

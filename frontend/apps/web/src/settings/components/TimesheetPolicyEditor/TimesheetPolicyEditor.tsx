@@ -9,7 +9,7 @@ export function TimesheetPolicyEditor() {
   const { isSuperAdmin } = useAuth();
   const { addToast } = useToast();
 
-  const [policy, setPolicy] = useState<TimesheetPolicyData | null>(null);
+  const [, setPolicy] = useState<TimesheetPolicyData | null>(null);
   const [startTime, setStartTime] = useState("09:00:00");
   const [endTime, setEndTime] = useState("18:00:00");
   const [regularHours, setRegularHours] = useState("8.00");
@@ -22,6 +22,11 @@ export function TimesheetPolicyEditor() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isSuperAdmin) {
+      setIsLoading(false);
+      return;
+    }
+
     let isMounted = true;
     async function loadPolicy() {
       setIsLoading(true);
@@ -53,12 +58,14 @@ export function TimesheetPolicyEditor() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isSuperAdmin]);
+
+  if (!isSuperAdmin) {
+    return null;
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!isSuperAdmin) return;
-
     setErrorMessage(null);
     setIsSubmitting(true);
 
@@ -106,12 +113,6 @@ export function TimesheetPolicyEditor() {
         </p>
       </div>
 
-      {!isSuperAdmin && (
-        <div className={styles.readOnlyNotice} data-testid="policy-readonly-notice">
-          <span>🔒 Timesheet policy configuration is restricted to the Super Administrator.</span>
-        </div>
-      )}
-
       {errorMessage && (
         <div role="alert" className={styles.errorAlert} data-testid="policy-error-alert">
           {errorMessage}
@@ -126,7 +127,7 @@ export function TimesheetPolicyEditor() {
               type="text"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              disabled={!isSuperAdmin || isSubmitting}
+              disabled={isSubmitting}
               data-testid="input-start-time"
               placeholder="09:00:00"
             />
@@ -138,7 +139,7 @@ export function TimesheetPolicyEditor() {
               type="text"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              disabled={!isSuperAdmin || isSubmitting}
+              disabled={isSubmitting}
               data-testid="input-end-time"
               placeholder="18:00:00"
             />
@@ -151,7 +152,7 @@ export function TimesheetPolicyEditor() {
               step="0.25"
               value={regularHours}
               onChange={(e) => setRegularHours(e.target.value)}
-              disabled={!isSuperAdmin || isSubmitting}
+              disabled={isSubmitting}
               data-testid="input-regular-hours"
               placeholder="8.00"
             />
@@ -164,7 +165,7 @@ export function TimesheetPolicyEditor() {
               step="0.25"
               value={breakHours}
               onChange={(e) => setBreakHours(e.target.value)}
-              disabled={!isSuperAdmin || isSubmitting}
+              disabled={isSubmitting}
               data-testid="input-break-hours"
               placeholder="1.00"
             />
@@ -177,7 +178,7 @@ export function TimesheetPolicyEditor() {
               step="0.05"
               value={hourStep}
               onChange={(e) => setHourStep(e.target.value)}
-              disabled={!isSuperAdmin || isSubmitting}
+              disabled={isSubmitting}
               data-testid="input-hour-step"
               placeholder="0.25"
             />
@@ -190,7 +191,7 @@ export function TimesheetPolicyEditor() {
               step="0.25"
               value={overtimeThreshold}
               onChange={(e) => setOvertimeThreshold(e.target.value)}
-              disabled={!isSuperAdmin || isSubmitting}
+              disabled={isSubmitting}
               data-testid="input-overtime-threshold"
               placeholder="8.00"
             />
@@ -199,27 +200,22 @@ export function TimesheetPolicyEditor() {
           <div className={[styles.fullWidth, styles.infoBox].join(" ")} data-testid="policy-summary-callout">
             <span className={styles.infoTitle}>Workday Span Calculation:</span>
             <span>
-              A standard {startTime.slice(0, 5)} to {endTime.slice(0, 5)} span represents a 9-hour window comprising {regularHours} regular working hours and {breakHours} hour unpaid meal break. Entries exceeding {overtimeThreshold}h per day are recorded as overtime. Time entry grid precision enforces {hourStep}h intervals.
+              Standard shift spans from <strong>{startTime}</strong> to <strong>{endTime}</strong>. With a break duration of <strong>{breakHours}h</strong>, net regular working capacity is evaluated as <strong>{regularHours}h</strong> daily. Daily totals above <strong>{overtimeThreshold}h</strong> automatically qualify for Overtime (OT).
             </span>
-            {policy?.updated_at && (
-              <span data-testid="policy-last-updated" style={{ opacity: 0.85, fontSize: "11px" }}>
-                Policy last updated: {new Date(policy.updated_at).toLocaleString()}
-              </span>
-            )}
           </div>
         </div>
 
-        {isSuperAdmin && (
+        <div className={styles.submitBtn}>
           <Button
             type="submit"
             variant="primary"
             loading={isSubmitting}
-            className={styles.submitBtn}
+            disabled={isSubmitting}
             data-testid="submit-policy-btn"
           >
-            Save Timesheet Policy
+            Save Policy Changes
           </Button>
-        )}
+        </div>
       </form>
     </div>
   );

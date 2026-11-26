@@ -34,10 +34,7 @@ from apps.timesheets.services import (
 )
 
 class TimesheetPolicyView(APIView):
-    def get_permissions(self):
-        if self.request.method == "GET":
-            return [IsAuthenticatedPrincipal()]
-        return [IsSuper()]
+    permission_classes = [IsSuper]
 
     def get(self, request):
         policy = TimesheetPolicy.get_current()
