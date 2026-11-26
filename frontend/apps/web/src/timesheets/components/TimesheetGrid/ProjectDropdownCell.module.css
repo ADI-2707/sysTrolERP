@@ -16,7 +16,7 @@
 .projectCode {
   font-weight: 600;
   font-size: var(--font-size-xs, 12px);
-  color: var(--color-brand-30-primary, #6366f1);
+  color: var(--color-brand-30-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -24,7 +24,7 @@
 
 .projectName {
   font-size: var(--font-size-xs, 12px);
-  color: var(--color-neutral-60-text-secondary, #94a3b8);
+  color: var(--color-neutral-60-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -33,7 +33,7 @@
 .deleteBtn {
   background: transparent;
   border: none;
-  color: var(--color-neutral-60-text-muted, #64748b);
+  color: var(--color-neutral-60-text-muted);
   cursor: pointer;
   padding: 2px 6px;
   border-radius: var(--radius-sm, 4px);
@@ -54,12 +54,16 @@
   align-items: center;
 }
 
+.placeholderContainer.isOpen {
+  z-index: 1000;
+}
+
 .selectBtn {
   width: 100%;
   text-align: left;
   background: transparent;
-  border: 1px dashed var(--color-neutral-60-border-strong, #475569);
-  color: var(--color-neutral-60-text-muted, #94a3b8);
+  border: 1px dashed var(--color-neutral-60-border-strong);
+  color: var(--color-neutral-60-text-muted);
   padding: var(--space-1, 4px) var(--space-2, 8px);
   border-radius: var(--radius-sm, 4px);
   font-size: var(--font-size-xs, 12px);
@@ -68,13 +72,13 @@
 }
 
 .selectBtn:hover {
-  border-color: var(--color-brand-30-primary, #6366f1);
-  color: var(--color-brand-30-primary, #6366f1);
-  background: rgba(99, 102, 241, 0.05);
+  border-color: var(--color-brand-30-primary);
+  color: var(--color-brand-30-primary);
+  background: rgba(31, 122, 77, 0.08);
 }
 
 .emptyPlaceholderText {
-  color: var(--color-neutral-60-text-muted, #64748b);
+  color: var(--color-neutral-60-text-muted);
   font-size: var(--font-size-xs, 12px);
 }
 
@@ -84,11 +88,11 @@
   left: 0;
   width: 280px;
   max-height: 240px;
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
-  border: 1px solid var(--color-neutral-60-border-strong, #334155);
+  background-color: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-strong);
   border-radius: var(--radius-md, 6px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-  z-index: 100;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -96,16 +100,16 @@
 
 .searchInput {
   padding: var(--space-2, 8px) var(--space-3, 12px);
-  background: var(--color-neutral-60-surface, #0f172a);
+  background: var(--color-neutral-60-surface);
   border: none;
-  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
-  color: var(--color-neutral-60-text-primary, #f8fafc);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  color: var(--color-neutral-60-text-primary);
   font-size: var(--font-size-xs, 12px);
   outline: none;
 }
 
 .searchInput:focus {
-  border-bottom-color: var(--color-brand-30-primary, #6366f1);
+  border-bottom-color: var(--color-brand-30-primary);
 }
 
 .projectList {
@@ -126,18 +130,18 @@
 }
 
 .projectItem:hover {
-  background-color: rgba(99, 102, 241, 0.15);
+  background-color: var(--color-neutral-60-surface-raised);
 }
 
 .itemCode {
   font-weight: 600;
   font-size: 11px;
-  color: var(--color-brand-30-primary, #818cf8);
+  color: var(--color-brand-30-primary);
 }
 
 .itemName {
   font-size: 11px;
-  color: var(--color-neutral-60-text-secondary, #cbd5e1);
+  color: var(--color-neutral-60-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -145,7 +149,7 @@
 
 .noProjects {
   padding: 12px;
-  color: var(--color-neutral-60-text-muted, #64748b);
+  color: var(--color-neutral-60-text-muted);
   font-size: 11px;
   text-align: center;
 }

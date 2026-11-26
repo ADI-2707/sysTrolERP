@@ -9,9 +9,9 @@
   width: 100%;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border: 1px solid var(--color-neutral-60-border-subtle);
   border-radius: var(--radius-md, 8px);
-  background-color: var(--color-neutral-60-surface, #0f172a);
+  background-color: var(--color-neutral-60-surface);
   position: relative;
   max-height: calc(100vh - 220px);
   min-height: 400px;
@@ -21,22 +21,22 @@
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
-  min-width: 2050px;
+  min-width: 2135px;
   font-size: var(--font-size-xs, 12px);
-  color: var(--color-neutral-60-text-primary, #f8fafc);
+  color: var(--color-neutral-60-text-primary);
 }
 
 /* === TOP ROW 0: Week Navigation Header === */
 .weekNavRow {
   position: sticky;
   top: 0;
-  z-index: 35;
+  z-index: 100;
 }
 
 .weekNavCell {
   padding: 0;
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
-  border-bottom: 1px solid var(--color-neutral-60-border-strong, #475569);
+  background-color: var(--color-neutral-60-surface-raised);
+  border-bottom: 1px solid var(--color-neutral-60-border-strong);
 }
 
 .weekNavContent {
@@ -59,9 +59,9 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: var(--color-neutral-60-surface, #0f172a);
-  border: 1px solid var(--color-neutral-60-border-strong, #475569);
-  color: var(--color-neutral-60-text-primary, #f8fafc);
+  background: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-strong);
+  color: var(--color-neutral-60-text-primary);
   border-radius: var(--radius-sm, 4px);
   font-size: 16px;
   font-weight: bold;
@@ -71,21 +71,21 @@
 }
 
 .navArrowBtn:hover:not(:disabled) {
-  border-color: var(--color-brand-30-primary, #6366f1);
-  background-color: rgba(99, 102, 241, 0.1);
-  color: var(--color-brand-30-primary, #818cf8);
+  border-color: var(--color-brand-30-primary);
+  background-color: var(--color-neutral-60-surface-raised);
+  color: var(--color-brand-30-primary);
 }
 
 .navArrowBtn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-  border-color: var(--color-neutral-60-border-subtle, #334155);
+  border-color: var(--color-neutral-60-border-subtle);
 }
 
 .weekDisplayRange {
   font-size: var(--font-size-sm, 13px);
   font-weight: 600;
-  color: var(--color-neutral-60-text-primary, #f8fafc);
+  color: var(--color-neutral-60-text-primary);
   letter-spacing: -0.01em;
 }
 
@@ -100,25 +100,25 @@
 
 .status_OPEN {
   background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
+  color: #2563eb;
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .status_SUBMITTED {
   background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  color: #d97706;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .status_APPROVED {
   background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  color: #10b981;
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .status_RETURNED {
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
@@ -135,7 +135,7 @@
 }
 
 .saving {
-  color: #f59e0b;
+  color: #d97706;
 }
 
 .saved {
@@ -143,24 +143,24 @@
 }
 
 .error {
-  color: #ef4444;
+  color: #dc2626;
 }
 
 .weekTotalPill {
   font-size: 12px;
-  color: var(--color-neutral-60-text-secondary, #cbd5e1);
+  color: var(--color-neutral-60-text-secondary);
   padding: 4px 10px;
-  background: var(--color-neutral-60-surface, #0f172a);
-  border: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  background: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-subtle);
   border-radius: var(--radius-sm, 4px);
 }
 
 .weekTotalPill strong {
-  color: var(--color-brand-30-primary, #818cf8);
+  color: var(--color-brand-30-primary);
 }
 
 .submitTimesheetBtn {
-  background: var(--color-brand-30-primary, #6366f1);
+  background: var(--color-brand-30-primary);
   color: #ffffff;
   border: none;
   font-size: 12px;
@@ -172,112 +172,121 @@
 }
 
 .submitTimesheetBtn:hover {
-  background: #4f46e5;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(31, 122, 77, 0.3);
 }
 
 /* === ROW 1: Main Column Headers === */
 .mainHeaderRow {
   position: sticky;
   top: 46px;
-  z-index: 30;
+  z-index: 80;
 }
 
 .stickyProjectHeader {
   position: sticky;
   left: 0;
   top: 46px;
-  z-index: 40;
+  z-index: 90;
   width: 260px;
   min-width: 260px;
   max-width: 260px;
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
-  border-right: 1px solid var(--color-neutral-60-border-strong, #475569);
-  border-bottom: 1px solid var(--color-neutral-60-border-strong, #475569);
+  background-color: var(--color-neutral-60-surface-raised);
+  border-right: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 1px solid var(--color-neutral-60-border-strong);
   padding: 8px 12px;
   text-align: left;
   font-weight: 600;
+  box-sizing: border-box;
 }
 
 .dayGroupHeader {
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
-  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
-  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  background-color: var(--color-neutral-60-surface-raised);
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
   padding: 6px 8px;
   text-align: center;
   user-select: none;
+  box-sizing: border-box;
 }
 
 .dayName {
   font-weight: 600;
-  color: var(--color-neutral-60-text-primary, #f8fafc);
+  color: var(--color-neutral-60-text-primary);
   margin-right: 4px;
 }
 
 .dayNumber {
-  color: var(--color-neutral-60-text-secondary, #94a3b8);
+  color: var(--color-neutral-60-text-secondary);
   font-weight: 500;
 }
 
-.stickyTotalHeader {
-  position: sticky;
-  right: 0;
-  top: 46px;
-  z-index: 30;
+/* Total Column - Normal table column at the end, not sticky right */
+.totalHeader {
   width: 90px;
   min-width: 90px;
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
-  border-left: 1px solid var(--color-neutral-60-border-strong, #475569);
-  border-bottom: 1px solid var(--color-neutral-60-border-strong, #475569);
+  max-width: 90px;
+  background-color: var(--color-neutral-60-surface-raised);
+  border-left: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 1px solid var(--color-neutral-60-border-strong);
   padding: 8px 10px;
   text-align: center;
   font-weight: 600;
+  box-sizing: border-box;
 }
 
 /* === ROW 2: Sub-Column Headers (Desc & Hours) === */
 .subHeaderRow {
   position: sticky;
   top: 80px;
-  z-index: 30;
+  z-index: 80;
 }
 
 .subHeaderThWrapper {
   padding: 0;
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
-  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
-  border-bottom: 2px solid var(--color-neutral-60-border-strong, #475569);
+  background-color: var(--color-neutral-60-surface-raised);
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
+  border-bottom: 2px solid var(--color-neutral-60-border-strong);
+  box-sizing: border-box;
 }
 
 .subHeaderGroup {
   display: flex;
   align-items: center;
-  width: 100%;
+  width: 255px;
+  min-width: 255px;
+  max-width: 255px;
+  box-sizing: border-box;
 }
 
 .subHeaderDesc {
-  flex: 1;
-  min-width: 170px;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
   padding: 4px 8px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--color-neutral-60-text-muted, #94a3b8);
+  color: var(--color-neutral-60-text-muted);
   text-align: left;
-  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
+  box-sizing: border-box;
 }
 
 .subHeaderHours {
   width: 75px;
   min-width: 75px;
+  max-width: 75px;
   padding: 4px 6px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--color-neutral-60-text-muted, #94a3b8);
+  color: var(--color-neutral-60-text-muted);
   text-align: center;
+  box-sizing: border-box;
 }
 
 /* === BODY CELLS === */
 .gridRow:hover td {
-  background-color: rgba(255, 255, 255, 0.015);
+  background-color: var(--color-neutral-60-surface-raised);
 }
 
 .stickyProjectCell {
@@ -287,68 +296,94 @@
   width: 260px;
   min-width: 260px;
   max-width: 260px;
-  background-color: var(--color-neutral-60-surface, #0f172a);
-  border-right: 1px solid var(--color-neutral-60-border-strong, #475569);
-  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  background-color: var(--color-neutral-60-surface);
+  border-right: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
   padding: 6px 10px;
+  box-sizing: border-box;
 }
 
 .daySubCellsWrapper {
   padding: 0;
-  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
-  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  box-sizing: border-box;
 }
 
 .dualCellContainer {
   display: flex;
   align-items: stretch;
-  width: 100%;
+  width: 255px;
+  min-width: 255px;
+  max-width: 255px;
   min-height: 38px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .descCellPart {
-  flex: 1;
-  min-width: 170px;
-  border-right: 1px solid var(--color-neutral-60-border-subtle, #1e293b);
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
   display: flex;
   align-items: center;
   padding: 2px 4px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .hoursCellPart {
   width: 75px;
   min-width: 75px;
+  max-width: 75px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
-.stickyTotalCell {
-  position: sticky;
-  right: 0;
-  z-index: 10;
+.totalCell {
   width: 90px;
   min-width: 90px;
-  background-color: var(--color-neutral-60-surface, #0f172a);
-  border-left: 1px solid var(--color-neutral-60-border-strong, #475569);
-  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  max-width: 90px;
+  background-color: var(--color-neutral-60-surface);
+  border-left: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
   text-align: center;
   padding: 6px;
+  box-sizing: border-box;
 }
 
 .rowTotalVal {
   font-weight: 600;
-  color: var(--color-neutral-60-text-primary, #f8fafc);
+  color: var(--color-neutral-60-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 /* Placeholder Row */
 .placeholderRow {
-  background-color: rgba(255, 255, 255, 0.01);
+  position: relative;
+  z-index: 60;
+  background-color: transparent;
+}
+
+.placeholderProjectCell {
+  position: sticky;
+  left: 0;
+  z-index: 60;
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  background-color: var(--color-neutral-60-surface);
+  border-right: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  padding: 6px 10px;
+  box-sizing: border-box;
 }
 
 .placeholderEmptyText {
-  color: var(--color-neutral-60-text-muted, #475569);
+  color: var(--color-neutral-60-text-muted);
   font-size: 11px;
 }
 
@@ -357,61 +392,76 @@
   position: sticky;
   bottom: 0;
   z-index: 25;
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
-  border-top: 2px solid var(--color-neutral-60-border-strong, #475569);
+  background-color: var(--color-neutral-60-surface-raised);
+  border-top: 2px solid var(--color-neutral-60-border-strong);
 }
 
 .gridFooter td {
-  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  background-color: var(--color-neutral-60-surface-raised);
+}
+
+.footerStickyProjectCell {
+  position: sticky;
+  left: 0;
+  z-index: 26;
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  background-color: var(--color-neutral-60-surface-raised);
+  border-right: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  padding: 6px 10px;
+  box-sizing: border-box;
 }
 
 .footerLabel {
   font-weight: 600;
   font-size: 11px;
-  color: var(--color-neutral-60-text-secondary, #cbd5e1);
+  color: var(--color-neutral-60-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .footerDayValCell {
   padding: 6px 8px;
-  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
-  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-right: 1px solid var(--color-neutral-60-border-subtle);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
   text-align: right;
   padding-right: 16px;
+  box-sizing: border-box;
 }
 
 .footerDayValue {
   font-weight: 700;
   font-size: 12px;
-  color: var(--color-neutral-60-text-primary, #f8fafc);
+  color: var(--color-neutral-60-text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .footerDayMuted {
   font-size: 12px;
-  color: var(--color-neutral-60-text-muted, #94a3b8);
+  color: var(--color-neutral-60-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .footerGrandTotal {
   font-weight: 700;
   font-size: 13px;
-  color: var(--color-brand-30-primary, #818cf8);
+  color: var(--color-brand-30-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .footerOtTotal {
   font-weight: 700;
   font-size: 12px;
-  color: #f59e0b;
+  color: #d97706;
   font-variant-numeric: tabular-nums;
 }
 
 .badgeOt {
   display: inline-block;
   background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  color: #d97706;
   border: 1px solid rgba(245, 158, 11, 0.3);
   font-size: 11px;
   font-weight: 600;

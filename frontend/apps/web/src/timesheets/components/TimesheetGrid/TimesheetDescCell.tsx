@@ -48,14 +48,17 @@ export function TimesheetDescCell({
 
   if (!isEditable) {
     return (
-      <div className={styles.cellReadonly} title={val || "No description"}>
+      <div className={styles.cellReadonly} title={val || undefined}>
         <span className={styles.textSnippet}>{val || "—"}</span>
       </div>
     );
   }
 
   return (
-    <div className={[styles.cellWrapper, isFocused && styles.focused].filter(Boolean).join(" ")}>
+    <div
+      className={[styles.cellWrapper, isFocused && styles.focused].filter(Boolean).join(" ")}
+      title={!isFocused ? (val || undefined) : undefined}
+    >
       <input
         ref={inputRef}
         type="text"
@@ -68,7 +71,6 @@ export function TimesheetDescCell({
         placeholder="Work done..."
         maxLength={maxLength}
         aria-label={ariaLabel || `Work description for ${date}`}
-        title={val}
       />
       {isFocused && (
         <span className={styles.charCounter}>

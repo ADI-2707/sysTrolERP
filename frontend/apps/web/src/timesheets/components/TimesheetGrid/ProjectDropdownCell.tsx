@@ -90,7 +90,10 @@ export function ProjectDropdownCell({
 
   // Placeholder row ready for selection
   return (
-    <div className={styles.placeholderContainer} ref={containerRef}>
+    <div
+      className={[styles.placeholderContainer, isOpen && styles.isOpen].filter(Boolean).join(" ")}
+      ref={containerRef}
+    >
       {canEdit ? (
         <>
           <button

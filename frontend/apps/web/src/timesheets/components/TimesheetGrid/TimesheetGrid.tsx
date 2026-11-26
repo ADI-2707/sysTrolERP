@@ -170,7 +170,7 @@ export function TimesheetGrid({
                   </th>
                 );
               })}
-              <th rowSpan={2} className={styles.stickyTotalHeader}>
+              <th rowSpan={2} className={styles.totalHeader}>
                 Total
               </th>
             </tr>
@@ -246,7 +246,7 @@ export function TimesheetGrid({
                   })}
 
                   {/* Row Total Hours */}
-                  <td className={styles.stickyTotalCell}>
+                  <td className={styles.totalCell}>
                     <span className={styles.rowTotalVal}>{parseFloat(row.row_total || "0").toFixed(1)}</span>
                   </td>
                 </tr>
@@ -256,7 +256,7 @@ export function TimesheetGrid({
             {/* Auto Excel Placeholder Row (Always present at the bottom to pick a project directly) */}
             {canEdit && onAddRow && (
               <tr className={styles.placeholderRow} data-testid="timesheet-placeholder-row">
-                <td className={styles.stickyProjectCell}>
+                <td className={styles.placeholderProjectCell}>
                   <ProjectDropdownCell
                     project={null}
                     availableProjects={availableProjects}
@@ -279,7 +279,7 @@ export function TimesheetGrid({
                   </td>
                 ))}
 
-                <td className={styles.stickyTotalCell}>
+                <td className={styles.totalCell}>
                   <span className={styles.placeholderEmptyText}>0.0</span>
                 </td>
               </tr>
@@ -290,7 +290,7 @@ export function TimesheetGrid({
           <tfoot className={styles.gridFooter}>
             {/* Summary Row 1: Total Working Hours */}
             <tr className={styles.footerRowTotal}>
-              <td className={styles.stickyProjectCell}>
+              <td className={styles.footerStickyProjectCell}>
                 <span className={styles.footerLabel}>Total Working Hours</span>
               </td>
               {timesheet.days.map((d) => (
@@ -300,7 +300,7 @@ export function TimesheetGrid({
                   </span>
                 </td>
               ))}
-              <td className={styles.stickyTotalCell}>
+              <td className={styles.totalCell}>
                 <span className={styles.footerGrandTotal}>
                   {parseFloat(timesheet.total_week_hours || "0").toFixed(1)}
                 </span>
@@ -309,7 +309,7 @@ export function TimesheetGrid({
 
             {/* Summary Row 2: Overtime Hours */}
             <tr className={styles.footerRowOt}>
-              <td className={styles.stickyProjectCell}>
+              <td className={styles.footerStickyProjectCell}>
                 <span className={styles.footerLabel}>Overtime Hours</span>
               </td>
               {timesheet.days.map((d) => {
@@ -326,7 +326,7 @@ export function TimesheetGrid({
                   </td>
                 );
               })}
-              <td className={styles.stickyTotalCell}>
+              <td className={styles.totalCell}>
                 <span className={styles.footerOtTotal}>
                   {parseFloat(timesheet.total_overtime_hours || "0").toFixed(1)}
                 </span>
@@ -335,7 +335,7 @@ export function TimesheetGrid({
 
             {/* Summary Row 3: Regular Hours */}
             <tr className={styles.footerRowReg}>
-              <td className={styles.stickyProjectCell}>
+              <td className={styles.footerStickyProjectCell}>
                 <span className={styles.footerLabel}>Regular Hours</span>
               </td>
               {timesheet.days.map((d) => (
@@ -345,7 +345,7 @@ export function TimesheetGrid({
                   </span>
                 </td>
               ))}
-              <td className={styles.stickyTotalCell}>
+              <td className={styles.totalCell}>
                 <span className={styles.footerDayMuted}>
                   {parseFloat(timesheet.total_regular_hours || "0").toFixed(1)}
                 </span>
