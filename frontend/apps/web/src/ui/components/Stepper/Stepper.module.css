@@ -161,6 +161,10 @@
   pointer-events: auto;
 }
 
+.add-substep-container.between-substeps {
+  left: 35px;
+}
+
 .add-substep-btn {
   display: flex;
   align-items: center;

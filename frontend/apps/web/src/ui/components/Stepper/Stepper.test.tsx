@@ -64,6 +64,13 @@ describe("Stepper component", () => {
 
     fireEvent.click(insertBtn);
     expect(handleInsert).toHaveBeenCalledWith("s1");
+
+    const insertAfterSubBtn = screen.getByRole("button", {
+      name: "Insert sub-step after Custom Review",
+    });
+    expect(insertAfterSubBtn).toBeInTheDocument();
+    fireEvent.click(insertAfterSubBtn);
+    expect(handleInsert).toHaveBeenCalledWith("s-sub");
   });
 
   it("renders custom sub-step actions for editing and deleting", () => {

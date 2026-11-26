@@ -148,7 +148,6 @@ export function ProjectDetailPage() {
     (step: StepperItem) => {
       if (!canManage) return false;
       if (step.stepType === "AMC") return false;
-      if (step.isCustom) return false;
       return step.position >= highestCompletedPosition;
     },
     [canManage, highestCompletedPosition]

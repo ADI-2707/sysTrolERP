@@ -345,6 +345,8 @@ describe("ProjectDetailPage", () => {
     expect(screen.getByTestId("insert-substep-after-103")).toBeInTheDocument();
     expect(screen.getByTestId("insert-substep-after-104")).toBeInTheDocument();
     expect(screen.getByTestId("insert-substep-after-105")).toBeInTheDocument();
+    expect(screen.getByTestId("insert-substep-after-198")).toBeInTheDocument();
+    expect(screen.getByTestId("insert-substep-after-199")).toBeInTheDocument();
 
     expect(screen.queryByTestId("insert-substep-after-106")).not.toBeInTheDocument();
   });

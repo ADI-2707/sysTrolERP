@@ -167,7 +167,14 @@ export function Stepper({
               </div>
 
               {allowInsert && (
-                <div className={styles["add-substep-container"]}>
+                <div
+                  className={[
+                    styles["add-substep-container"],
+                    isSubStep && nextIsSubStep && styles["between-substeps"],
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
                   <button
                     type="button"
                     onClick={() => onInsertAfter(step.id)}

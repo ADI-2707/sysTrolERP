@@ -92,6 +92,15 @@ def test_insert_sub_step_lifecycle():
     assert res_after_completed.status_code == 201
     assert res_after_completed.json()["position"] == target_step.position + 1
 
+    custom_step_id = res_after_completed.json()["id"]
+    res_after_custom = client.post(
+        f"/api/projects/{project.id}/sub-steps/",
+        {"after_step_id": custom_step_id, "name": "Second Design Checkpoint"},
+        format="json",
+    )
+    assert res_after_custom.status_code == 201
+    assert res_after_custom.json()["position"] == target_step.position + 2
+
 
 @pytest.mark.django_db
 def test_insert_sub_step_limit_30():
