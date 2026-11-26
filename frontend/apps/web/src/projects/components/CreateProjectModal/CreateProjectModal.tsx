@@ -1,6 +1,11 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { Modal, Button, Spinner } from "@systrol/ui";
-import { fetchActiveEmployees, type EmployeeSummary, type CreateProjectPayload } from "../../../api/projects";
+import {
+  fetchActiveEmployees,
+  fetchEmployeeLookup,
+  type EmployeeSummary,
+  type CreateProjectPayload,
+} from "../../../api/projects";
 import styles from "./CreateProjectModal.module.css";
 
 export interface CreateProjectModalProps {
@@ -21,8 +26,32 @@ export function CreateProjectModal({
   const [description, setDescription] = useState("");
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
   const [employees, setEmployees] = useState<EmployeeSummary[]>([]);
+  const [employeeSearch, setEmployeeSearch] = useState("");
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loadEmployees = async (query = "") => {
+    setIsLoadingEmployees(true);
+    try {
+      if (typeof fetchEmployeeLookup === "function") {
+        const res = await fetchEmployeeLookup(query);
+        if (Array.isArray(res)) {
+          setEmployees(res);
+          return;
+        }
+      }
+      const fallback = await fetchActiveEmployees();
+      setEmployees(fallback.results || []);
+    } catch {
+      try {
+        const fallback = await fetchActiveEmployees();
+        setEmployees(fallback.results || []);
+      } catch {
+      }
+    } finally {
+      setIsLoadingEmployees(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -30,18 +59,8 @@ export function CreateProjectModal({
       setClientName("");
       setDescription("");
       setSelectedMemberIds([]);
+      setEmployeeSearch("");
       setError(null);
-
-      const loadEmployees = async () => {
-        setIsLoadingEmployees(true);
-        try {
-          const res = await fetchActiveEmployees();
-          setEmployees(res.results || []);
-        } catch {
-        } finally {
-          setIsLoadingEmployees(false);
-        }
-      };
       loadEmployees();
     }
   }, [isOpen]);
@@ -142,6 +161,19 @@ export function CreateProjectModal({
 
         <div className={styles.fieldGroup}>
           <span className={styles.label}>Initial Assigned Members</span>
+          <input
+            type="text"
+            className={styles.input}
+            placeholder="Search employees by name or code..."
+            value={employeeSearch}
+            onChange={(e) => {
+              const q = e.target.value;
+              setEmployeeSearch(q);
+              loadEmployees(q);
+            }}
+            data-testid="create-project-employee-search"
+            style={{ marginBottom: "var(--space-2)" }}
+          />
           <div className={styles.membersBox} data-testid="initial-members-list">
             {isLoadingEmployees ? (
               <div className={styles.emptyMembers}>

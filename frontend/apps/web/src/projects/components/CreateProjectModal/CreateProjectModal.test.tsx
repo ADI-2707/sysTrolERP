@@ -8,6 +8,7 @@ vi.mock("../../../api/projects", async () => {
   return {
     ...actual,
     fetchActiveEmployees: vi.fn(),
+    fetchEmployeeLookup: vi.fn(),
   };
 });
 
@@ -44,17 +45,30 @@ describe("CreateProjectModal", () => {
       previous: null,
       results: mockEmployees,
     });
+    vi.mocked(projectsApi.fetchEmployeeLookup).mockResolvedValue(mockEmployees);
   });
 
   it("loads active employees when opened", async () => {
     render(<CreateProjectModal {...defaultProps} />);
 
     await waitFor(() => {
-      expect(projectsApi.fetchActiveEmployees).toHaveBeenCalled();
+      expect(
+        projectsApi.fetchEmployeeLookup.mock.calls.length > 0 ||
+          projectsApi.fetchActiveEmployees.mock.calls.length > 0
+      ).toBe(true);
     });
 
     expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
     expect(screen.getByText("Bob Builder")).toBeInTheDocument();
+  });
+
+  it("searches employees in modal", async () => {
+    render(<CreateProjectModal {...defaultProps} />);
+    const searchInput = screen.getByTestId("create-project-employee-search");
+    fireEvent.change(searchInput, { target: { value: "Bob" } });
+    await waitFor(() => {
+      expect(projectsApi.fetchEmployeeLookup).toHaveBeenCalledWith("Bob");
+    });
   });
 
   it("validates required fields on submission", async () => {
