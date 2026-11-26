@@ -5,6 +5,7 @@ import { WeekNavigator } from "../../timesheets/components/WeekNavigator";
 import { useWeekNavigation } from "../../timesheets/hooks/useWeekNavigation";
 import { DashboardSummaryCards } from "../../timesheets/components/DashboardSummaryCards";
 import { TimesheetGrid } from "../../timesheets/components/TimesheetGrid";
+import { TimesheetGridSkeleton } from "../../timesheets/components/TimesheetGridSkeleton";
 import { AdminTimesheetTabs } from "../../timesheets/components/AdminTimesheetTabs";
 import { TeamTimesheetReviewGrid } from "../../timesheets/components/TeamTimesheetReviewGrid";
 import { SystemTelemetryCards } from "../../timesheets/components/SystemTelemetryCards";
@@ -262,7 +263,11 @@ export function TimesheetsDashboardPage() {
             </>
           ) : (
             <div className={styles.loadingPlaceholder}>
-              {isLoading ? "Loading timesheet..." : "No timesheet found."}
+              {isLoading ? (
+                <TimesheetGridSkeleton />
+              ) : (
+                "No timesheet found."
+              )}
             </div>
           )}
         </div>

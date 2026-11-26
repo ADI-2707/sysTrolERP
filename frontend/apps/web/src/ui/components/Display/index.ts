@@ -3,6 +3,7 @@ export * from "./Chip";
 export * from "./Avatar";
 export * from "./Card";
 export * from "./Skeleton";
+export * from "./TableSkeleton";
 export * from "./Spinner";
 export * from "./ProgressBar";
 export * from "./ProgressRing";

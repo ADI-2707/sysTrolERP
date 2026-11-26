@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Badge, Button, Table, Pagination, EmptyState, Spinner, useToast, type TableColumn } from "@systrol/ui";
+import { Badge, Button, Table, Pagination, EmptyState, TableSkeleton, useToast, type TableColumn } from "@systrol/ui";
 import { useAuth } from "../../auth";
 import {
   fetchEmployees,
@@ -427,9 +427,8 @@ export function EmployeesPage() {
 
       <div className={styles.tableCard} data-testid="employees-table-card">
         {isLoading ? (
-          <div className={styles.loadingContainer} data-testid="employees-loading">
-            <Spinner size="lg" />
-            <span>Loading employees...</span>
+          <div data-testid="employees-loading">
+            <TableSkeleton rows={8} columns={7} hasAvatar={true} />
           </div>
         ) : employees.length === 0 ? (
           <div data-testid="employees-empty-state">

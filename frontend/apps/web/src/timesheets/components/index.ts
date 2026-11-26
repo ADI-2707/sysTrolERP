@@ -8,6 +8,7 @@ export * from "./SystemTelemetryCards";
 export * from "./TeamTimesheetReviewGrid";
 export * from "./TimesheetCellEditor";
 export * from "./TimesheetGrid";
+export * from "./TimesheetGridSkeleton";
 export * from "./TimesheetStatusBanner";
 export * from "./TimesheetTotalsSummary";
 export * from "./WeekNavigator";

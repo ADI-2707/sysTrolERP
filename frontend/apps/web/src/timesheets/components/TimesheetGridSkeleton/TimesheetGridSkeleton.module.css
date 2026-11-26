@@ -1,0 +1,75 @@
+.timesheetSkeletonWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.cardSkeleton {
+  padding: 18px 20px;
+  background-color: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-subtle);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gridCard {
+  background-color: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.navBarSkeleton {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.navBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navBarRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tableHeaderSkeleton {
+  display: grid;
+  grid-template-columns: 220px repeat(7, 1fr) 100px;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--color-neutral-60-surface-subtle);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+}
+
+.tableRowSkeleton {
+  display: grid;
+  grid-template-columns: 220px repeat(7, 1fr) 100px;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  align-items: center;
+}
+
+.tableRowSkeleton:last-child {
+  border-bottom: none;
+}

@@ -9,6 +9,7 @@ import { ProgressBar } from "./ProgressBar";
 import { ProgressRing } from "./ProgressRing";
 import { Skeleton } from "./Skeleton";
 import { Spinner } from "./Spinner";
+import { TableSkeleton } from "./TableSkeleton";
 
 describe("Display components", () => {
   it("renders Badge with variant", () => {
@@ -71,5 +72,11 @@ describe("Display components", () => {
       </div>
     );
     expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+  });
+
+  it("renders TableSkeleton with specified rows, columns, and avatar", () => {
+    render(<TableSkeleton rows={4} columns={6} hasAvatar={true} />);
+    expect(screen.getByTestId("table-skeleton")).toBeInTheDocument();
+    expect(screen.getAllByTestId("table-skeleton-row")).toHaveLength(4);
   });
 });
