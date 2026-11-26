@@ -96,6 +96,10 @@ class Timesheet(TimestampedModel):
                 name="unique_employee_week",
             ),
         ]
+        indexes = [
+            models.Index(fields=["week_start_date", "status"]),
+            models.Index(fields=["employee", "-week_start_date"]),
+        ]
         ordering = ["-week_start_date"]
 
     def __str__(self):

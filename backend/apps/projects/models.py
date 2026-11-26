@@ -57,6 +57,9 @@ class Project(TimestampedModel):
         verbose_name = "Project"
         verbose_name_plural = "Projects"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["is_active", "-created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.code} - {self.name}"
