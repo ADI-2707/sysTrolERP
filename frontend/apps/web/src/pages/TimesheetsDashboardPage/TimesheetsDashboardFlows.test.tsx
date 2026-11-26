@@ -180,17 +180,11 @@ describe("TimesheetsDashboardFlows", () => {
       expect(screen.getByText("PRJ-01")).toBeInTheDocument();
     });
 
-    const addRowBtn = screen.getByTestId("add-project-row-btn");
-    fireEvent.click(addRowBtn);
+    const selectProjectBtn = screen.getByTestId("select-project-cell-btn");
+    fireEvent.click(selectProjectBtn);
 
-    const comboboxInput = screen.getByTestId("project-combobox-input");
-    fireEvent.focus(comboboxInput);
-
-    const optionPrj2 = screen.getByTestId("project-option-102");
+    const optionPrj2 = screen.getByText("Solar Field");
     fireEvent.click(optionPrj2);
-
-    const submitRowBtn = screen.getByTestId("add-row-submit-button");
-    fireEvent.click(submitRowBtn);
 
     await waitFor(() => {
       expect(timesheetsApi.createTimesheetRow).toHaveBeenCalledWith({
@@ -200,22 +194,14 @@ describe("TimesheetsDashboardFlows", () => {
       });
     });
 
-    const noteTrigger = screen.getByTestId("note-trigger-PRJ-01-2026-11-23");
-    fireEvent.click(noteTrigger);
+    const descInput = screen.getByLabelText("Description for PRJ-01 on 2026-11-23");
+    expect(descInput).toHaveValue("Kickoff inspection");
 
-    const noteTextarea = screen.getByTestId("cell-note-textarea");
-    expect(noteTextarea).toHaveValue("Kickoff inspection");
+    fireEvent.change(descInput, { target: { value: "Kickoff inspection updated" } });
+    fireEvent.blur(descInput);
 
-    fireEvent.change(noteTextarea, { target: { value: "Kickoff inspection updated" } });
-    const noteSaveBtn = screen.getByTestId("save-note-btn");
-    fireEvent.click(noteSaveBtn);
-
-    const openSubmitModalBtn = screen.getByTestId("submit-timesheet-btn");
-    fireEvent.click(openSubmitModalBtn);
-
-    const submitDialog = screen.getByRole("dialog");
-    const confirmSubmitBtn = within(submitDialog).getByRole("button", { name: "Submit" });
-    fireEvent.click(confirmSubmitBtn);
+    const submitTimesheetBtn = screen.getByTestId("submit-timesheet-btn");
+    fireEvent.click(submitTimesheetBtn);
 
     await waitFor(() => {
       expect(timesheetsApi.submitOwnTimesheet).toHaveBeenCalledWith("2026-11-23");
@@ -251,7 +237,8 @@ describe("TimesheetsDashboardFlows", () => {
       expect(screen.getByRole("navigation", { name: "Week navigation" })).toBeInTheDocument();
     });
 
-    const prevBtn = screen.getByLabelText("Previous week");
+    const nav = screen.getByRole("navigation", { name: "Week navigation" });
+    const prevBtn = within(nav).getByLabelText("Previous week");
     fireEvent.click(prevBtn);
 
     await waitFor(() => {

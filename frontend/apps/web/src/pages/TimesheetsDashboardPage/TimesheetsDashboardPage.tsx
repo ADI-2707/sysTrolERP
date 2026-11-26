@@ -44,6 +44,7 @@ export function TimesheetsDashboardPage() {
     sunday: currentWeekEnd,
     displayRange,
     isCurrent,
+    canGoNext,
     goToPreviousWeek,
     goToNextWeek,
     goToCurrentWeek,
@@ -237,6 +238,11 @@ export function TimesheetsDashboardPage() {
                 onAddRow={handleAddRow}
                 onDeleteRow={handleDeleteRow}
                 onSubmitTimesheet={handleSubmitTimesheet}
+                onPreviousWeek={goToPreviousWeek}
+                onNextWeek={goToNextWeek}
+                canGoNext={canGoNext}
+                displayRange={displayRange}
+                isCurrentWeek={isCurrent}
                 cellStatuses={cellStatuses}
                 globalStatus={globalStatus}
               />
