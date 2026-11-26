@@ -33,7 +33,7 @@ describe("ProjectCard", () => {
     created_at: "2026-11-01T10:00:00Z",
   };
 
-  it("renders project information, progress, step badge, and avatars", () => {
+  it("renders project information, progress, and step badge", () => {
     render(<ProjectCard project={mockProject} />);
 
     expect(screen.getByText("Solar Turbine Array")).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe("ProjectCard", () => {
     expect(screen.getByText("28%")).toBeInTheDocument();
     expect(screen.getByText("4 / 14 steps")).toBeInTheDocument();
     expect(screen.getByText("Manufacturing")).toBeInTheDocument();
-    expect(screen.getByText("+2")).toBeInTheDocument();
+    expect(screen.queryByTestId("project-members")).not.toBeInTheDocument();
   });
 
   it("triggers onClick on mouse click and keyboard Enter", () => {

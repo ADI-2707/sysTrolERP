@@ -128,25 +128,3 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
 }
-
-.membersGroup {
-  display: flex;
-  align-items: center;
-}
-
-.avatarStack {
-  display: flex;
-  align-items: center;
-  margin-left: -6px;
-}
-
-.avatarStack:first-child {
-  margin-left: 0;
-}
-
-.memberCount {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
-  margin-left: var(--space-2);
-}

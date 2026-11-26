@@ -19,7 +19,6 @@ export function ProjectCardSkeleton() {
       </div>
 
       <div className={styles.footerRow}>
-        <Skeleton width={90} height={14} />
         <Skeleton width={110} height={14} />
       </div>
     </div>

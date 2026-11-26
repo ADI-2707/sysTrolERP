@@ -1,4 +1,4 @@
-import { Badge, ProgressBar, Avatar } from "@systrol/ui";
+import { Badge, ProgressBar } from "@systrol/ui";
 import type { ProjectListItem } from "../../types";
 import styles from "./ProjectCard.module.css";
 
@@ -31,9 +31,6 @@ export function ProjectCard({ project, onClick, className }: ProjectCardProps) {
     month: "short",
     day: "numeric",
   });
-
-  const displayedMembers = project.members.slice(0, 3);
-  const remainingMembers = project.member_count > 3 ? project.member_count - 3 : 0;
 
   return (
     <div
@@ -101,17 +98,6 @@ export function ProjectCard({ project, onClick, className }: ProjectCardProps) {
       <div className={styles.cardFooter}>
         <div className={styles.metaInfo}>
           <span className={styles.createdDate}>Created {formattedDate}</span>
-        </div>
-
-        <div className={styles.membersGroup} data-testid="project-members">
-          {displayedMembers.map((m) => (
-            <div key={m.id} className={styles.avatarStack}>
-              <Avatar name={m.full_name} size="sm" />
-            </div>
-          ))}
-          {remainingMembers > 0 && (
-            <span className={styles.memberCount}>+{remainingMembers}</span>
-          )}
         </div>
       </div>
     </div>
