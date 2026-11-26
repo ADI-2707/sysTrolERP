@@ -72,7 +72,10 @@ class OwnTimesheetHistoryView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
 
     def get(self, request):
-        if isinstance(request.user, SuperAdminPrincipal) or getattr(request.user, "role", None) == "SUPER":
+        if (
+            isinstance(request.user, SuperAdminPrincipal)
+            or getattr(request.user, "role", None) == "SUPER"
+        ):
             return Response(
                 {
                     "count": 0,

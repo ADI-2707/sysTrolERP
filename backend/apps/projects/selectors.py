@@ -28,12 +28,16 @@ def list_projects_for_user(
         if sf == "COMPLETED":
             qs = qs.annotate(
                 total_steps=Count("steps", distinct=True),
-                completed_steps=Count("steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True),
+                completed_steps=Count(
+                    "steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True
+                ),
             ).filter(total_steps__gt=0, total_steps=F("completed_steps"))
         elif sf == "ACTIVE":
             qs = qs.annotate(
                 total_steps=Count("steps", distinct=True),
-                completed_steps=Count("steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True),
+                completed_steps=Count(
+                    "steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True
+                ),
             ).filter(Q(total_steps=0) | Q(completed_steps__lt=F("total_steps")))
 
     return qs.order_by("-created_at")
@@ -51,9 +55,7 @@ def get_assignment_matrix(
     emp_qs = User.objects.filter(is_active=True, revoked_at__isnull=True)
     if employee_search:
         s = employee_search.strip()
-        emp_qs = emp_qs.filter(
-            Q(full_name__icontains=s) | Q(employee_code__icontains=s)
-        )
+        emp_qs = emp_qs.filter(Q(full_name__icontains=s) | Q(employee_code__icontains=s))
     emp_qs = emp_qs.order_by("employee_code")
 
     total_employees = emp_qs.count()
