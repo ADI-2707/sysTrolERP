@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useUiLock } from "@systrol/ui";
 import { useAuth } from "../../auth";
 import { WeekNavigator } from "../../timesheets/components/WeekNavigator";
 import { useWeekNavigation } from "../../timesheets/hooks/useWeekNavigation";
@@ -37,6 +38,7 @@ export function TimesheetsDashboardPage() {
   const { isSuperAdmin, isAdmin } = useAuth();
   const isSuper = isSuperAdmin;
   const canReviewTeam = isSuper || isAdmin;
+  const { lock, unlock } = useUiLock();
 
   const [activeTab, setActiveTab] = useState<string>(isSuper ? "team" : "my");
   const {
@@ -148,27 +150,36 @@ export function TimesheetsDashboardPage() {
   };
 
   const handleSubmitTimesheet = async () => {
-    await submitOwnTimesheet(currentWeekStart);
-    await loadData();
+    try {
+      lock("Submitting timesheet for approval...");
+      await submitOwnTimesheet(currentWeekStart);
+      await loadData();
+    } finally {
+      unlock();
+    }
   };
 
   const handleApproveTeamTimesheet = async (id: number) => {
     try {
       setProcessingId(id);
+      lock("Approving timesheet...");
       await approveTimesheet(id);
       await loadData();
     } finally {
       setProcessingId(null);
+      unlock();
     }
   };
 
   const handleReturnTeamTimesheet = async (id: number, reason: string) => {
     try {
       setProcessingId(id);
+      lock("Returning timesheet...");
       await returnTimesheet(id, reason);
       await loadData();
     } finally {
       setProcessingId(null);
+      unlock();
     }
   };
 
@@ -178,10 +189,12 @@ export function TimesheetsDashboardPage() {
   ) => {
     try {
       setProcessingId(id);
+      lock("Updating timesheet status...");
       await overrideTimesheet(id, payload);
       await loadData();
     } finally {
       setProcessingId(null);
+      unlock();
     }
   };
 

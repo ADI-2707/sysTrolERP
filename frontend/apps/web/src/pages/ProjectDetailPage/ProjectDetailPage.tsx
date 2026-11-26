@@ -9,6 +9,7 @@ import {
   Input,
   FormField,
   useToast,
+  useUiLock,
   IconChevronLeft,
   type StepperItem,
   type StepStatus,
@@ -37,6 +38,7 @@ export function ProjectDetailPage() {
   const navigate = useNavigate();
   const { isSuperAdmin, isAdmin } = useAuth();
   const { addToast } = useToast();
+  const { lock, unlock } = useUiLock();
   const canManage = isSuperAdmin || isAdmin;
 
   const [project, setProject] = useState<ProjectDetailData | null>(null);
@@ -88,6 +90,7 @@ export function ProjectDetailPage() {
   ) => {
     if (!project) return;
     setIsUpdatingStatus(true);
+    lock("Updating step status...");
     try {
       await updateStepStatus(project.id, stepId, status, confirm);
       addToast({
@@ -105,6 +108,7 @@ export function ProjectDetailPage() {
     } finally {
       setIsUpdatingStatus(false);
       setStepToComplete(null);
+      unlock();
     }
   };
 
