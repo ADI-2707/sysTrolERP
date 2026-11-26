@@ -92,6 +92,11 @@ def test_admin_timesheet_viewing():
         assert res_list.status_code == 200
         assert res_list.json()["count"] == 2
 
+        res_search = admin_client.get("/api/timesheets/?search=Employee")
+        assert res_search.status_code == 200
+        assert res_search.json()["count"] == 1
+        assert res_search.json()["results"][0]["employee"]["code"] == "SYS-0003"
+
         res_pending = admin_client.get("/api/timesheets/pending/")
         assert res_pending.status_code == 200
         pending_results = res_pending.json()["results"]

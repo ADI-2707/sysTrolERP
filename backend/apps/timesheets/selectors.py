@@ -328,6 +328,7 @@ def list_timesheets_for_admin(
     employee_filter: str = "",
     week_filter: str = "",
     status_filter: str = "",
+    search: str = "",
 ):
     qs = (
         Timesheet.objects.select_related("employee")
@@ -335,13 +336,14 @@ def list_timesheets_for_admin(
         .order_by("-week_start_date", "employee__employee_code")
     )
 
-    if employee_filter:
-        val = employee_filter.strip()
-        if val.isdigit():
-            qs = qs.filter(Q(employee_id=int(val)) | Q(employee__employee_code=val))
+    search_val = (search or employee_filter).strip()
+    if search_val:
+        if search_val.isdigit():
+            qs = qs.filter(Q(employee_id=int(search_val)) | Q(employee__employee_code=search_val))
         else:
             qs = qs.filter(
-                Q(employee__employee_code__icontains=val) | Q(employee__full_name__icontains=val)
+                Q(employee__employee_code__icontains=search_val)
+                | Q(employee__full_name__icontains=search_val)
             )
 
     if week_filter:
