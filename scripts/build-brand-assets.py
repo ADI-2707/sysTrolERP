@@ -5,17 +5,12 @@ from pathlib import Path
 from PIL import Image
 
 CANDIDATE_PATHS = [
-    Path(__file__).resolve().parent.parent
-    / "frontend"
-    / "apps"
-    / "web"
-    / "public"
-    / "logo-full.png",
+    Path(__file__).resolve().parent.parent / "frontend" / "apps" / "web" / "public" / "icon.jpeg",
     Path(__file__).resolve().parent.parent / "frontend" / "apps" / "web" / "public" / "favicon.ico",
 ]
 
 
-def find_logo():
+def find_icon():
     for p in CANDIDATE_PATHS:
         if p.exists():
             return p
@@ -71,13 +66,13 @@ def main():
     web_public.mkdir(parents=True, exist_ok=True)
     ui_src.mkdir(parents=True, exist_ok=True)
 
-    collapsed_path = web_public / "logo-collapsed.png"
-    if not collapsed_path.exists():
-        print("Error: logo-collapsed.png not found")
+    icon_path = find_icon()
+    if not icon_path:
+        print("Error: icon.jpeg not found")
         sys.exit(1)
 
-    with Image.open(collapsed_path) as collapsed:
-        base_for_icons = collapsed.convert("RGBA")
+    with Image.open(icon_path) as icon_img:
+        base_for_icons = icon_img.convert("RGB")
         palette = sample_colors(base_for_icons)
         brand_data = {
             "name": "sysTrol ERP",
@@ -89,7 +84,7 @@ def main():
                 "appleTouchIcon": "/apple-touch-icon.png",
                 "logo192": "/logo-192x192.png",
                 "logo512": "/logo-512x512.png",
-                "logoMark": "/logo-collapsed.png",
+                "logoMark": "/icon.jpeg",
                 "logoFull": "/logo-full.png",
             },
         }
@@ -107,7 +102,6 @@ def main():
             "apple-touch-icon.png": 180,
             "logo-192x192.png": 192,
             "logo-512x512.png": 512,
-            "logo-mark.png": 512,
         }
 
         for filename, size in sizes.items():
