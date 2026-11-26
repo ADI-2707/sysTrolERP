@@ -13,6 +13,7 @@ export interface ProjectListParams {
   status?: string;
   is_active?: boolean;
   page?: number;
+  page_size?: number;
 }
 
 export interface CreateProjectPayload {
@@ -38,6 +39,7 @@ export async function fetchProjects(
   if (params?.status) queryParams.set("status", params.status);
   if (params?.is_active !== undefined) queryParams.set("is_active", String(params.is_active));
   if (params?.page) queryParams.set("page", String(params.page));
+  if (params?.page_size) queryParams.set("page_size", String(params.page_size));
 
   const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
   return apiClient.get<PaginatedResponse<ProjectListItem>>(`/api/projects/${query}`);
@@ -53,8 +55,34 @@ export async function fetchActiveEmployees(): Promise<PaginatedResponse<Employee
   return apiClient.get<PaginatedResponse<EmployeeSummary>>("/api/employees/?is_active=true");
 }
 
-export async function fetchAssignmentMatrix(): Promise<AssignmentMatrixData> {
-  return apiClient.get<AssignmentMatrixData>("/api/projects/matrix/");
+export interface AssignmentMatrixParams {
+  page?: number;
+  page_size?: number;
+  employee_search?: string;
+  project_search?: string;
+}
+
+export async function fetchEmployeeLookup(
+  search?: string,
+  limit?: number
+): Promise<EmployeeSummary[]> {
+  const queryParams = new URLSearchParams();
+  if (search) queryParams.set("search", search);
+  if (limit) queryParams.set("limit", String(limit));
+  const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  return apiClient.get<EmployeeSummary[]>(`/api/employees/lookup/${query}`);
+}
+
+export async function fetchAssignmentMatrix(
+  params?: AssignmentMatrixParams
+): Promise<AssignmentMatrixData> {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set("page", String(params.page));
+  if (params?.page_size) queryParams.set("page_size", String(params.page_size));
+  if (params?.employee_search) queryParams.set("employee_search", params.employee_search);
+  if (params?.project_search) queryParams.set("project_search", params.project_search);
+  const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  return apiClient.get<AssignmentMatrixData>(`/api/projects/matrix/${query}`);
 }
 
 export async function fetchProjectDetail(

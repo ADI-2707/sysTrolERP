@@ -23,20 +23,47 @@ export async function fetchTimesheetSummary(weekDate?: string): Promise<Dashboar
   return apiClient.get<DashboardSummaryData>(`/api/timesheets/summary/${query}`);
 }
 
+export interface OwnTimesheetHistoryItem {
+  id: number;
+  week_start_date: string;
+  week_end_date: string;
+  status: string;
+  total_hours: string;
+  submitted_at: string | null;
+  approved_at: string | null;
+  returned_at: string | null;
+  return_reason: string;
+}
+
 export async function fetchTeamTimesheets(params?: {
   week?: string;
   status?: string;
   employee?: string;
+  search?: string;
   page?: number;
+  page_size?: number;
 }): Promise<PaginatedResponse<TeamTimesheetItem>> {
   const queryParams = new URLSearchParams();
   if (params?.week) queryParams.set("week", params.week);
   if (params?.status) queryParams.set("status", params.status);
   if (params?.employee) queryParams.set("employee", params.employee);
+  if (params?.search) queryParams.set("search", params.search);
   if (params?.page) queryParams.set("page", String(params.page));
+  if (params?.page_size) queryParams.set("page_size", String(params.page_size));
 
   const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
   return apiClient.get<PaginatedResponse<TeamTimesheetItem>>(`/api/timesheets/${query}`);
+}
+
+export async function fetchOwnTimesheetHistory(
+  page?: number,
+  pageSize?: number
+): Promise<PaginatedResponse<OwnTimesheetHistoryItem>> {
+  const queryParams = new URLSearchParams();
+  if (page) queryParams.set("page", String(page));
+  if (pageSize) queryParams.set("page_size", String(pageSize));
+  const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  return apiClient.get<PaginatedResponse<OwnTimesheetHistoryItem>>(`/api/timesheets/me/history/${query}`);
 }
 
 export async function fetchPendingTimesheets(): Promise<PaginatedResponse<TeamTimesheetItem>> {

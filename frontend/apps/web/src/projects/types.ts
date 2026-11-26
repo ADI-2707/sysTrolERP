@@ -98,4 +98,8 @@ export interface AssignmentMatrixData {
   employees: AssignmentMatrixEmployee[];
   projects: AssignmentMatrixProject[];
   assignments: AssignmentMatrixItem[];
+  total_employees?: number;
+  page?: number;
+  page_size?: number;
+  total_pages?: number;
 }
