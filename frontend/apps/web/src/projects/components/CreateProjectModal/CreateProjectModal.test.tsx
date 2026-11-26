@@ -53,8 +53,8 @@ describe("CreateProjectModal", () => {
 
     await waitFor(() => {
       expect(
-        projectsApi.fetchEmployeeLookup.mock.calls.length > 0 ||
-          projectsApi.fetchActiveEmployees.mock.calls.length > 0
+        vi.mocked(projectsApi.fetchEmployeeLookup).mock.calls.length > 0 ||
+          vi.mocked(projectsApi.fetchActiveEmployees).mock.calls.length > 0
       ).toBe(true);
     });
 

@@ -152,7 +152,7 @@ export function AssignmentMatrix() {
     return (
       <div role="alert" className={styles.loadingWrapper} data-testid="matrix-error">
         <span>{error || "Failed to load matrix data."}</span>
-        <Button size="sm" variant="secondary" onClick={loadMatrix} data-testid="matrix-retry-btn">
+        <Button size="sm" variant="secondary" onClick={() => loadMatrix()} data-testid="matrix-retry-btn">
           Retry
         </Button>
       </div>
