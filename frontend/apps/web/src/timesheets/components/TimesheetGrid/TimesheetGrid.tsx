@@ -85,108 +85,108 @@ export function TimesheetGrid({
         />
       )}
 
-      {/* Infinite Scrollable Table Container */}
-      <div className={styles.scrollContainer} data-testid="timesheet-scroll-container">
-        <table className={styles.timesheetTable} role="grid" aria-label={`Timesheet for week ${timesheet.week_start_date}`}>
-          <thead>
-            {/* Row 0: Full-Width Week Navigation Header */}
-            <tr className={styles.weekNavRow}>
-              <th colSpan={16} className={styles.weekNavCell}>
-                <div className={styles.weekNavContent}>
-                  <div className={styles.weekControls}>
-                    {onPreviousWeek && (
-                      <button
-                        type="button"
-                        className={styles.navArrowBtn}
-                        onClick={onPreviousWeek}
-                        aria-label="Previous week"
-                        title="Go to previous week"
-                      >
-                        ‹
-                      </button>
-                    )}
+      {/* Outer Card Wrapper */}
+      <div className={styles.gridCardWrapper}>
+        {/* Fixed Week Navigation Header Bar: Not scrollable horizontally */}
+        <div className={styles.weekNavCard}>
+          <div className={styles.weekNavContent}>
+            <div className={styles.weekControls}>
+              {onPreviousWeek && (
+                <button
+                  type="button"
+                  className={styles.navArrowBtn}
+                  onClick={onPreviousWeek}
+                  aria-label="Previous week"
+                  title="Go to previous week"
+                >
+                  ‹
+                </button>
+              )}
 
-                    <span className={styles.weekDisplayRange}>
-                      {displayRange || `Week of ${timesheet.week_start_date}`}
-                    </span>
+              <span className={styles.weekDisplayRange}>
+                {displayRange || `Week of ${timesheet.week_start_date}`}
+              </span>
 
-                    {onNextWeek && (
-                      <button
-                        type="button"
-                        className={styles.navArrowBtn}
-                        disabled={!allowNext || isCurrent}
-                        onClick={onNextWeek}
-                        aria-label="Next week"
-                        title={!allowNext || isCurrent ? "Cannot navigate to future weeks" : "Go to next week"}
-                      >
-                        ›
-                      </button>
-                    )}
+              {onNextWeek && (
+                <button
+                  type="button"
+                  className={styles.navArrowBtn}
+                  disabled={!allowNext || isCurrent}
+                  onClick={onNextWeek}
+                  aria-label="Next week"
+                  title={!allowNext || isCurrent ? "Cannot navigate to future weeks" : "Go to next week"}
+                >
+                  ›
+                </button>
+              )}
 
-                    <span className={[styles.statusBadge, styles[`status_${timesheet.status}`]].join(" ")}>
-                      {timesheet.status}
-                    </span>
-                  </div>
+              <span className={[styles.statusBadge, styles[`status_${timesheet.status}`]].join(" ")}>
+                {timesheet.status}
+              </span>
+            </div>
 
-                  <div className={styles.weekActions}>
-                    {globalStatus && globalStatus !== "idle" && (
-                      <span className={[styles.autosaveBadge, styles[globalStatus]].join(" ")} data-testid="autosave-status-badge">
-                        {globalStatus === "saving" && "Saving..."}
-                        {globalStatus === "saved" && "Saved"}
-                        {globalStatus === "error" && "Error saving"}
-                      </span>
-                    )}
+            <div className={styles.weekActions}>
+              {globalStatus && globalStatus !== "idle" && (
+                <span className={[styles.autosaveBadge, styles[globalStatus]].join(" ")} data-testid="autosave-status-badge">
+                  {globalStatus === "saving" && "Saving..."}
+                  {globalStatus === "saved" && "Saved"}
+                  {globalStatus === "error" && "Error saving"}
+                </span>
+              )}
 
-                    <span className={styles.weekTotalPill}>
-                      Week Total: <strong>{parseFloat(timesheet.total_week_hours || "0").toFixed(1)}h</strong>
-                    </span>
+              <span className={styles.weekTotalPill}>
+                Week Total: <strong>{parseFloat(timesheet.total_week_hours || "0").toFixed(1)}h</strong>
+              </span>
 
-                    {canEdit && timesheet.can_submit && onSubmitTimesheet && (
-                      <button
-                        type="button"
-                        className={styles.submitTimesheetBtn}
-                        onClick={onSubmitTimesheet}
-                        data-testid="submit-timesheet-btn"
-                      >
-                        Submit Timesheet
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </th>
-            </tr>
+              {canEdit && timesheet.can_submit && onSubmitTimesheet && (
+                <button
+                  type="button"
+                  className={styles.submitTimesheetBtn}
+                  onClick={onSubmitTimesheet}
+                  data-testid="submit-timesheet-btn"
+                >
+                  Submit Timesheet
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
-            {/* Row 1: Main Headers (Project + 7 Days + Total) */}
-            <tr className={styles.mainHeaderRow}>
-              <th rowSpan={2} className={styles.stickyProjectHeader} scope="col">
-                <span className={styles.projectHeaderTitle}>Project</span>
-              </th>
-              {timesheet.days.map((dayDate) => {
-                const { dayName, dayNumber } = getDayLabel(dayDate);
-                return (
-                  <th key={dayDate} colSpan={2} className={styles.dayGroupHeader} scope="colgroup">
-                    <span className={styles.dayName}>{dayName}</span>
-                    <span className={styles.dayNumber}>{dayNumber}</span>
-                  </th>
-                );
-              })}
-              <th rowSpan={2} className={styles.totalHeader} scope="col">
-                Total
-              </th>
-            </tr>
-
-            {/* Row 2: Sub-Columns (Desc + Hours for each day) */}
-            <tr className={styles.subHeaderRow}>
-              {timesheet.days.map((dayDate) => (
-                <th key={`${dayDate}-subcols`} colSpan={2} className={styles.subHeaderThWrapper} scope="colgroup">
-                  <div className={styles.subHeaderGroup}>
-                    <span className={styles.subHeaderDesc}>Desc</span>
-                    <span className={styles.subHeaderHours}>Hours</span>
-                  </div>
+        {/* Infinite Scrollable Table Container (Only day date and sub-columns scroll horizontally) */}
+        <div className={styles.scrollContainer} data-testid="timesheet-scroll-container">
+          <table className={styles.timesheetTable} role="grid" aria-label={`Timesheet for week ${timesheet.week_start_date}`}>
+            <thead>
+              {/* Row 1: Main Headers (Project + 7 Days + Total) */}
+              <tr className={styles.mainHeaderRow}>
+                <th rowSpan={2} className={styles.stickyProjectHeader} scope="col">
+                  <span className={styles.projectHeaderTitle}>Project</span>
                 </th>
-              ))}
-            </tr>
-          </thead>
+                {timesheet.days.map((dayDate) => {
+                  const { dayName, dayNumber } = getDayLabel(dayDate);
+                  return (
+                    <th key={dayDate} colSpan={2} className={styles.dayGroupHeader} scope="colgroup">
+                      <span className={styles.dayName}>{dayName}</span>
+                      <span className={styles.dayNumber}>{dayNumber}</span>
+                    </th>
+                  );
+                })}
+                <th rowSpan={2} className={styles.totalHeader} scope="col">
+                  Total
+                </th>
+              </tr>
+
+              {/* Row 2: Sub-Columns (Desc + Hours for each day) */}
+              <tr className={styles.subHeaderRow}>
+                {timesheet.days.map((dayDate) => (
+                  <th key={`${dayDate}-subcols`} colSpan={2} className={styles.subHeaderThWrapper} scope="colgroup">
+                    <div className={styles.subHeaderGroup}>
+                      <span className={styles.subHeaderDesc}>Desc</span>
+                      <span className={styles.subHeaderHours}>Hours</span>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
 
           <tbody>
             {/* Render Logged Project Rows */}
@@ -355,5 +355,6 @@ export function TimesheetGrid({
         </table>
       </div>
     </div>
+  </div>
   );
 }
