@@ -1,0 +1,151 @@
+.assignedContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  width: 100%;
+}
+
+.projectInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: left;
+}
+
+.projectCode {
+  font-weight: 600;
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-brand-30-primary, #6366f1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projectName {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-neutral-60-text-secondary, #94a3b8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-60-text-muted, #64748b);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 11px;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.deleteBtn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.placeholderContainer {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.selectBtn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px dashed var(--color-neutral-60-border-strong, #475569);
+  color: var(--color-neutral-60-text-muted, #94a3b8);
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--font-size-xs, 12px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.selectBtn:hover {
+  border-color: var(--color-brand-30-primary, #6366f1);
+  color: var(--color-brand-30-primary, #6366f1);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.emptyPlaceholderText {
+  color: var(--color-neutral-60-text-muted, #64748b);
+  font-size: var(--font-size-xs, 12px);
+}
+
+.dropdownPopover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 280px;
+  max-height: 240px;
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  border: 1px solid var(--color-neutral-60-border-strong, #334155);
+  border-radius: var(--radius-md, 6px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.searchInput {
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: var(--color-neutral-60-surface, #0f172a);
+  border: none;
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  color: var(--color-neutral-60-text-primary, #f8fafc);
+  font-size: var(--font-size-xs, 12px);
+  outline: none;
+}
+
+.searchInput:focus {
+  border-bottom-color: var(--color-brand-30-primary, #6366f1);
+}
+
+.projectList {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  max-height: 190px;
+}
+
+.projectItem {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  text-align: left;
+}
+
+.projectItem:hover {
+  background-color: rgba(99, 102, 241, 0.15);
+}
+
+.itemCode {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--color-brand-30-primary, #818cf8);
+}
+
+.itemName {
+  font-size: 11px;
+  color: var(--color-neutral-60-text-secondary, #cbd5e1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noProjects {
+  padding: 12px;
+  color: var(--color-neutral-60-text-muted, #64748b);
+  font-size: 11px;
+  text-align: center;
+}
