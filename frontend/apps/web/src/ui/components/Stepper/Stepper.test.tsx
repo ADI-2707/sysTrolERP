@@ -87,4 +87,48 @@ describe("Stepper component", () => {
     fireEvent.click(deleteBtn);
     expect(handleDelete).toHaveBeenCalledWith("s-sub");
   });
+
+  it("renders connector lines and highlights completed connections", () => {
+    const stepsWithCompletion: StepperItem[] = [
+      { id: "s1", title: "Step 1", status: "COMPLETED", position: 1 },
+      { id: "s2", title: "Step 2", status: "COMPLETED", position: 2 },
+      { id: "s3", title: "Step 3", status: "IN_PROGRESS", position: 3 },
+      { id: "s-sub", title: "Substep", status: "NOT_STARTED", isCustom: true, position: 4 },
+      { id: "s4", title: "Step 4", status: "NOT_STARTED", position: 5 },
+    ];
+
+    render(<Stepper items={stepsWithCompletion} />);
+
+    // Step 1 to Step 2: next step is COMPLETED, connector line should have is-completed class
+    const svg1 = screen.getByTestId("connector-svg-s1");
+    expect(svg1).toBeInTheDocument();
+    const line1 = svg1.querySelector("line");
+    expect(line1).toHaveClass(/is-completed/);
+
+    // Step 2 to Step 3: next step is IN_PROGRESS (not completed), connector line should not have is-completed class
+    const svg2 = screen.getByTestId("connector-svg-s2");
+    expect(svg2).toBeInTheDocument();
+    const line2 = svg2.querySelector("line");
+    expect(line2).not.toHaveClass(/is-completed/);
+
+    // Step 3 (main) to Step 4 (sub-step): should render curved path
+    const svg3 = screen.getByTestId("connector-svg-s3");
+    expect(svg3).toBeInTheDocument();
+    const path3 = svg3.querySelector("path");
+    expect(path3).toBeInTheDocument();
+    expect(path3).toHaveAttribute("d", "M 13 26 C 13 60, 35 60, 35 100");
+
+    // Last step (s4) should not have a connector SVG
+    expect(screen.queryByTestId("connector-svg-s4")).not.toBeInTheDocument();
+  });
+
+  it("renders custom sub-step with is-substep class and indented positioning", () => {
+    render(<Stepper items={steps} />);
+
+    const subStepRow = screen.getByTestId("step-row-s-sub");
+    expect(subStepRow).toHaveClass(/is-substep/);
+
+    const subStepIndicator = screen.getByTestId("step-indicator-s-sub");
+    expect(subStepIndicator).toHaveClass(/is-substep/);
+  });
 });

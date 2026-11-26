@@ -71,26 +71,115 @@ export function Stepper({
       {items.map((step, idx) => {
         const isCompleted = step.status === "COMPLETED";
         const isLast = idx === items.length - 1;
+        const nextStep = !isLast ? items[idx + 1] : null;
+        const isLineCompleted = nextStep?.status === "COMPLETED";
+        const isSubStep = Boolean(step.isCustom);
+        const nextIsSubStep = Boolean(nextStep?.isCustom);
         const allowInsert = !isLast && onInsertAfter && canInsertAfter(step);
 
         return (
-          <div key={step.id} className={styles["step-wrapper"]}>
-            <div className={styles["timeline-column"]}>
-              <div
-                className={[styles["step-indicator"], getStatusClass(step.status)]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                {isCompleted ? <IconCheck size={14} /> : idx + 1}
-              </div>
+          <div
+            key={step.id}
+            className={[styles["step-wrapper"], isSubStep && styles["is-substep"]]
+              .filter(Boolean)
+              .join(" ")}
+            data-testid={`step-row-${step.id}`}
+          >
+            <div className={styles["timeline-col"]}>
+              {!isLast && (
+                <svg
+                  className={styles["connector-svg"]}
+                  preserveAspectRatio="none"
+                  viewBox="0 0 60 100"
+                  aria-hidden="true"
+                  data-testid={`connector-svg-${step.id}`}
+                >
+                  {!isSubStep && !nextIsSubStep && (
+                    <line
+                      x1="13"
+                      y1="26"
+                      x2="13"
+                      y2="100"
+                      className={[
+                        styles["connector-line"],
+                        isLineCompleted && styles["is-completed"],
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
+                  {!isSubStep && nextIsSubStep && (
+                    <path
+                      d="M 13 26 C 13 60, 35 60, 35 100"
+                      fill="none"
+                      className={[
+                        styles["connector-line"],
+                        isLineCompleted && styles["is-completed"],
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
+                  {isSubStep && !nextIsSubStep && (
+                    <path
+                      d="M 35 24 C 35 60, 13 60, 13 100"
+                      fill="none"
+                      className={[
+                        styles["connector-line"],
+                        isLineCompleted && styles["is-completed"],
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
+                  {isSubStep && nextIsSubStep && (
+                    <line
+                      x1="35"
+                      y1="24"
+                      x2="35"
+                      y2="100"
+                      className={[
+                        styles["connector-line"],
+                        isLineCompleted && styles["is-completed"],
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
+                </svg>
+              )}
+
               <div
                 className={[
-                  styles["timeline-line"],
-                  isCompleted && styles["is-completed"],
+                  styles["step-indicator"],
+                  getStatusClass(step.status),
+                  isSubStep ? styles["is-substep"] : styles["main"],
                 ]
                   .filter(Boolean)
                   .join(" ")}
-              />
+                data-testid={`step-indicator-${step.id}`}
+              >
+                {isCompleted ? <IconCheck size={14} /> : idx + 1}
+              </div>
+
+              {allowInsert && (
+                <div className={styles["add-substep-container"]}>
+                  <button
+                    type="button"
+                    onClick={() => onInsertAfter(step.id)}
+                    className={styles["add-substep-btn"]}
+                    title={`Insert sub-step after ${step.title}`}
+                    aria-label={`Insert sub-step after ${step.title}`}
+                    data-testid={`insert-substep-after-${step.id}`}
+                  >
+                    <IconPlus size={10} />
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className={styles["step-content"]}>
@@ -174,21 +263,6 @@ export function Stepper({
                 <div className={styles["step-description"]}>{step.description}</div>
               )}
             </div>
-
-            {allowInsert && (
-              <div className={styles["insert-affordance"]}>
-                <button
-                  type="button"
-                  onClick={() => onInsertAfter(step.id)}
-                  className={styles["insert-btn"]}
-                  title={`Insert sub-step after ${step.title}`}
-                  aria-label={`Insert sub-step after ${step.title}`}
-                  data-testid={`insert-substep-after-${step.id}`}
-                >
-                  <IconPlus size={12} />
-                </button>
-              </div>
-            )}
           </div>
         );
       })}
