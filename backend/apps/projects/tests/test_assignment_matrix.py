@@ -68,5 +68,16 @@ def test_assignment_matrix_endpoint():
 
     assigned_pairs = [(a["project_id"], a["employee_id"]) for a in data["assignments"]]
     assert (prj_active.id, emp1.id) in assigned_pairs
+    assert data["total_employees"] == 2
+    assert data["page"] == 1
+    assert data["page_size"] == 50
+    assert data["total_pages"] == 1
+
+    res_paged = client.get("/api/projects/matrix/?page=1&page_size=1")
+    assert res_paged.status_code == 200
+    paged_data = res_paged.json()
+    assert len(paged_data["employees"]) == 1
+    assert paged_data["total_employees"] == 2
+    assert paged_data["total_pages"] == 2
     assert (prj_active.id, emp_inactive.id) not in assigned_pairs
     assert (prj_inactive.id, emp1.id) not in assigned_pairs

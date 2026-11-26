@@ -210,5 +210,20 @@ class ProjectMatrixView(APIView):
     permission_classes = [IsAdminOrSuper]
 
     def get(self, request):
-        matrix_data = get_assignment_matrix()
+        try:
+            page = max(int(request.query_params.get("page", 1)), 1)
+        except (ValueError, TypeError):
+            page = 1
+
+        try:
+            page_size = min(max(int(request.query_params.get("page_size", 50)), 1), 200)
+        except (ValueError, TypeError):
+            page_size = 50
+
+        matrix_data = get_assignment_matrix(
+            page=page,
+            page_size=page_size,
+            employee_search=request.query_params.get("employee_search", ""),
+            project_search=request.query_params.get("project_search", ""),
+        )
         return Response(matrix_data, status=status.HTTP_200_OK)

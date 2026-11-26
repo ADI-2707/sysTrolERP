@@ -39,12 +39,39 @@ def list_projects_for_user(
     return qs.order_by("-created_at")
 
 
-def get_assignment_matrix() -> dict:
-    employees = User.objects.filter(is_active=True).order_by("employee_code")
-    projects = Project.objects.filter(is_active=True).order_by("code")
+def get_assignment_matrix(
+    *,
+    page: int = 1,
+    page_size: int = 50,
+    employee_search: str = "",
+    project_search: str = "",
+) -> dict:
+    import math
+
+    emp_qs = User.objects.filter(is_active=True, revoked_at__isnull=True)
+    if employee_search:
+        s = employee_search.strip()
+        emp_qs = emp_qs.filter(
+            Q(full_name__icontains=s) | Q(employee_code__icontains=s)
+        )
+    emp_qs = emp_qs.order_by("employee_code")
+
+    total_employees = emp_qs.count()
+    total_pages = math.ceil(total_employees / page_size) if total_employees else 0
+    offset = (page - 1) * page_size
+    paged_employees = list(emp_qs[offset : offset + page_size])
+    paged_emp_ids = [u.id for u in paged_employees]
+
+    proj_qs = Project.objects.filter(is_active=True)
+    if project_search:
+        ps = project_search.strip()
+        proj_qs = proj_qs.filter(Q(name__icontains=ps) | Q(code__icontains=ps))
+    projects = list(proj_qs.order_by("code"))
+    proj_ids = [p.id for p in projects]
+
     assignments = ProjectAssignment.objects.filter(
-        project__is_active=True,
-        employee__is_active=True,
+        project_id__in=proj_ids,
+        employee_id__in=paged_emp_ids,
     ).values("project_id", "employee_id")
 
     return {
@@ -54,7 +81,7 @@ def get_assignment_matrix() -> dict:
                 "code": u.employee_code,
                 "name": u.full_name,
             }
-            for u in employees
+            for u in paged_employees
         ],
         "projects": [
             {
@@ -66,4 +93,8 @@ def get_assignment_matrix() -> dict:
             for p in projects
         ],
         "assignments": list(assignments),
+        "total_employees": total_employees,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages,
     }
