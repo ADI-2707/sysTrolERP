@@ -3,6 +3,19 @@ from rest_framework import serializers
 from apps.accounts.models import User, UserRole
 
 
+class EmployeeLookupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "employee_code",
+            "full_name",
+            "designation",
+            "department",
+        ]
+        read_only_fields = fields
+
+
 class EmployeeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

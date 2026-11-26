@@ -8,6 +8,7 @@ from apps.employees.recovery_views import (
 from apps.employees.views import (
     EmployeeDetailView,
     EmployeeListCreateView,
+    EmployeeLookupView,
     EmployeeResetPasswordView,
     EmployeeRestoreView,
     EmployeeRevokeView,
@@ -15,6 +16,7 @@ from apps.employees.views import (
 
 urlpatterns = [
     path("", EmployeeListCreateView.as_view(), name="employee_list_create"),
+    path("lookup/", EmployeeLookupView.as_view(), name="employee_lookup"),
     path("<int:pk>/", EmployeeDetailView.as_view(), name="employee_detail"),
     path("<int:pk>/revoke/", EmployeeRevokeView.as_view(), name="employee_revoke"),
     path("<int:pk>/restore/", EmployeeRestoreView.as_view(), name="employee_restore"),

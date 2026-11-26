@@ -1,9 +1,11 @@
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.permissions import IsAdminOrSuper
+from apps.accounts.models import User
+from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal
 from apps.core.pagination import StandardPageNumberPagination
 from apps.employees.selectors import get_employee_by_id, list_employees
 from apps.employees.serializers import (
@@ -11,6 +13,7 @@ from apps.employees.serializers import (
     EmployeeCreateSerializer,
     EmployeeDetailSerializer,
     EmployeeListSerializer,
+    EmployeeLookupSerializer,
     EmployeeUpdateSerializer,
     ReasonSerializer,
 )
@@ -158,3 +161,28 @@ class EmployeeResetPasswordView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class EmployeeLookupView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def get(self, request):
+        search = request.query_params.get("search", "").strip()
+        limit = request.query_params.get("limit", "50")
+        try:
+            limit_val = min(max(int(limit), 1), 100)
+        except ValueError:
+            limit_val = 50
+
+        qs = User.objects.filter(is_active=True, revoked_at__isnull=True)
+        if search:
+            qs = qs.filter(
+                Q(full_name__icontains=search)
+                | Q(employee_code__icontains=search)
+                | Q(designation__icontains=search)
+                | Q(department__icontains=search)
+            )
+
+        results = qs.order_by("employee_code")[:limit_val]
+        serializer = EmployeeLookupSerializer(results, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

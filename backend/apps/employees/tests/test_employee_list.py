@@ -66,3 +66,56 @@ def test_employee_list_filtering_and_search():
     assert role_resp.status_code == 200
     assert role_resp.data["count"] == 1
     assert role_resp.data["results"][0]["employee_code"] == "SYS-0110"
+
+
+@pytest.mark.django_db
+def test_employee_lookup_endpoint():
+    admin = User.objects.create_user(
+        email="lookup.admin@company.com",
+        employee_code="SYS-0201",
+        full_name="Lookup Admin",
+        password="ValidPassword123!",
+        role=UserRole.ADMIN,
+    )
+    emp1 = User.objects.create_user(
+        email="john.doe@company.com",
+        employee_code="SYS-0202",
+        full_name="John Doe",
+        designation="Engineer",
+        department="Engineering",
+        password="ValidPassword123!",
+        role=UserRole.EMPLOYEE,
+    )
+    emp2 = User.objects.create_user(
+        email="jane.smith@company.com",
+        employee_code="SYS-0203",
+        full_name="Jane Smith",
+        designation="Designer",
+        department="R&D",
+        password="ValidPassword123!",
+        role=UserRole.EMPLOYEE,
+    )
+    revoked = User.objects.create_user(
+        email="revoked@company.com",
+        employee_code="SYS-0204",
+        full_name="Revoked User",
+        password="ValidPassword123!",
+        role=UserRole.EMPLOYEE,
+        is_active=False,
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=emp1)
+
+    resp = client.get(reverse("employee_lookup"))
+    assert resp.status_code == 200
+    codes = [item["employee_code"] for item in resp.data]
+    assert "SYS-0201" in codes
+    assert "SYS-0202" in codes
+    assert "SYS-0203" in codes
+    assert "SYS-0204" not in codes
+
+    search_resp = client.get(f"{reverse('employee_lookup')}?search=Jane")
+    assert search_resp.status_code == 200
+    assert len(search_resp.data) == 1
+    assert search_resp.data[0]["employee_code"] == "SYS-0203"
