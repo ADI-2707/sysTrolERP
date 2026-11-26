@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import type { TimesheetData } from "../../types";
 import { TimesheetGrid } from "./TimesheetGrid";
 
-describe("TimesheetGrid", () => {
+describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
   const mockTimesheet: TimesheetData = {
     id: 10,
     week_start_date: "2026-11-23",
@@ -146,7 +146,7 @@ describe("TimesheetGrid", () => {
         ],
       },
     ],
-    assigned_projects: [
+    available_projects: [
       {
         id: 1,
         code: "PRJ-0001",
@@ -166,166 +166,77 @@ describe("TimesheetGrid", () => {
         is_active: true,
       },
     ],
+    assigned_projects: [
+      {
+        id: 1,
+        code: "PRJ-0001",
+        name: "Automation Plant",
+        is_active: true,
+      },
+    ],
   };
 
-  it("renders project rows and day headers", () => {
+  it("renders spanning week navigation header with status badge and week controls", () => {
+    const handlePrevious = vi.fn();
+    const handleNext = vi.fn();
+
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        displayRange="23 Nov - 29 Nov 2026"
+        onPreviousWeek={handlePrevious}
+        onNextWeek={handleNext}
+        canGoNext={false}
+        isCurrentWeek={true}
+      />
+    );
+
+    expect(screen.getByText("23 Nov - 29 Nov 2026")).toBeInTheDocument();
+    expect(screen.getByText("OPEN")).toBeInTheDocument();
+    expect(screen.getByText("41.0h")).toBeInTheDocument();
+
+    const prevBtn = screen.getByLabelText("Previous week");
+    fireEvent.click(prevBtn);
+    expect(handlePrevious).toHaveBeenCalledTimes(1);
+
+    // Next button should be disabled for future week restriction
+    const nextBtn = screen.getByLabelText("Next week");
+    expect(nextBtn).toBeDisabled();
+  });
+
+  it("renders two-tier headers with Project, days of week, and Desc & Hours sub-columns", () => {
     render(<TimesheetGrid timesheet={mockTimesheet} />);
 
-    expect(screen.getByTestId("timesheet-status-banner")).toBeInTheDocument();
-    expect(screen.getByTestId("timesheet-status-badge")).toHaveTextContent("OPEN");
-    expect(screen.getByText("PRJ-0001")).toBeInTheDocument();
-    expect(screen.getByText("Automation Plant")).toBeInTheDocument();
-    expect(screen.getByText("PLC programming and diagnostics")).toBeInTheDocument();
-
+    expect(screen.getByText("Project")).toBeInTheDocument();
     expect(screen.getByText("Mon")).toBeInTheDocument();
     expect(screen.getByText("23")).toBeInTheDocument();
     expect(screen.getByText("Sun")).toBeInTheDocument();
     expect(screen.getByText("29")).toBeInTheDocument();
+
+    // Sub-column headers
+    const descHeaders = screen.getAllByText("Desc");
+    expect(descHeaders.length).toBe(7);
+    const hoursHeaders = screen.getAllByText("Hours");
+    expect(hoursHeaders.length).toBe(7);
   });
 
-  it("displays row cells and total column value", () => {
+  it("renders project rows with description and hours cells", () => {
     render(<TimesheetGrid timesheet={mockTimesheet} />);
 
-    const mondayCell = screen.getByTestId("cell-1-2026-11-23");
-    expect(mondayCell).toHaveTextContent("9.0");
+    expect(screen.getByText("PRJ-0001")).toBeInTheDocument();
+    expect(screen.getByText("Automation Plant")).toBeInTheDocument();
 
-    const sundayCell = screen.getByTestId("cell-1-2026-11-29");
-    expect(sundayCell).toHaveTextContent("0.0");
+    // Mon 23 description input with note
+    const descInput = screen.getByLabelText("Description for PRJ-0001 on 2026-11-23") as HTMLInputElement;
+    expect(descInput).toBeInTheDocument();
+    expect(descInput.value).toBe("Commissioning trial run");
 
-    expect(screen.getAllByText("41.0")).toHaveLength(2);
+    // Mon 23 hours
+    const hoursCell = screen.getByTestId("cell-1-2026-11-23");
+    expect(hoursCell).toHaveTextContent("9.0");
   });
 
-  it("renders footer summaries for regular, overtime, and daily totals", () => {
-    render(<TimesheetGrid timesheet={mockTimesheet} />);
-
-    const footer = screen.getByTestId("timesheet-footer");
-    expect(footer).toBeInTheDocument();
-    expect(within(footer).getByText("Regular Hours")).toBeInTheDocument();
-    expect(within(footer).getByText("Overtime Hours")).toBeInTheDocument();
-    expect(within(footer).getByText("Daily Total")).toBeInTheDocument();
-    expect(within(footer).getByText("Standard Hours")).toBeInTheDocument();
-    expect(screen.getByTestId("status-badge-2026-11-23")).toHaveTextContent("+1.0h OT");
-    expect(screen.getByTestId("status-badge-2026-11-24")).toHaveTextContent("Met");
-
-    expect(within(footer).getByText("40.0")).toBeInTheDocument();
-    expect(within(footer).getAllByText("1.0").length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("activates cell editor on cell click and commits valid quarter-hour change", () => {
-    const handleCellChange = vi.fn();
-    render(
-      <TimesheetGrid
-        timesheet={mockTimesheet}
-        onCellChange={handleCellChange}
-      />
-    );
-
-    const mondayCell = screen.getByTestId("cell-1-2026-11-23");
-    fireEvent.click(mondayCell);
-
-    const input = screen.getByTestId("cell-editor-input");
-    expect(input).toBeInTheDocument();
-
-    fireEvent.change(input, { target: { value: "8.75" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-
-    expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-23", "8.75");
-  });
-
-  it("does not activate cell editor on non-editable cell click", () => {
-    render(<TimesheetGrid timesheet={mockTimesheet} />);
-
-    const saturdayCell = screen.getByTestId("cell-1-2026-11-28");
-    fireEvent.click(saturdayCell);
-
-    expect(screen.queryByTestId("cell-editor-input")).not.toBeInTheDocument();
-  });
-
-  it("handles clipboard paste across days", () => {
-    const handleCellChange = vi.fn();
-    render(
-      <TimesheetGrid
-        timesheet={mockTimesheet}
-        onCellChange={handleCellChange}
-      />
-    );
-
-    const mondayCell = screen.getByTestId("cell-1-2026-11-23");
-    fireEvent.click(mondayCell);
-
-    const input = screen.getByTestId("cell-editor-input");
-    const pasteData = {
-      getData: (format: string) => (format === "text" ? "7.50\t8.25" : ""),
-    };
-
-    fireEvent.paste(input, { clipboardData: pasteData });
-
-    expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-23", "7.50");
-    expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-24", "8.25");
-  });
-
-  it("opens add project row modal and adds row on submit", async () => {
-    const handleAddRow = vi.fn().mockResolvedValue(undefined);
-    render(
-      <TimesheetGrid
-        timesheet={mockTimesheet}
-        onAddRow={handleAddRow}
-      />
-    );
-
-    const addBtn = screen.getByTestId("add-project-row-btn");
-    fireEvent.click(addBtn);
-
-    const modal = screen.getByRole("dialog");
-    expect(within(modal).getByText("Add Project Row")).toBeInTheDocument();
-
-    const input = screen.getByTestId("project-combobox-input");
-    fireEvent.focus(input);
-
-    const option = screen.getByTestId("project-option-3");
-    fireEvent.click(option);
-
-    const submitBtn = screen.getByTestId("add-row-submit-button");
-    fireEvent.click(submitBtn);
-
-    await waitFor(() => {
-      expect(handleAddRow).toHaveBeenCalledWith(3, "");
-    });
-  });
-
-  it("renders delete button on empty row and triggers onDeleteRow", () => {
-    const handleDeleteRow = vi.fn();
-    render(
-      <TimesheetGrid
-        timesheet={mockTimesheet}
-        onDeleteRow={handleDeleteRow}
-      />
-    );
-
-    const deleteBtn = screen.getByTestId("delete-row-102");
-    expect(deleteBtn).toBeInTheDocument();
-
-    fireEvent.click(deleteBtn);
-    expect(handleDeleteRow).toHaveBeenCalledWith(102);
-
-    expect(screen.queryByTestId("delete-row-101")).not.toBeInTheDocument();
-  });
-
-  it("renders cell status indicator and global autosave badge", () => {
-    render(
-      <TimesheetGrid
-        timesheet={mockTimesheet}
-        cellStatuses={{ "1:2026-11-23": "saving", "1:2026-11-24": "error" }}
-        globalStatus="saving"
-      />
-    );
-
-    expect(screen.getByTestId("autosave-status-badge")).toHaveTextContent("Saving changes...");
-    expect(screen.getByTestId("cell-status-1:2026-11-23")).toBeInTheDocument();
-    expect(screen.getByTestId("cell-status-1:2026-11-24")).toBeInTheDocument();
-  });
-
-  it("opens cell note popover and triggers onNoteChange", () => {
+  it("triggers onNoteChange when description cell is updated", () => {
     const handleNoteChange = vi.fn();
     render(
       <TimesheetGrid
@@ -334,16 +245,82 @@ describe("TimesheetGrid", () => {
       />
     );
 
-    const noteTrigger = screen.getByTestId("note-trigger-PRJ-0001-2026-11-23");
-    fireEvent.click(noteTrigger);
+    const descInput = screen.getByLabelText("Description for PRJ-0001 on 2026-11-23");
+    fireEvent.change(descInput, { target: { value: "Updated testing notes" } });
+    fireEvent.blur(descInput);
 
-    expect(screen.getByTestId("cell-note-popover")).toBeInTheDocument();
-    const textarea = screen.getByTestId("cell-note-textarea");
-    fireEvent.change(textarea, { target: { value: "Site alignment" } });
+    expect(handleNoteChange).toHaveBeenCalledWith(1, "2026-11-23", "Updated testing notes");
+  });
 
-    const saveBtn = screen.getByTestId("save-note-btn");
-    fireEvent.click(saveBtn);
+  it("triggers onCellChange when hours cell is clicked and edited", async () => {
+    const handleCellChange = vi.fn();
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onCellChange={handleCellChange}
+      />
+    );
 
-    expect(handleNoteChange).toHaveBeenCalledWith(1, "2026-11-23", "Site alignment");
+    const hoursCellContainer = screen.getByTestId("cell-1-2026-11-23");
+    const displaySpan = within(hoursCellContainer).getByText("9.0");
+    fireEvent.click(displaySpan);
+
+    const input = await screen.findByLabelText("Hours for PRJ-0001 on 2026-11-23");
+    fireEvent.change(input, { target: { value: "8.50" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(handleCellChange).toHaveBeenCalledWith(1, "2026-11-23", "8.50");
+  });
+
+  it("renders bottom sticky summary rows for Total Working Hours, Overtime Hours, and Regular Hours", () => {
+    render(<TimesheetGrid timesheet={mockTimesheet} />);
+
+    expect(screen.getByText("Total Working Hours")).toBeInTheDocument();
+    expect(screen.getByText("Overtime Hours")).toBeInTheDocument();
+    expect(screen.getByText("Regular Hours")).toBeInTheDocument();
+
+    expect(screen.getByTestId("status-badge-2026-11-23")).toHaveTextContent("+1.0h OT");
+  });
+
+  it("renders excel placeholder row with in-cell project dropdown and triggers onAddRow on select", async () => {
+    const handleAddRow = vi.fn().mockResolvedValue(undefined);
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onAddRow={handleAddRow}
+      />
+    );
+
+    const placeholderRow = screen.getByTestId("timesheet-placeholder-row");
+    expect(placeholderRow).toBeInTheDocument();
+
+    const selectBtn = within(placeholderRow).getByTestId("select-project-cell-btn");
+    expect(selectBtn).toHaveTextContent("+ Select Project");
+    fireEvent.click(selectBtn);
+
+    // Dropdown popover opens listing unassigned projects
+    expect(screen.getByText("Conveyor Line")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Conveyor Line"));
+
+    await waitFor(() => {
+      expect(handleAddRow).toHaveBeenCalledWith(3, "");
+    });
+  });
+
+  it("triggers onSubmitTimesheet when submit timesheet button is clicked", () => {
+    const handleSubmit = vi.fn();
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onSubmitTimesheet={handleSubmit}
+      />
+    );
+
+    const submitBtn = screen.getByTestId("submit-timesheet-btn");
+    expect(submitBtn).toBeInTheDocument();
+    fireEvent.click(submitBtn);
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
   });
 });

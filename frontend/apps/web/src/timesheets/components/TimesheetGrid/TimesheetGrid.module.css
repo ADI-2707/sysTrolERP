@@ -1,264 +1,420 @@
-.gridWrapper {
+.gridOuterWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
 }
 
-.projectCell {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  text-align: left;
-  padding: var(--space-1) 0;
+.scrollContainer {
+  width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--color-neutral-60-surface, #0f172a);
+  position: relative;
+  max-height: calc(100vh - 220px);
+  min-height: 400px;
 }
 
-.projectHeader {
+.timesheetTable {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 2050px;
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-neutral-60-text-primary, #f8fafc);
+}
+
+/* === TOP ROW 0: Week Navigation Header === */
+.weekNavRow {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+}
+
+.weekNavCell {
+  padding: 0;
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  border-bottom: 1px solid var(--color-neutral-60-border-strong, #475569);
+}
+
+.weekNavContent {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  padding: var(--space-2, 8px) var(--space-4, 16px);
+  min-height: 46px;
 }
 
-.projectTitleGroup {
+.weekControls {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
+  gap: var(--space-3, 12px);
 }
 
-.deleteRowBtn {
+.navArrowBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 4px;
-  background: none;
-  border: none;
-  color: var(--color-text-tertiary);
+  width: 28px;
+  height: 28px;
+  background: var(--color-neutral-60-surface, #0f172a);
+  border: 1px solid var(--color-neutral-60-border-strong, #475569);
+  color: var(--color-neutral-60-text-primary, #f8fafc);
+  border-radius: var(--radius-sm, 4px);
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
+  transition: all 0.15s ease;
   line-height: 1;
 }
 
-.deleteRowBtn:hover {
-  color: var(--color-danger-600);
-  background-color: var(--color-danger-50);
+.navArrowBtn:hover:not(:disabled) {
+  border-color: var(--color-brand-30-primary, #6366f1);
+  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--color-brand-30-primary, #818cf8);
 }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-2);
-}
-
-.projectCode {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-700);
-}
-
-.projectName {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.projectDesc {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dayHeader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.dayName {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
-}
-
-.dayNumber {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-}
-
-.hourCell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-}
-
-.nonEditable {
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-tertiary);
+.navArrowBtn:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
+  border-color: var(--color-neutral-60-border-subtle, #334155);
 }
 
-.hasNote {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background-color: var(--color-brand-500);
+.weekDisplayRange {
+  font-size: var(--font-size-sm, 13px);
+  font-weight: 600;
+  color: var(--color-neutral-60-text-primary, #f8fafc);
+  letter-spacing: -0.01em;
 }
 
-.totalCell {
+.statusBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.status_OPEN {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status_SUBMITTED {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status_APPROVED {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status_RETURNED {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.weekActions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-  padding-right: var(--space-3);
-}
-
-.footerContainer {
-  display: flex;
-  flex-direction: column;
-  border-top: 2px solid var(--color-border-default);
-  background-color: var(--color-bg-secondary);
-}
-
-.footerRow {
-  display: flex;
-  align-items: center;
-  font-size: var(--font-size-sm);
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.footerLabel {
-  width: 240px;
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-}
-
-.footerValues {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr) 90px;
-  text-align: center;
-  font-family: var(--font-mono);
-}
-
-.footerVal {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-primary);
-}
-
-.footerTotal {
-  font-weight: var(--font-weight-bold);
-  text-align: right;
-  padding-right: var(--space-3);
-}
-
-.statusIndicator {
-  position: absolute;
-  bottom: 3px;
-  right: 3px;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-}
-
-.statusSaving {
-  background-color: var(--color-warning-500);
-}
-
-.statusSaved {
-  background-color: var(--color-success-500);
-}
-
-.statusError {
-  background-color: var(--color-danger-500);
-}
-
-.cellError {
-  outline: 1px solid var(--color-danger-500);
-  background-color: var(--color-danger-50);
+  gap: var(--space-3, 12px);
 }
 
 .autosaveBadge {
-  display: inline-flex;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.saving {
+  color: #f59e0b;
+}
+
+.saved {
+  color: #10b981;
+}
+
+.error {
+  color: #ef4444;
+}
+
+.weekTotalPill {
+  font-size: 12px;
+  color: var(--color-neutral-60-text-secondary, #cbd5e1);
+  padding: 4px 10px;
+  background: var(--color-neutral-60-surface, #0f172a);
+  border: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.weekTotalPill strong {
+  color: var(--color-brand-30-primary, #818cf8);
+}
+
+.submitTimesheetBtn {
+  background: var(--color-brand-30-primary, #6366f1);
+  color: #ffffff;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.submitTimesheetBtn:hover {
+  background: #4f46e5;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+/* === ROW 1: Main Column Headers === */
+.mainHeaderRow {
+  position: sticky;
+  top: 46px;
+  z-index: 30;
+}
+
+.stickyProjectHeader {
+  position: sticky;
+  left: 0;
+  top: 46px;
+  z-index: 40;
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  border-right: 1px solid var(--color-neutral-60-border-strong, #475569);
+  border-bottom: 1px solid var(--color-neutral-60-border-strong, #475569);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.dayGroupHeader {
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  padding: 6px 8px;
+  text-align: center;
+  user-select: none;
+}
+
+.dayName {
+  font-weight: 600;
+  color: var(--color-neutral-60-text-primary, #f8fafc);
+  margin-right: 4px;
+}
+
+.dayNumber {
+  color: var(--color-neutral-60-text-secondary, #94a3b8);
+  font-weight: 500;
+}
+
+.stickyTotalHeader {
+  position: sticky;
+  right: 0;
+  top: 46px;
+  z-index: 30;
+  width: 90px;
+  min-width: 90px;
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  border-left: 1px solid var(--color-neutral-60-border-strong, #475569);
+  border-bottom: 1px solid var(--color-neutral-60-border-strong, #475569);
+  padding: 8px 10px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* === ROW 2: Sub-Column Headers (Desc & Hours) === */
+.subHeaderRow {
+  position: sticky;
+  top: 80px;
+  z-index: 30;
+}
+
+.subHeaderThWrapper {
+  padding: 0;
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-bottom: 2px solid var(--color-neutral-60-border-strong, #475569);
+}
+
+.subHeaderGroup {
+  display: flex;
   align-items: center;
-  gap: var(--space-1);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  width: 100%;
 }
 
-.autosaveBadge.saving {
-  color: var(--color-warning-700);
+.subHeaderDesc {
+  flex: 1;
+  min-width: 170px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-neutral-60-text-muted, #94a3b8);
+  text-align: left;
+  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
 }
 
-.autosaveBadge.saved {
-  color: var(--color-success-700);
+.subHeaderHours {
+  width: 75px;
+  min-width: 75px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-neutral-60-text-muted, #94a3b8);
+  text-align: center;
 }
 
-.autosaveBadge.error {
-  color: var(--color-danger-700);
+/* === BODY CELLS === */
+.gridRow:hover td {
+  background-color: rgba(255, 255, 255, 0.015);
 }
 
-.badgeMet {
-  display: inline-block;
-  padding: 1px 6px;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  background-color: var(--color-success-50);
-  color: var(--color-success-700);
-  border-radius: var(--radius-full);
+.stickyProjectCell {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  background-color: var(--color-neutral-60-surface, #0f172a);
+  border-right: 1px solid var(--color-neutral-60-border-strong, #475569);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  padding: 6px 10px;
+}
+
+.daySubCellsWrapper {
+  padding: 0;
+  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+}
+
+.dualCellContainer {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 38px;
+}
+
+.descCellPart {
+  flex: 1;
+  min-width: 170px;
+  border-right: 1px solid var(--color-neutral-60-border-subtle, #1e293b);
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+}
+
+.hoursCellPart {
+  width: 75px;
+  min-width: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stickyTotalCell {
+  position: sticky;
+  right: 0;
+  z-index: 10;
+  width: 90px;
+  min-width: 90px;
+  background-color: var(--color-neutral-60-surface, #0f172a);
+  border-left: 1px solid var(--color-neutral-60-border-strong, #475569);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  text-align: center;
+  padding: 6px;
+}
+
+.rowTotalVal {
+  font-weight: 600;
+  color: var(--color-neutral-60-text-primary, #f8fafc);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Placeholder Row */
+.placeholderRow {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.placeholderEmptyText {
+  color: var(--color-neutral-60-text-muted, #475569);
+  font-size: 11px;
+}
+
+/* === FOOTER SUMMARY ROWS === */
+.gridFooter {
+  position: sticky;
+  bottom: 0;
+  z-index: 25;
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+  border-top: 2px solid var(--color-neutral-60-border-strong, #475569);
+}
+
+.gridFooter td {
+  background-color: var(--color-neutral-60-surface-raised, #1e293b);
+}
+
+.footerLabel {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--color-neutral-60-text-secondary, #cbd5e1);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.footerDayValCell {
+  padding: 6px 8px;
+  border-right: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  border-bottom: 1px solid var(--color-neutral-60-border-subtle, #334155);
+  text-align: right;
+  padding-right: 16px;
+}
+
+.footerDayValue {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--color-neutral-60-text-primary, #f8fafc);
+  font-variant-numeric: tabular-nums;
+}
+
+.footerDayMuted {
+  font-size: 12px;
+  color: var(--color-neutral-60-text-muted, #94a3b8);
+  font-variant-numeric: tabular-nums;
+}
+
+.footerGrandTotal {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-brand-30-primary, #818cf8);
+  font-variant-numeric: tabular-nums;
+}
+
+.footerOtTotal {
+  font-weight: 700;
+  font-size: 12px;
+  color: #f59e0b;
+  font-variant-numeric: tabular-nums;
 }
 
 .badgeOt {
   display: inline-block;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 11px;
+  font-weight: 600;
   padding: 1px 6px;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  background-color: var(--color-warning-50);
-  color: var(--color-warning-800);
-  border-radius: var(--radius-full);
-}
-
-.badgeUnder {
-  display: inline-block;
-  padding: 1px 6px;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  background-color: var(--color-bg-secondary);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-full);
-}
-
-.badgeOff {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-}
-
-@media (max-width: 768px) {
-  .toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2);
-  }
+  border-radius: 4px;
 }
