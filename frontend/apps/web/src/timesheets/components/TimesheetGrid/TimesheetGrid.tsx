@@ -158,27 +158,30 @@ export function TimesheetGrid({
 
             {/* Row 1: Main Headers (Project + 7 Days + Total) */}
             <tr className={styles.mainHeaderRow}>
-              <th rowSpan={2} className={styles.stickyProjectHeader}>
-                Project
+              <th className={styles.stickyProjectHeaderTop} scope="col">
+                <span className={styles.projectHeaderTitle}>Project</span>
               </th>
               {timesheet.days.map((dayDate) => {
                 const { dayName, dayNumber } = getDayLabel(dayDate);
                 return (
-                  <th key={dayDate} colSpan={2} className={styles.dayGroupHeader}>
+                  <th key={dayDate} colSpan={2} className={styles.dayGroupHeader} scope="colgroup">
                     <span className={styles.dayName}>{dayName}</span>
                     <span className={styles.dayNumber}>{dayNumber}</span>
                   </th>
                 );
               })}
-              <th rowSpan={2} className={styles.totalHeader}>
+              <th rowSpan={2} className={styles.totalHeader} scope="col">
                 Total
               </th>
             </tr>
 
             {/* Row 2: Sub-Columns (Desc + Hours for each day) */}
             <tr className={styles.subHeaderRow}>
+              <th className={styles.stickyProjectHeaderBottom} scope="col">
+                <span className={styles.srOnly}>Project subheaders</span>
+              </th>
               {timesheet.days.map((dayDate) => (
-                <th key={`${dayDate}-subcols`} colSpan={2} className={styles.subHeaderThWrapper}>
+                <th key={`${dayDate}-subcols`} colSpan={2} className={styles.subHeaderThWrapper} scope="colgroup">
                   <div className={styles.subHeaderGroup}>
                     <span className={styles.subHeaderDesc}>Desc</span>
                     <span className={styles.subHeaderHours}>Hours</span>

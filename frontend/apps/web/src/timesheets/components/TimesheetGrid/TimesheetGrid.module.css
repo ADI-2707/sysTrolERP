@@ -183,21 +183,54 @@
   z-index: 80;
 }
 
-.stickyProjectHeader {
+.stickyProjectHeaderTop {
   position: sticky;
   left: 0;
   top: 46px;
-  z-index: 90;
+  z-index: 95;
   width: 260px;
   min-width: 260px;
   max-width: 260px;
   background-color: var(--color-neutral-60-surface-raised);
   border-right: 1px solid var(--color-neutral-60-border-strong);
-  border-bottom: 1px solid var(--color-neutral-60-border-strong);
-  padding: 8px 12px;
+  border-bottom: none;
+  padding: 8px 12px 2px 12px;
   text-align: left;
   font-weight: 600;
   box-sizing: border-box;
+}
+
+.stickyProjectHeaderBottom {
+  position: sticky;
+  left: 0;
+  top: 80px;
+  z-index: 95;
+  width: 260px;
+  min-width: 260px;
+  max-width: 260px;
+  background-color: var(--color-neutral-60-surface-raised);
+  border-right: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 2px solid var(--color-neutral-60-border-strong);
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.projectHeaderTitle {
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 600;
+  color: var(--color-neutral-60-text-primary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .dayGroupHeader {
