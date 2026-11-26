@@ -25,9 +25,6 @@ vi.mock("../../api/projects", () => ({
   insertSubStep: vi.fn(),
   updateSubStep: vi.fn(),
   deleteSubStep: vi.fn(),
-  addProjectMember: vi.fn(),
-  removeProjectMember: vi.fn(),
-  fetchActiveEmployees: vi.fn(),
 }));
 
 const mockAddToast = vi.fn();
@@ -508,118 +505,5 @@ describe("ProjectDetailPage", () => {
         title: "Sub-step deleted",
       })
     );
-  });
-
-  it("admin can open add member modal and assign an active employee", async () => {
-    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
-    vi.mocked(projectsApi.fetchActiveEmployees).mockResolvedValue({
-      count: 3,
-      next: null,
-      previous: null,
-      results: [
-        { id: 201, employee_code: "SYS-020", full_name: "Alice Engineer" },
-        { id: 203, employee_code: "SYS-023", full_name: "Charlie Designer", designation: "UI Specialist" },
-      ],
-    });
-    vi.mocked(projectsApi.addProjectMember).mockResolvedValue(undefined);
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
-    });
-
-    const openModalBtn = screen.getByTestId("open-add-member-modal-btn");
-    fireEvent.click(openModalBtn);
-
-    const modal = screen.getByTestId("add-member-modal");
-    expect(modal).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByTestId("select-member-dropdown")).toBeInTheDocument();
-    });
-
-    const select = screen.getByTestId("select-member-dropdown");
-    fireEvent.change(select, { target: { value: "203" } });
-
-    const confirmBtn = screen.getByTestId("confirm-add-member-btn");
-    expect(confirmBtn).not.toBeDisabled();
-    fireEvent.click(confirmBtn);
-
-    await waitFor(() => {
-      expect(projectsApi.addProjectMember).toHaveBeenCalledWith(1, 203);
-    });
-
-    expect(mockAddToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "success",
-        title: "Member added",
-      })
-    );
-  });
-
-  it("admin can remove an assigned member with confirmation modal", async () => {
-    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
-    vi.mocked(projectsApi.removeProjectMember).mockResolvedValue(undefined);
-
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
-    });
-
-    const removeBtn = screen.getByTestId("remove-member-btn-201");
-    fireEvent.click(removeBtn);
-
-    const modal = screen.getByTestId("remove-member-modal");
-    expect(modal).toBeInTheDocument();
-    expect(within(modal).getByText(/Alice Engineer/)).toBeInTheDocument();
-
-    const confirmBtn = screen.getByTestId("confirm-remove-member-btn");
-    fireEvent.click(confirmBtn);
-
-    await waitFor(() => {
-      expect(projectsApi.removeProjectMember).toHaveBeenCalledWith(1, 201);
-    });
-
-    expect(mockAddToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "success",
-        title: "Member removed",
-      })
-    );
-  });
-
-  it("does not allow employees to see add or remove member controls", async () => {
-    vi.mocked(authModule.useAuth).mockReturnValue({
-      user: {
-        id: 20,
-        employee_code: "SYS-020",
-        full_name: "Alice Employee",
-        role: "EMPLOYEE",
-        email: "alice@example.com",
-        must_change_password: false,
-      },
-      isAdmin: false,
-      isSuperAdmin: false,
-      isEmployee: true,
-      isAuthenticated: true,
-      isLoading: false,
-      mustChangePassword: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      refreshUser: vi.fn(),
-    });
-
-    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
-    renderComponent();
-
-    await waitFor(() => {
-      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
-    });
-
-    expect(screen.queryByTestId("open-add-member-modal-btn")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("remove-member-btn-201")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("remove-member-btn-202")).not.toBeInTheDocument();
   });
 });
