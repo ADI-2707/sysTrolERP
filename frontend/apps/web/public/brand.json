@@ -1,7 +1,7 @@
 {
   "name": "sysTrol ERP",
   "palette": {
-    "brandGreen": "#5ead32",
+    "brandGreen": "#58ac11",
     "brandGreenLight": "#388e3c",
     "brandGreenDark": "#1b5e20",
     "accentNavy": "#0f172a",
@@ -23,7 +23,7 @@
     "appleTouchIcon": "/apple-touch-icon.png",
     "logo192": "/logo-192x192.png",
     "logo512": "/logo-512x512.png",
-    "logoMark": "/logo-mark.png",
-    "logoFull": "/logo.png"
+    "logoMark": "/logo-collapsed.png",
+    "logoFull": "/logo-full.png"
   }
 }
