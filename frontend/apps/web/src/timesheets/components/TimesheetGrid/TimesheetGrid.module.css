@@ -180,10 +180,10 @@
 .mainHeaderRow {
   position: sticky;
   top: 46px;
-  z-index: 80;
+  z-index: 85;
 }
 
-.stickyProjectHeaderTop {
+.stickyProjectHeader {
   position: sticky;
   left: 0;
   top: 46px;
@@ -193,25 +193,11 @@
   max-width: 260px;
   background-color: var(--color-neutral-60-surface-raised);
   border-right: 1px solid var(--color-neutral-60-border-strong);
-  border-bottom: none;
-  padding: 8px 12px 2px 12px;
+  border-bottom: 2px solid var(--color-neutral-60-border-strong);
+  padding: 8px 12px;
   text-align: left;
   font-weight: 600;
-  box-sizing: border-box;
-}
-
-.stickyProjectHeaderBottom {
-  position: sticky;
-  left: 0;
-  top: 80px;
-  z-index: 95;
-  width: 260px;
-  min-width: 260px;
-  max-width: 260px;
-  background-color: var(--color-neutral-60-surface-raised);
-  border-right: 1px solid var(--color-neutral-60-border-strong);
-  border-bottom: 2px solid var(--color-neutral-60-border-strong);
-  padding: 0 12px;
+  vertical-align: middle;
   box-sizing: border-box;
 }
 
@@ -221,26 +207,15 @@
   color: var(--color-neutral-60-text-primary);
 }
 
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 .dayGroupHeader {
   background-color: var(--color-neutral-60-surface-raised);
   border-right: 1px solid var(--color-neutral-60-border-subtle);
-  border-bottom: 1px solid var(--color-neutral-60-border-subtle);
+  border-bottom: none;
   padding: 6px 8px;
   text-align: center;
   user-select: none;
   box-sizing: border-box;
+  height: 30px;
 }
 
 .dayName {
@@ -261,17 +236,18 @@
   max-width: 90px;
   background-color: var(--color-neutral-60-surface-raised);
   border-left: 1px solid var(--color-neutral-60-border-strong);
-  border-bottom: 1px solid var(--color-neutral-60-border-strong);
+  border-bottom: 2px solid var(--color-neutral-60-border-strong);
   padding: 8px 10px;
   text-align: center;
   font-weight: 600;
+  vertical-align: middle;
   box-sizing: border-box;
 }
 
 /* === ROW 2: Sub-Column Headers (Desc & Hours) === */
 .subHeaderRow {
   position: sticky;
-  top: 80px;
+  top: 76px;
   z-index: 80;
 }
 
@@ -281,6 +257,7 @@
   border-right: 1px solid var(--color-neutral-60-border-subtle);
   border-bottom: 2px solid var(--color-neutral-60-border-strong);
   box-sizing: border-box;
+  height: 26px;
 }
 
 .subHeaderGroup {

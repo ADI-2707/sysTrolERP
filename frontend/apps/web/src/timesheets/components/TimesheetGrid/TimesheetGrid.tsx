@@ -158,7 +158,7 @@ export function TimesheetGrid({
 
             {/* Row 1: Main Headers (Project + 7 Days + Total) */}
             <tr className={styles.mainHeaderRow}>
-              <th className={styles.stickyProjectHeaderTop} scope="col">
+              <th rowSpan={2} className={styles.stickyProjectHeader} scope="col">
                 <span className={styles.projectHeaderTitle}>Project</span>
               </th>
               {timesheet.days.map((dayDate) => {
@@ -177,9 +177,6 @@ export function TimesheetGrid({
 
             {/* Row 2: Sub-Columns (Desc + Hours for each day) */}
             <tr className={styles.subHeaderRow}>
-              <th className={styles.stickyProjectHeaderBottom} scope="col">
-                <span className={styles.srOnly}>Project subheaders</span>
-              </th>
               {timesheet.days.map((dayDate) => (
                 <th key={`${dayDate}-subcols`} colSpan={2} className={styles.subHeaderThWrapper} scope="colgroup">
                   <div className={styles.subHeaderGroup}>
