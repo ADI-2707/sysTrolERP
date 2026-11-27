@@ -67,6 +67,26 @@ def test_employee_list_filtering_and_search():
     assert role_resp.data["count"] == 1
     assert role_resp.data["results"][0]["employee_code"] == "SYS-0110"
 
+    dept_resp = client.get(f"{reverse('employee_list_create')}?department=Manufacturing")
+    assert dept_resp.status_code == 200
+    assert dept_resp.data["count"] == 1
+    assert dept_resp.data["results"][0]["employee_code"] == "SYS-0111"
+
+    from apps.projects.services import create_project
+    from apps.projects.models import ProjectAssignment
+
+    proj = create_project(name="Solar Tower", creator=admin)
+    ProjectAssignment.objects.create(project=proj, employee=admin)
+
+    alloc_resp = client.get(f"{reverse('employee_list_create')}?allocation_status=assigned")
+    assert alloc_resp.status_code == 200
+    assert alloc_resp.data["count"] == 1
+    assert alloc_resp.data["results"][0]["employee_code"] == "SYS-0110"
+
+    unalloc_resp = client.get(f"{reverse('employee_list_create')}?allocation_status=unassigned")
+    assert unalloc_resp.status_code == 200
+    assert any(r["employee_code"] == "SYS-0111" for r in unalloc_resp.data["results"])
+
 
 @pytest.mark.django_db
 def test_employee_lookup_endpoint():

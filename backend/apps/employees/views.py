@@ -34,12 +34,20 @@ class EmployeeListCreateView(APIView):
         search = request.query_params.get("search", "")
         role = request.query_params.get("role", "")
         status = request.query_params.get("status", "")
+        department = request.query_params.get("department", "")
+        allocation_status = request.query_params.get("allocation_status", "")
+        joined_after = request.query_params.get("joined_after", "")
+        joined_before = request.query_params.get("joined_before", "")
         ordering = request.query_params.get("ordering", "employee_code")
 
         qs = list_employees(
             search=search,
             role=role,
             status=status,
+            department=department,
+            allocation_status=allocation_status,
+            joined_after=joined_after,
+            joined_before=joined_before,
             ordering=ordering,
         )
 
