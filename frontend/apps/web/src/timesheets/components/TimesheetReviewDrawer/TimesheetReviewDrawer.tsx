@@ -25,10 +25,24 @@ export function TimesheetReviewDrawer({
   isProcessing = false,
 }: TimesheetReviewDrawerProps) {
   const [detail, setDetail] = useState<AdminTimesheetDetailData | null>(null);
+  const [cachedItem, setCachedItem] = useState<TeamTimesheetItem | null>(timesheetItem);
+  const [cachedDetail, setCachedDetail] = useState<AdminTimesheetDetailData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [returnMode, setReturnMode] = useState<boolean>(false);
   const [returnReason, setReturnReason] = useState<string>("");
+
+  useEffect(() => {
+    if (timesheetItem) {
+      setCachedItem(timesheetItem);
+    }
+  }, [timesheetItem]);
+
+  useEffect(() => {
+    if (detail) {
+      setCachedDetail(detail);
+    }
+  }, [detail]);
 
   const loadDetail = useCallback(async (item: TeamTimesheetItem) => {
     setIsLoading(true);
@@ -52,9 +66,7 @@ export function TimesheetReviewDrawer({
       setReturnMode(false);
       setReturnReason("");
       loadDetail(timesheetItem);
-    } else {
-      setDetail(null);
-      setError(null);
+    } else if (!isOpen) {
       setReturnMode(false);
       setReturnReason("");
     }
@@ -74,13 +86,15 @@ export function TimesheetReviewDrawer({
     onClose();
   };
 
-  const status = timesheetItem?.status || detail?.status || "OPEN";
-  const canApprove = timesheetItem?.can_approve ?? detail?.can_approve ?? false;
-  const days = detail?.days || [];
+  const activeItem = timesheetItem || cachedItem;
+  const activeDetail = detail || cachedDetail;
+  const status = activeItem?.status || activeDetail?.status || "OPEN";
+  const canApprove = activeItem?.can_approve ?? activeDetail?.can_approve ?? false;
+  const days = activeDetail?.days || [];
 
   const notesList: Array<{ project: string; date: string; note: string }> = [];
-  if (detail?.rows) {
-    for (const r of detail.rows) {
+  if (activeDetail?.rows) {
+    for (const r of activeDetail.rows) {
       if (r.description) {
         notesList.push({
           project: `${r.project.code} - ${r.project.name}`,
@@ -100,15 +114,15 @@ export function TimesheetReviewDrawer({
     }
   }
 
-  const weekDisplay = timesheetItem
-    ? formatWeekDisplay(timesheetItem.week_start_date, timesheetItem.week_end_date)
+  const weekDisplay = activeItem
+    ? formatWeekDisplay(activeItem.week_start_date, activeItem.week_end_date)
     : "";
 
   return (
     <Drawer
       isOpen={isOpen}
       onClose={onClose}
-      title={timesheetItem ? `Timesheet Review: ${timesheetItem.employee.name}` : "Timesheet Review"}
+      title={activeItem ? `Timesheet Review: ${activeItem.employee.name}` : "Timesheet Review"}
       side="right"
       size="lg"
     >
@@ -123,20 +137,20 @@ export function TimesheetReviewDrawer({
         {error && (
           <div role="alert" className={styles.errorAlert} data-testid="drawer-error-alert">
             <span>{error}</span>
-            {timesheetItem && (
-              <Button size="sm" variant="secondary" onClick={() => loadDetail(timesheetItem)}>
+            {activeItem && (
+              <Button size="sm" variant="secondary" onClick={() => loadDetail(activeItem)}>
                 Retry
               </Button>
             )}
           </div>
         )}
 
-        {!isLoading && timesheetItem && (
+        {!isLoading && activeItem && (
           <>
             <div className={styles.headerSection}>
               <div className={styles.nameRow}>
                 <h3 className={styles.employeeName} data-testid="drawer-employee-name">
-                  {timesheetItem.employee.name}
+                  {activeItem.employee.name}
                 </h3>
                 <div className={styles.badgeGroup}>
                   <Badge variant="brand">{status}</Badge>
@@ -145,13 +159,13 @@ export function TimesheetReviewDrawer({
 
               <div className={styles.subMeta}>
                 <span className={styles.codeBadge} data-testid="drawer-employee-code">
-                  {timesheetItem.employee.code}
+                  {activeItem.employee.code}
                 </span>
-                {timesheetItem.employee.department && (
-                  <span>{timesheetItem.employee.department}</span>
+                {activeItem.employee.department && (
+                  <span>{activeItem.employee.department}</span>
                 )}
-                {timesheetItem.employee.designation && (
-                  <span>&bull; {timesheetItem.employee.designation}</span>
+                {activeItem.employee.designation && (
+                  <span>&bull; {activeItem.employee.designation}</span>
                 )}
                 <span>&bull; {weekDisplay}</span>
               </div>
@@ -160,25 +174,25 @@ export function TimesheetReviewDrawer({
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>Total Hours</span>
                   <span className={styles.metricValue} data-testid="drawer-total-hours">
-                    {parseFloat(detail?.total_week_hours || timesheetItem.total_hours || "0").toFixed(1)}h
+                    {parseFloat(activeDetail?.total_week_hours || activeItem.total_hours || "0").toFixed(1)}h
                   </span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>Regular Hours</span>
                   <span className={styles.metricValue}>
-                    {parseFloat(detail?.total_regular_hours || timesheetItem.total_hours || "0").toFixed(1)}h
+                    {parseFloat(activeDetail?.total_regular_hours || activeItem.total_hours || "0").toFixed(1)}h
                   </span>
                 </div>
                 <div className={styles.metricCard}>
                   <span className={styles.metricLabel}>Overtime Hours</span>
                   <span className={styles.metricValue}>
-                    {parseFloat(detail?.total_overtime_hours || "0").toFixed(1)}h
+                    {parseFloat(activeDetail?.total_overtime_hours || "0").toFixed(1)}h
                   </span>
                 </div>
               </div>
             </div>
 
-            {detail && detail.rows && (
+            {activeDetail && activeDetail.rows && (
               <div className={styles.section}>
                 <h4 className={styles.sectionTitle}>Daily Breakdown</h4>
                 <div className={styles.tableWrapper}>
@@ -198,14 +212,14 @@ export function TimesheetReviewDrawer({
                       </tr>
                     </thead>
                     <tbody>
-                      {detail.rows.length === 0 ? (
+                      {activeDetail.rows.length === 0 ? (
                         <tr>
                           <td colSpan={days.length + 2} className={styles.td}>
                             No project hours logged for this week.
                           </td>
                         </tr>
                       ) : (
-                        detail.rows.map((r) => (
+                        activeDetail.rows.map((r) => (
                           <tr key={r.id}>
                             <td className={[styles.td, styles.tdProject].join(" ")}>
                               <div className={styles.projectCell}>
@@ -228,13 +242,13 @@ export function TimesheetReviewDrawer({
                           </tr>
                         ))
                       )}
-                      {detail.rows.length > 0 && (
+                      {activeDetail.rows.length > 0 && (
                         <tr className={styles.totalRow}>
                           <td className={[styles.td, styles.tdProject].join(" ")}>
                             Daily Totals
                           </td>
                           {days.map((d) => {
-                            const tot = detail.day_totals?.[d] || "0";
+                            const tot = activeDetail.day_totals?.[d] || "0";
                             return (
                               <td key={d} className={styles.td}>
                                 {parseFloat(tot).toFixed(1)}h
@@ -242,7 +256,7 @@ export function TimesheetReviewDrawer({
                             );
                           })}
                           <td className={[styles.td, styles.tdTotal].join(" ")}>
-                            {parseFloat(detail.total_week_hours || "0").toFixed(1)}h
+                            {parseFloat(activeDetail.total_week_hours || "0").toFixed(1)}h
                           </td>
                         </tr>
                       )}
@@ -335,13 +349,13 @@ export function TimesheetReviewDrawer({
 
               {status === "APPROVED" && (
                 <div className={styles.statusNotice} data-testid="drawer-approved-notice">
-                  Timesheet approved by {detail?.approved_by_label || timesheetItem.approved_by_label || "Admin"}.
+                  Timesheet approved by {activeDetail?.approved_by_label || activeItem.approved_by_label || "Admin"}.
                 </div>
               )}
 
               {status === "RETURNED" && (
                 <div className={styles.statusNotice} data-testid="drawer-returned-notice">
-                  Returned for revision: {detail?.return_reason || timesheetItem.return_reason || "Correction requested."}
+                  Returned for revision: {activeDetail?.return_reason || activeItem.return_reason || "Correction requested."}
                 </div>
               )}
             </div>

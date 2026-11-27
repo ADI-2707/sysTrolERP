@@ -99,6 +99,12 @@
   inset: 0;
   background-color: rgba(0, 0, 0, 0.4);
   z-index: var(--z-drawer);
+  animation: fadeIn var(--duration-normal) var(--ease-standard);
+}
+
+.drawer-backdrop-exit {
+  animation: fadeOut var(--duration-normal) var(--ease-standard) forwards;
+  pointer-events: none;
 }
 
 .drawer {
@@ -140,12 +146,31 @@
   animation: slideInLeft var(--duration-normal) var(--ease-out);
 }
 
+.drawer-exit-right {
+  right: 0;
+  animation: slideOutRight var(--duration-normal) var(--ease-out) forwards;
+}
+
+.drawer-exit-left {
+  left: 0;
+  animation: slideOutLeft var(--duration-normal) var(--ease-out) forwards;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -169,12 +194,30 @@
   }
 }
 
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes slideInLeft {
   from {
     transform: translateX(-100%);
   }
   to {
     transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
   }
 }
 
