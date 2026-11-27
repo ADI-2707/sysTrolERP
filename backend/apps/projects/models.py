@@ -70,7 +70,11 @@ class Project(TimestampedModel):
     def status(self) -> str:
         steps = list(self.steps.all())
         total = len(steps)
-        if total > 0 and sum(1 for s in steps if s.status in [StepStatus.COMPLETED, StepStatus.SKIPPED]) == total:
+        if (
+            total > 0
+            and sum(1 for s in steps if s.status in [StepStatus.COMPLETED, StepStatus.SKIPPED])
+            == total
+        ):
             return "COMPLETED"
         return "ACTIVE"
 

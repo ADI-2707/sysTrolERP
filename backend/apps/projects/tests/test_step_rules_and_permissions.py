@@ -100,7 +100,9 @@ def test_step_rules_and_boundaries():
         format="json",
     )
     assert res_backward.status_code == 400
-    assert any(phrase in str(res_backward.json()).lower() for phrase in ["forward", "cannot be modified"])
+    assert any(
+        phrase in str(res_backward.json()).lower() for phrase in ["forward", "cannot be modified"]
+    )
 
     res_same = client.post(
         f"/api/projects/{project.id}/steps/{step_3.id}/status/",

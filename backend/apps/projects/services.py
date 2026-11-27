@@ -136,9 +136,7 @@ def update_step_status(
 
     if new_status == StepStatus.SKIPPED:
         if not confirm:
-            raise ValidationError(
-                {"confirm": ["Confirmation is required to skip a step."]}
-            )
+            raise ValidationError({"confirm": ["Confirmation is required to skip a step."]})
     else:
         current_order = STEP_STATUS_ORDER.get(step.status, 0)
         new_order = STEP_STATUS_ORDER.get(new_status, 0)
@@ -155,9 +153,9 @@ def update_step_status(
     is_closure = (step.key in closure_keys) or (mom_pos is not None and step.position >= mom_pos)
 
     if is_closure:
-        unresolved_prior = step.project.steps.filter(
-            position__lt=step.position
-        ).exclude(status__in=[StepStatus.COMPLETED, StepStatus.SKIPPED])
+        unresolved_prior = step.project.steps.filter(position__lt=step.position).exclude(
+            status__in=[StepStatus.COMPLETED, StepStatus.SKIPPED]
+        )
         if unresolved_prior.exists():
             first_unresolved = unresolved_prior.order_by("position").first()
             raise ValidationError(
@@ -256,9 +254,7 @@ def insert_sub_step(
 
         max_completed_pos = project.steps.filter(
             status__in=[StepStatus.COMPLETED, StepStatus.SKIPPED]
-        ).aggregate(
-            models.Max("position")
-        )["position__max"]
+        ).aggregate(models.Max("position"))["position__max"]
         if max_completed_pos is not None and after_step.position < max_completed_pos:
             raise ValidationError(
                 {"after_step_id": ["Sub-steps cannot be inserted before or among completed steps."]}

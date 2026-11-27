@@ -203,7 +203,9 @@ def test_closure_hard_gate_blocks_if_any_prior_step_unresolved(api_client, sampl
 
 
 @pytest.mark.django_db
-def test_closure_hard_gate_allows_when_all_prior_steps_completed_or_skipped(api_client, sample_project):
+def test_closure_hard_gate_allows_when_all_prior_steps_completed_or_skipped(
+    api_client, sample_project
+):
     mom_step = sample_project.steps.get(key="MOM_AND_HANDOVER")
     for step in sample_project.steps.filter(position__lt=mom_step.position):
         if step.key == "SALES_VISIT":
