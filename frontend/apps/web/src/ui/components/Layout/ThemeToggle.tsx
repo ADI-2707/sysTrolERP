@@ -14,19 +14,23 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={[styles["theme-switch"], isDark && styles["is-dark"], className].filter(Boolean).join(" ")}
+      className={[
+        styles["theme-switch"],
+        isDark && styles["is-dark"],
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
       title={`Switch to ${isDark ? "light" : "dark"} theme`}
     >
-      <span className={styles["theme-switch-track"]}>
-        <span className={styles["theme-switch-icon-sun"]} aria-hidden="true">
-          <IconSun size={8} />
-        </span>
-        <span className={styles["theme-switch-icon-moon"]} aria-hidden="true">
-          <IconMoon size={8} />
-        </span>
-        <span className={styles["theme-switch-thumb"]} />
+      <span className={styles["theme-switch-icon-sun"]} aria-hidden="true">
+        <IconSun size={9} />
       </span>
+      <span className={styles["theme-switch-icon-moon"]} aria-hidden="true">
+        <IconMoon size={9} />
+      </span>
+      <span className={styles["theme-switch-thumb"]} />
     </button>
   );
 }
