@@ -11,4 +11,5 @@ export * from "./TimesheetGrid";
 export * from "./TimesheetGridSkeleton";
 export * from "./TimesheetStatusBanner";
 export * from "./TimesheetTotalsSummary";
+export * from "./TimesheetReviewDrawer";
 export * from "./WeekNavigator";
