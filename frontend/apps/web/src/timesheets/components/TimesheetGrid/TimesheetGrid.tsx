@@ -156,7 +156,7 @@ export function TimesheetGrid({
               <input
                 type="text"
                 className={styles.rowSearchInput}
-                placeholder="Filter rows..."
+                placeholder="Search projects..."
                 value={projectSearch}
                 onChange={(e) => setProjectSearch(e.target.value)}
                 data-testid="timesheet-row-search-input"
