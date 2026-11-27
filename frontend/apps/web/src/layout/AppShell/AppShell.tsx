@@ -197,15 +197,6 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
           actions={
             <div className={styles.actionsGroup}>
               <ThemeToggle />
-              <button
-                type="button"
-                onClick={handleLogout}
-                className={styles.topbarLogoutBtn}
-                title="Sign Out"
-                aria-label="Quick Sign Out"
-              >
-                <IconLogout size={18} />
-              </button>
             </div>
           }
           userMenu={<DropdownMenu trigger={userMenuTrigger} items={userMenuItems} />}

@@ -87,26 +87,6 @@
   gap: var(--space-3);
 }
 
-.topbarLogoutBtn {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-neutral-60-border-subtle);
-  background-color: var(--color-neutral-60-surface);
-  color: var(--color-neutral-60-text-primary);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
-}
-
-.topbarLogoutBtn:hover {
-  background-color: var(--color-status-danger-bg);
-  color: var(--color-status-danger);
-  border-color: var(--color-status-danger);
-}
-
 .sidebarLogoutBtn {
   display: flex;
   align-items: center;
