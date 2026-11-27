@@ -23,6 +23,11 @@
 .tabs-list.variant-pills {
   border-bottom: none;
   padding: 0;
+  gap: var(--space-1);
+}
+
+.tabs-list.variant-pills .tab-button {
+  padding: 5px 14px;
 }
 
 .tabs-list::-webkit-scrollbar {
