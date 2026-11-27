@@ -20,6 +20,10 @@ export interface AuditLogQueryParams {
 
 export interface RequestLogQueryParams {
   status_code?: string;
+  status_class?: string;
+  min_duration_ms?: string | number;
+  start_date?: string;
+  end_date?: string;
   method?: string;
   search?: string;
   cursor?: string;
@@ -53,6 +57,10 @@ export async function fetchRequestLogs(
 ): Promise<CursorPaginatedResponse<RequestLogItem>> {
   const q = new URLSearchParams();
   if (params?.status_code) q.set("status_code", params.status_code);
+  if (params?.status_class) q.set("status_class", params.status_class);
+  if (params?.min_duration_ms) q.set("min_duration_ms", String(params.min_duration_ms));
+  if (params?.start_date) q.set("start_date", params.start_date);
+  if (params?.end_date) q.set("end_date", params.end_date);
   if (params?.method) q.set("method", params.method);
   if (params?.search) q.set("search", params.search);
   if (params?.cursor) q.set("cursor", params.cursor);

@@ -38,6 +38,16 @@ describe("LogsPage Structure", () => {
     expect(screen.getByTestId("requests-tab-panel")).toBeInTheDocument();
     expect(screen.getByTestId("logs-method-filter")).toBeInTheDocument();
     expect(screen.getByTestId("logs-status-filter")).toBeInTheDocument();
+    expect(screen.getByTestId("logs-status-class-filter")).toBeInTheDocument();
+    expect(screen.getByTestId("logs-duration-filter")).toBeInTheDocument();
+
+    const statusClassSelect = screen.getByTestId("logs-status-class-filter") as HTMLSelectElement;
+    fireEvent.change(statusClassSelect, { target: { value: "5xx" } });
+    expect(statusClassSelect.value).toBe("5xx");
+
+    const durationSelect = screen.getByTestId("logs-duration-filter") as HTMLSelectElement;
+    fireEvent.change(durationSelect, { target: { value: "500" } });
+    expect(durationSelect.value).toBe("500");
 
     const errorsTab = screen.getByRole("tab", { name: /Errors/i });
     fireEvent.click(errorsTab);

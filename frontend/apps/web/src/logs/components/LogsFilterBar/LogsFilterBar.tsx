@@ -11,6 +11,8 @@ export interface LogsFilterBarProps {
   actorFilter?: string;
   entityTypeFilter?: string;
   statusCodeFilter: string;
+  statusClassFilter?: string;
+  minDurationFilter?: string;
   methodFilter: string;
   errorClassFilter: string;
   onSearchChange: (value: string) => void;
@@ -20,6 +22,8 @@ export interface LogsFilterBarProps {
   onActorFilterChange?: (value: string) => void;
   onEntityTypeFilterChange?: (value: string) => void;
   onStatusCodeFilterChange: (value: string) => void;
+  onStatusClassFilterChange?: (value: string) => void;
+  onMinDurationFilterChange?: (value: string) => void;
   onMethodFilterChange: (value: string) => void;
   onErrorClassFilterChange: (value: string) => void;
   onResetFilters: () => void;
@@ -36,6 +40,8 @@ export function LogsFilterBar({
   actorFilter = "",
   entityTypeFilter = "",
   statusCodeFilter,
+  statusClassFilter = "",
+  minDurationFilter = "",
   methodFilter,
   errorClassFilter,
   onSearchChange,
@@ -45,6 +51,8 @@ export function LogsFilterBar({
   onActorFilterChange,
   onEntityTypeFilterChange,
   onStatusCodeFilterChange,
+  onStatusClassFilterChange,
+  onMinDurationFilterChange,
   onMethodFilterChange,
   onErrorClassFilterChange,
   onResetFilters,
@@ -59,6 +67,8 @@ export function LogsFilterBar({
       actorFilter ||
       entityTypeFilter ||
       statusCodeFilter ||
+      statusClassFilter ||
+      minDurationFilter ||
       methodFilter ||
       errorClassFilter
   );
@@ -194,6 +204,32 @@ export function LogsFilterBar({
               <option value="403">403 Forbidden</option>
               <option value="404">404 Not Found</option>
               <option value="500">500 Server Error</option>
+            </select>
+
+            <select
+              className={styles.selectInput}
+              value={statusClassFilter}
+              onChange={(e) => onStatusClassFilterChange?.(e.target.value)}
+              aria-label="Filter by status class"
+              data-testid="logs-status-class-filter"
+            >
+              <option value="">All Status Classes</option>
+              <option value="2xx">2xx (Success)</option>
+              <option value="4xx">4xx (Client Error)</option>
+              <option value="5xx">5xx (Server Error)</option>
+            </select>
+
+            <select
+              className={styles.selectInput}
+              value={minDurationFilter}
+              onChange={(e) => onMinDurationFilterChange?.(e.target.value)}
+              aria-label="Filter by minimum duration"
+              data-testid="logs-duration-filter"
+            >
+              <option value="">All Latencies</option>
+              <option value="200">&gt; 200ms</option>
+              <option value="500">&gt; 500ms</option>
+              <option value="1000">&gt; 1s</option>
             </select>
           </>
         )}

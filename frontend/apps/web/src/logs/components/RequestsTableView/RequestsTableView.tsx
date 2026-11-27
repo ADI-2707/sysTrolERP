@@ -8,12 +8,20 @@ export interface RequestsTableViewProps {
   search?: string;
   methodFilter?: string;
   statusCodeFilter?: string;
+  statusClassFilter?: string;
+  minDurationFilter?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export function RequestsTableView({
   search = "",
   methodFilter = "",
   statusCodeFilter = "",
+  statusClassFilter = "",
+  minDurationFilter = "",
+  startDate = "",
+  endDate = "",
 }: RequestsTableViewProps) {
   const [requests, setRequests] = useState<RequestLogItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -41,6 +49,10 @@ export function RequestsTableView({
           search: search.trim() || undefined,
           method: methodFilter || undefined,
           status_code: statusCodeFilter || undefined,
+          status_class: statusClassFilter || undefined,
+          min_duration_ms: minDurationFilter || undefined,
+          start_date: startDate || undefined,
+          end_date: endDate || undefined,
           cursor,
         });
         setRequests(res.results || []);
@@ -56,7 +68,7 @@ export function RequestsTableView({
         setIsLoading(false);
       }
     },
-    [search, methodFilter, statusCodeFilter]
+    [search, methodFilter, statusCodeFilter, statusClassFilter, minDurationFilter, startDate, endDate]
   );
 
   useEffect(() => {

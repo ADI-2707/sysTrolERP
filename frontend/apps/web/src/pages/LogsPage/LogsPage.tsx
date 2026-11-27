@@ -45,6 +45,8 @@ export function LogsPage() {
   const actorFilter = searchParams.get("actor") || "";
   const entityTypeFilter = searchParams.get("entity_type") || "";
   const statusCodeFilter = searchParams.get("status_code") || "";
+  const statusClassFilter = searchParams.get("status_class") || "";
+  const minDurationFilter = searchParams.get("min_duration") || "";
   const methodFilter = searchParams.get("method") || "";
   const errorClassFilter = searchParams.get("error_class") || "";
 
@@ -131,6 +133,8 @@ export function LogsPage() {
           actorFilter={actorFilter}
           entityTypeFilter={entityTypeFilter}
           statusCodeFilter={statusCodeFilter}
+          statusClassFilter={statusClassFilter}
+          minDurationFilter={minDurationFilter}
           methodFilter={methodFilter}
           errorClassFilter={errorClassFilter}
           onSearchChange={(v) => updateParam("search", v)}
@@ -140,6 +144,8 @@ export function LogsPage() {
           onActorFilterChange={(v) => updateParam("actor", v)}
           onEntityTypeFilterChange={(v) => updateParam("entity_type", v)}
           onStatusCodeFilterChange={(v) => updateParam("status_code", v)}
+          onStatusClassFilterChange={(v) => updateParam("status_class", v)}
+          onMinDurationFilterChange={(v) => updateParam("min_duration", v)}
           onMethodFilterChange={(v) => updateParam("method", v)}
           onErrorClassFilterChange={(v) => updateParam("error_class", v)}
           onResetFilters={handleResetFilters}
@@ -173,6 +179,10 @@ export function LogsPage() {
               search={search}
               methodFilter={methodFilter}
               statusCodeFilter={statusCodeFilter}
+              statusClassFilter={statusClassFilter}
+              minDurationFilter={minDurationFilter}
+              startDate={startDate}
+              endDate={endDate}
             />
           </div>
         )}
