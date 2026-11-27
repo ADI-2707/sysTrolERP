@@ -1,7 +1,12 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TeamTimesheetReviewGrid } from "./TeamTimesheetReviewGrid";
+import * as timesheetsApi from "../../../api/timesheets";
 import type { TeamTimesheetItem } from "../../types";
+
+vi.mock("../../../api/timesheets", () => ({
+  fetchAdminTimesheetDetail: vi.fn(),
+}));
 
 describe("TeamTimesheetReviewGrid", () => {
   const mockTimesheets: TeamTimesheetItem[] = [
@@ -70,6 +75,39 @@ describe("TeamTimesheetReviewGrid", () => {
     },
   ];
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(timesheetsApi.fetchAdminTimesheetDetail).mockResolvedValue({
+      id: 101,
+      employee: {
+        id: 1,
+        code: "SYS-001",
+        name: "Alice Engineer",
+        designation: "Automation Lead",
+        department: "Engineering",
+      },
+      week_start_date: "2026-11-23",
+      week_end_date: "2026-11-29",
+      status: "SUBMITTED",
+      can_approve: true,
+      can_return: true,
+      return_reason: null,
+      submitted_at: "2026-11-27T18:00:00Z",
+      approved_at: null,
+      approved_by_label: null,
+      returned_at: null,
+      returned_by_label: null,
+      days: ["2026-11-23"],
+      day_totals: { "2026-11-23": "42.00" },
+      day_regular: { "2026-11-23": "40.00" },
+      day_overtime: { "2026-11-23": "2.00" },
+      total_week_hours: "42.00",
+      total_regular_hours: "40.00",
+      total_overtime_hours: "2.00",
+      rows: [],
+    });
+  });
+
   it("renders timesheet list with employee info and status badges", () => {
     render(
       <TeamTimesheetReviewGrid
@@ -88,7 +126,7 @@ describe("TeamTimesheetReviewGrid", () => {
     expect(screen.getByTestId("status-badge-103")).toHaveTextContent("APPROVED");
   });
 
-  it("calls onApprove when Approve button is clicked", () => {
+  it("opens review drawer and calls onApprove when confirmed", async () => {
     const handleApprove = vi.fn();
 
     render(
@@ -99,13 +137,21 @@ describe("TeamTimesheetReviewGrid", () => {
       />
     );
 
-    const approveBtn = screen.getByTestId("approve-btn-101");
-    fireEvent.click(approveBtn);
+    const reviewBtn = screen.getByTestId("review-btn-101");
+    fireEvent.click(reviewBtn);
 
-    expect(handleApprove).toHaveBeenCalledWith(101);
+    await waitFor(() => {
+      expect(screen.getByTestId("drawer-approve-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("drawer-approve-btn"));
+
+    await waitFor(() => {
+      expect(handleApprove).toHaveBeenCalledWith(101);
+    });
   });
 
-  it("opens return modal and calls onReturn when reason is confirmed", async () => {
+  it("opens review drawer and calls onReturn when reason is confirmed", async () => {
     const handleReturn = vi.fn().mockResolvedValue(undefined);
 
     render(
@@ -116,14 +162,19 @@ describe("TeamTimesheetReviewGrid", () => {
       />
     );
 
-    const returnBtn = screen.getByTestId("return-btn-101");
-    fireEvent.click(returnBtn);
+    const reviewBtn = screen.getByTestId("review-btn-101");
+    fireEvent.click(reviewBtn);
 
-    expect(screen.getByText("Return Timesheet for Correction")).toBeInTheDocument();
-    const textarea = screen.getByTestId("return-reason-textarea");
+    await waitFor(() => {
+      expect(screen.getByTestId("drawer-return-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("drawer-return-btn"));
+
+    const textarea = screen.getByTestId("drawer-return-reason-input");
     fireEvent.change(textarea, { target: { value: "Overtime is missing site notes." } });
 
-    const confirmBtn = screen.getByTestId("confirm-return-button");
+    const confirmBtn = screen.getByTestId("drawer-confirm-return-btn");
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
@@ -131,7 +182,37 @@ describe("TeamTimesheetReviewGrid", () => {
     });
   });
 
-  it("disallows approving own timesheet and displays own notice", () => {
+  it("disallows approving own timesheet inside drawer and displays own notice", async () => {
+    vi.mocked(timesheetsApi.fetchAdminTimesheetDetail).mockResolvedValueOnce({
+      id: 102,
+      employee: {
+        id: 2,
+        code: "SYS-002",
+        name: "Bob Admin",
+        designation: "Project Manager",
+        department: "Operations",
+      },
+      week_start_date: "2026-11-23",
+      week_end_date: "2026-11-29",
+      status: "SUBMITTED",
+      can_approve: false,
+      can_return: false,
+      return_reason: null,
+      submitted_at: "2026-11-27T19:00:00Z",
+      approved_at: null,
+      approved_by_label: null,
+      returned_at: null,
+      returned_by_label: null,
+      days: ["2026-11-23"],
+      day_totals: { "2026-11-23": "40.00" },
+      day_regular: { "2026-11-23": "40.00" },
+      day_overtime: { "2026-11-23": "0.00" },
+      total_week_hours: "40.00",
+      total_regular_hours: "40.00",
+      total_overtime_hours: "0.00",
+      rows: [],
+    });
+
     render(
       <TeamTimesheetReviewGrid
         timesheets={mockTimesheets}
@@ -140,9 +221,13 @@ describe("TeamTimesheetReviewGrid", () => {
       />
     );
 
-    expect(screen.queryByTestId("approve-btn-102")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("return-btn-102")).not.toBeInTheDocument();
-    expect(screen.getByTestId("own-notice-102")).toHaveTextContent("Own timesheet");
+    const reviewBtn = screen.getByTestId("review-btn-102");
+    fireEvent.click(reviewBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("drawer-own-timesheet-notice")).toBeInTheDocument();
+      expect(screen.getByTestId("drawer-approve-btn")).toBeDisabled();
+    });
   });
 
   it("filters timesheets by search term and status", () => {

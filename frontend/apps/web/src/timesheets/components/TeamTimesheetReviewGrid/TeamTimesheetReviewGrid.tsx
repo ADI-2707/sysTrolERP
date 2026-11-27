@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import { Button, Pagination } from "@systrol/ui";
 import type { TeamTimesheetItem, TimesheetStatus } from "../../types";
-import { ReturnTimesheetModal } from "../ReturnTimesheetModal";
 import { SuperAdminOverrideModal } from "../SuperAdminOverrideModal";
+import { TimesheetReviewDrawer } from "../TimesheetReviewDrawer";
 import styles from "./TeamTimesheetReviewGrid.module.css";
 
 export interface TeamTimesheetReviewGridProps {
@@ -44,7 +44,7 @@ export function TeamTimesheetReviewGrid({
 }: TeamTimesheetReviewGridProps) {
   const [localSearch, setLocalSearch] = useState("");
   const [localStatus, setLocalStatus] = useState<string>("ALL");
-  const [returnItem, setReturnItem] = useState<TeamTimesheetItem | null>(null);
+  const [reviewItem, setReviewItem] = useState<TeamTimesheetItem | null>(null);
   const [overrideItem, setOverrideItem] = useState<TeamTimesheetItem | null>(null);
 
   const isServerFiltered = onSearchChange !== undefined;
@@ -78,12 +78,6 @@ export function TeamTimesheetReviewGrid({
       return true;
     });
   }, [timesheets, currentStatus, currentSearch, isServerFiltered]);
-
-  const handleReturnConfirm = async (reason: string) => {
-    if (!returnItem) return;
-    await onReturn(returnItem.id, reason);
-    setReturnItem(null);
-  };
 
   const handleOverrideConfirm = async (payload: { reason: string; status: TimesheetStatus }) => {
     if (!overrideItem || !onOverride) return;
@@ -208,37 +202,15 @@ export function TeamTimesheetReviewGrid({
 
                     <td className={styles.td}>
                       <div className={styles.actionsGroup}>
-                        {canAction && (
-                          <>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              loading={isProcessing}
-                              onClick={() => onApprove(ts.id)}
-                              data-testid={`approve-btn-${ts.id}`}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              disabled={isProcessing}
-                              onClick={() => setReturnItem(ts)}
-                              data-testid={`return-btn-${ts.id}`}
-                            >
-                              Return
-                            </Button>
-                          </>
-                        )}
-
-                        {!ts.can_approve && ts.status === "SUBMITTED" && !isSuper && (
-                          <span
-                            className={styles.ownTimesheetNotice}
-                            data-testid={`own-notice-${ts.id}`}
-                          >
-                            Own timesheet
-                          </span>
-                        )}
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={isProcessing}
+                          onClick={() => setReviewItem(ts)}
+                          data-testid={`review-btn-${ts.id}`}
+                        >
+                          Review
+                        </Button>
 
                         {isSuper && onOverride && (
                           <Button
@@ -261,16 +233,21 @@ export function TeamTimesheetReviewGrid({
         </table>
       </div>
 
-      {returnItem && (
-        <ReturnTimesheetModal
-          isOpen={true}
-          onClose={() => setReturnItem(null)}
-          onConfirm={handleReturnConfirm}
-          employeeName={returnItem.employee.name}
-          weekRange={`${returnItem.week_start_date} - ${returnItem.week_end_date}`}
-          isLoading={isProcessingId === returnItem.id}
-        />
-      )}
+      <TimesheetReviewDrawer
+        isOpen={reviewItem !== null}
+        onClose={() => setReviewItem(null)}
+        timesheetItem={reviewItem}
+        onApprove={async (id) => {
+          await onApprove(id);
+          setReviewItem(null);
+        }}
+        onReturn={async (id, reason) => {
+          await onReturn(id, reason);
+          setReviewItem(null);
+        }}
+        isSuper={isSuper}
+        isProcessing={reviewItem ? isProcessingId === reviewItem.id : false}
+      />
 
       {overrideItem && (
         <SuperAdminOverrideModal
