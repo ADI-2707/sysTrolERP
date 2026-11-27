@@ -109,7 +109,7 @@ export function LogsPage() {
         <div className={styles.titleArea}>
           <h1 className={styles.title}>System Logs & Audit</h1>
           <p className={styles.subtitle}>
-            Comprehensive audit trails, HTTP traffic, error logs, authentication events, and telemetry.
+            Comprehensive audit trails, HTTP traffic, error logs, authentication & security events, and performance metrics.
           </p>
         </div>
       </div>
