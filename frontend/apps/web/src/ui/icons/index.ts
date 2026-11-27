@@ -53,3 +53,4 @@ export * from "./IconFileText";
 export * from "./IconBarChart";
 export * from "./IconShieldAlert";
 export * from "./IconMail";
+export * from "./IconBell";

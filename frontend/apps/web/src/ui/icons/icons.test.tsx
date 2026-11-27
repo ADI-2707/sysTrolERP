@@ -13,6 +13,7 @@ import {
   IconWarning,
   IconSun,
   IconMoon,
+  IconBell,
 } from "./index";
 
 describe("Icon Components", () => {
@@ -66,9 +67,10 @@ describe("Icon Components", () => {
         <IconWarning />
         <IconSun />
         <IconMoon />
+        <IconBell />
       </div>
     );
     const svgs = container.querySelectorAll("svg");
-    expect(svgs.length).toBe(6);
+    expect(svgs.length).toBe(7);
   });
 });

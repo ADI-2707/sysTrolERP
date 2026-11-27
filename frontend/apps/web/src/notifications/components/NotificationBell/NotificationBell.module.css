@@ -1,0 +1,199 @@
+.bellWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bellButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full, 9999px);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #2563eb;
+  transition: background-color var(--duration-fast, 150ms) var(--ease-standard, ease);
+}
+
+.bellButton:hover {
+  background-color: var(--color-bg-hover, rgba(0, 0, 0, 0.05));
+}
+
+.bellButton:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.redDot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  border: 1.5px solid var(--color-surface, #ffffff);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  max-width: 90vw;
+  max-height: 480px;
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  animation: popoverFadeIn 150ms ease-out;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--color-border-subtle, #e2e8f0);
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.title {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-bold, 600);
+  color: var(--color-text-primary, #0f172a);
+  margin: 0;
+}
+
+.unreadBadge {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold, 600);
+  background-color: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  padding: 1px 6px;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.markAllBtn {
+  background: none;
+  border: none;
+  font-size: var(--font-size-xs, 12px);
+  color: #2563eb;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm, 4px);
+  font-weight: var(--font-weight-medium, 500);
+  transition: background-color var(--duration-fast, 150ms);
+}
+
+.markAllBtn:hover:not(:disabled) {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.markAllBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 400px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-bottom: 1px solid var(--color-border-subtle, #e2e8f0);
+  cursor: pointer;
+  background-color: var(--color-surface, #ffffff);
+  transition: background-color var(--duration-fast, 150ms);
+  text-align: left;
+  border-left: 3px solid transparent;
+}
+
+.item:hover {
+  background-color: var(--color-bg-hover, rgba(0, 0, 0, 0.03));
+}
+
+.itemUnread {
+  background-color: rgba(37, 99, 235, 0.04);
+  border-left-color: #2563eb;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+}
+
+.itemTitle {
+  font-size: var(--font-size-xs, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text-primary, #0f172a);
+}
+
+.itemTime {
+  font-size: 11px;
+  color: var(--color-text-muted, #64748b);
+  white-space: nowrap;
+}
+
+.itemBody {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-text-secondary, #475569);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8, 32px) var(--space-4, 16px);
+  color: var(--color-text-muted, #64748b);
+  font-size: var(--font-size-sm, 14px);
+  gap: var(--space-2, 8px);
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6, 24px);
+  color: var(--color-text-muted, #64748b);
+  font-size: var(--font-size-xs, 12px);
+}

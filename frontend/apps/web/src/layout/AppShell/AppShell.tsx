@@ -19,6 +19,7 @@ import {
   type DropdownMenuItem,
 } from "@systrol/ui";
 import { useAuth } from "../../auth";
+import { NotificationBell } from "../../notifications";
 import packageJson from "../../../package.json";
 import styles from "./AppShell.module.css";
 
@@ -186,6 +187,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
           breadcrumbs={breadcrumbs || defaultBreadcrumbs}
           actions={
             <div className={styles.actionsGroup}>
+              <NotificationBell />
               <ThemeToggle />
             </div>
           }
