@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Drawer, Badge, Button, Spinner } from "@systrol/ui";
 import { fetchAdminTimesheetDetail } from "../../../api/timesheets";
-import type { TeamTimesheetItem, AdminTimesheetDetailData, TimesheetStatus } from "../../types";
+import type { TeamTimesheetItem, AdminTimesheetDetailData } from "../../types";
 import { getDayLabel, formatWeekDisplay } from "../../utils/dateUtils";
 import styles from "./TimesheetReviewDrawer.module.css";
 

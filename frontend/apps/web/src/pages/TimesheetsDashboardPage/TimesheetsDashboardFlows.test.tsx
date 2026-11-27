@@ -18,6 +18,7 @@ vi.mock("../../api/timesheets", () => ({
   fetchOwnTimesheet: vi.fn(),
   fetchTimesheetSummary: vi.fn(),
   fetchTeamTimesheets: vi.fn(),
+  fetchAdminTimesheetDetail: vi.fn(),
   approveTimesheet: vi.fn(),
   returnTimesheet: vi.fn(),
   overrideTimesheet: vi.fn(),
@@ -281,6 +282,35 @@ describe("TimesheetsDashboardFlows", () => {
       previous: null,
       results: teamList,
     });
+    vi.mocked(timesheetsApi.fetchAdminTimesheetDetail).mockResolvedValue({
+      id: 201,
+      employee: {
+        id: 5,
+        code: "SYS-005",
+        name: "Bob Builder",
+        designation: "Site Engineer",
+        department: "Operations",
+      },
+      week_start_date: "2026-11-23",
+      week_end_date: "2026-11-29",
+      status: "SUBMITTED",
+      can_approve: true,
+      can_return: true,
+      return_reason: null,
+      submitted_at: "2026-11-27T17:30:00Z",
+      approved_at: null,
+      approved_by_label: null,
+      returned_at: null,
+      returned_by_label: null,
+      days: ["2026-11-23"],
+      day_totals: { "2026-11-23": "42.00" },
+      day_regular: { "2026-11-23": "40.00" },
+      day_overtime: { "2026-11-23": "2.00" },
+      total_week_hours: "42.00",
+      total_regular_hours: "40.00",
+      total_overtime_hours: "2.00",
+      rows: [],
+    });
     vi.mocked(timesheetsApi.returnTimesheet).mockResolvedValue({});
     vi.mocked(timesheetsApi.approveTimesheet).mockResolvedValue({});
 
@@ -295,22 +325,33 @@ describe("TimesheetsDashboardFlows", () => {
 
     expect(screen.getByText("Bob Builder")).toBeInTheDocument();
 
-    const returnBtn = screen.getByTestId("return-btn-201");
-    fireEvent.click(returnBtn);
+    const reviewBtn = screen.getByTestId("review-btn-201");
+    fireEvent.click(reviewBtn);
 
-    const returnModal = screen.getByRole("dialog");
-    const reasonInput = within(returnModal).getByTestId("return-reason-textarea");
+    await waitFor(() => {
+      expect(screen.getByTestId("drawer-return-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("drawer-return-btn"));
+
+    const reasonInput = screen.getByTestId("drawer-return-reason-input");
     fireEvent.change(reasonInput, { target: { value: "Hours mismatch on Friday" } });
 
-    const confirmReturnBtn = within(returnModal).getByTestId("confirm-return-button");
+    const confirmReturnBtn = screen.getByTestId("drawer-confirm-return-btn");
     fireEvent.click(confirmReturnBtn);
 
     await waitFor(() => {
       expect(timesheetsApi.returnTimesheet).toHaveBeenCalledWith(201, "Hours mismatch on Friday");
     });
 
-    const approveBtn = screen.getByTestId("approve-btn-201");
-    fireEvent.click(approveBtn);
+    const reviewBtnForApprove = screen.getByTestId("review-btn-201");
+    fireEvent.click(reviewBtnForApprove);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("drawer-approve-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("drawer-approve-btn"));
 
     await waitFor(() => {
       expect(timesheetsApi.approveTimesheet).toHaveBeenCalledWith(201);

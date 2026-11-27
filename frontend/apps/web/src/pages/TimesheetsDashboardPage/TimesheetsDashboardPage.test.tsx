@@ -17,6 +17,7 @@ vi.mock("../../api/timesheets", () => ({
   fetchOwnTimesheet: vi.fn(),
   fetchTimesheetSummary: vi.fn(),
   fetchTeamTimesheets: vi.fn(),
+  fetchAdminTimesheetDetail: vi.fn(),
   approveTimesheet: vi.fn(),
   returnTimesheet: vi.fn(),
   createTimesheetRow: vi.fn(),
@@ -175,6 +176,35 @@ describe("TimesheetsDashboardPage", () => {
       previous: null,
       results: mockTeamTimesheets,
     });
+    vi.mocked(timesheetsApi.fetchAdminTimesheetDetail).mockResolvedValue({
+      id: 101,
+      employee: {
+        id: 2,
+        code: "SYS-002",
+        name: "Alice Engineer",
+        designation: "Lead",
+        department: "Engineering",
+      },
+      week_start_date: "2026-11-23",
+      week_end_date: "2026-11-29",
+      status: "SUBMITTED",
+      can_approve: true,
+      can_return: true,
+      return_reason: null,
+      submitted_at: "2026-11-27T18:00:00Z",
+      approved_at: null,
+      approved_by_label: null,
+      returned_at: null,
+      returned_by_label: null,
+      days: ["2026-11-23"],
+      day_totals: { "2026-11-23": "40.00" },
+      day_regular: { "2026-11-23": "40.00" },
+      day_overtime: { "2026-11-23": "0.00" },
+      total_week_hours: "40.00",
+      total_regular_hours: "40.00",
+      total_overtime_hours: "0.00",
+      rows: [],
+    });
     vi.mocked(timesheetsApi.approveTimesheet).mockResolvedValue({});
 
     render(<TimesheetsDashboardPage />);
@@ -190,8 +220,14 @@ describe("TimesheetsDashboardPage", () => {
     expect(screen.getByTestId("admin-summary-cards")).toBeInTheDocument();
     expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
 
-    const approveBtn = screen.getByTestId("approve-btn-101");
-    fireEvent.click(approveBtn);
+    const reviewBtn = screen.getByTestId("review-btn-101");
+    fireEvent.click(reviewBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("drawer-approve-btn")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("drawer-approve-btn"));
 
     await waitFor(() => {
       expect(timesheetsApi.approveTimesheet).toHaveBeenCalledWith(101);

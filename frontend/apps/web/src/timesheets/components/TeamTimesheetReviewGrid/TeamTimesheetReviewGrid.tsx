@@ -144,7 +144,6 @@ export function TeamTimesheetReviewGrid({
             ) : (
               filteredTimesheets.map((ts) => {
                 const isProcessing = isProcessingId === ts.id;
-                const canAction = ts.can_approve && ts.status === "SUBMITTED";
 
                 return (
                   <tr key={ts.id} className={styles.tr} data-testid={`timesheet-row-${ts.id}`}>
