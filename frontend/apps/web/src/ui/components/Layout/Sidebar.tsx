@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { IconPanelCollapse, IconLogout } from "../../icons";
 import { Tooltip } from "../Overlays";
+import packageJson from "../../../../package.json";
 import styles from "./Layout.module.css";
 
 export interface SidebarItem {
@@ -32,7 +33,7 @@ export function Sidebar({
   items,
   bottomSlot,
   onLogout,
-  version = "v2.11.0",
+  version = `v${packageJson.version}`,
   className,
 }: SidebarProps) {
   return (

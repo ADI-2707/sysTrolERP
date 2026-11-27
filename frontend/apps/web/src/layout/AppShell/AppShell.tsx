@@ -19,6 +19,7 @@ import {
   type DropdownMenuItem,
 } from "@systrol/ui";
 import { useAuth } from "../../auth";
+import packageJson from "../../../package.json";
 import styles from "./AppShell.module.css";
 
 const STORAGE_KEY = "systrol_sidebar_collapsed";
@@ -179,7 +180,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
         collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
         onLogout={handleLogout}
-        version="v2.11.0"
+        version={`v${packageJson.version}`}
         items={navItems}
       />
 
