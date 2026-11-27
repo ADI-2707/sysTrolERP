@@ -44,37 +44,33 @@ export function Tabs({
   const useIsomorphicLayoutEffect =
     typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-  useIsomorphicLayoutEffect(() => {
+  const updateIndicator = () => {
     const activeIndex = tabs.findIndex((t) => t.id === activeTab);
     const activeEl = tabsRef.current[activeIndex];
     const listEl = listRef.current;
 
     if (activeEl && listEl) {
-      setSliderStyle({
-        left: activeEl.offsetLeft,
-        top: activeEl.offsetTop,
-        width: activeEl.offsetWidth,
-        height: activeEl.offsetHeight,
-        ready: true,
-      });
+      const listRect = listEl.getBoundingClientRect();
+      const tabRect = activeEl.getBoundingClientRect();
+      const left = Math.round(tabRect.left - listRect.left + listEl.scrollLeft);
+      const top = Math.round(tabRect.top - listRect.top + listEl.scrollTop);
+      const width = Math.round(tabRect.width);
+      const height = Math.round(tabRect.height);
+
+      if (width > 0) {
+        setSliderStyle({ left, top, width, height, ready: true });
+      }
     }
+  };
+
+  useIsomorphicLayoutEffect(() => {
+    updateIndicator();
+    const raf = requestAnimationFrame(updateIndicator);
+    return () => cancelAnimationFrame(raf);
   }, [activeTab, tabs]);
 
   useEffect(() => {
-    const handleResize = () => {
-      const activeIndex = tabs.findIndex((t) => t.id === activeTab);
-      const activeEl = tabsRef.current[activeIndex];
-      if (activeEl) {
-        setSliderStyle({
-          left: activeEl.offsetLeft,
-          top: activeEl.offsetTop,
-          width: activeEl.offsetWidth,
-          height: activeEl.offsetHeight,
-          ready: true,
-        });
-      }
-    };
-
+    const handleResize = () => updateIndicator();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [activeTab, tabs]);

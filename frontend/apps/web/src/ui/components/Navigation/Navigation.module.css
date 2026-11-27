@@ -33,16 +33,16 @@
   display: block;
   border-radius: var(--radius-md);
   background-color: var(--color-brand-30-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(16, 185, 129, 0.25);
   pointer-events: none;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.24s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.15s ease;
 }
 
 .tab-item {
-  position: relative;
+  position: static;
   list-style: none;
   display: inline-flex;
 }
@@ -75,11 +75,13 @@
 .tab-button.is-active {
   color: #ffffff;
   font-weight: var(--font-weight-semibold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .tab-button.is-active {
-  color: #000000;
+  color: #062a14;
   font-weight: var(--font-weight-bold);
+  text-shadow: none;
 }
 
 .tab-button:disabled {
@@ -149,24 +151,24 @@
   min-width: 32px;
   height: 32px;
   padding: 0 var(--space-2);
-  font-size: var(--font-size-sm);
-  border-radius: var(--radius-md);
   border: 1px solid var(--color-neutral-60-border-subtle);
-  background-color: var(--color-neutral-60-surface);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-60-surface);
   color: var(--color-neutral-60-text-primary);
+  font-size: var(--font-size-sm);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-standard);
 }
 
-.pagination-btn:hover:not(:disabled) {
+.pagination-btn:hover:not(:disabled):not(.is-active) {
   background-color: var(--color-neutral-60-surface-raised);
+  border-color: var(--color-neutral-60-border-strong);
 }
 
 .pagination-btn.is-active {
   background-color: var(--color-brand-30-primary);
   border-color: var(--color-brand-30-primary);
   color: #ffffff;
-  font-weight: var(--font-weight-medium);
 }
 
 .pagination-btn:disabled {
@@ -175,6 +177,10 @@
 }
 
 .pagination-ellipsis {
-  padding: 0 var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
   color: var(--color-neutral-60-text-muted);
 }
