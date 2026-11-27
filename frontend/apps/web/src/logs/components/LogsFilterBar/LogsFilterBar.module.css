@@ -43,6 +43,17 @@
   color: var(--color-text-primary);
   outline: none;
   transition: border-color var(--transition-fast);
+  color-scheme: inherit;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+.dateInput::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 .dateInput:focus {

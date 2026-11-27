@@ -1,5 +1,6 @@
 :root,
 [data-theme="light"] {
+  color-scheme: light;
   --color-neutral-60-bg: #f8fafc;
   --color-neutral-60-surface: #ffffff;
   --color-neutral-60-surface-raised: #f1f5f9;
@@ -117,6 +118,7 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
   --color-neutral-60-bg: #000000;
   --color-neutral-60-surface: #0e0e12;
   --color-neutral-60-surface-raised: #181820;
