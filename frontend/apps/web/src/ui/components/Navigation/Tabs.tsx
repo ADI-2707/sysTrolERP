@@ -14,6 +14,7 @@ export interface TabItem {
   icon?: ReactNode;
   badge?: ReactNode;
   disabled?: boolean;
+  "data-testid"?: string;
 }
 
 export interface TabsProps {
@@ -22,6 +23,7 @@ export interface TabsProps {
   onChange: (tabId: string) => void;
   className?: string;
   "aria-label"?: string;
+  variant?: "underline" | "pills";
 }
 
 export function Tabs({
@@ -30,6 +32,7 @@ export function Tabs({
   onChange,
   className,
   "aria-label": ariaLabel = "Tabs",
+  variant = "underline",
 }: TabsProps) {
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const listRef = useRef<HTMLUListElement | null>(null);
@@ -116,12 +119,25 @@ export function Tabs({
   };
 
   return (
-    <div className={[styles["tabs-container"], className].filter(Boolean).join(" ")}>
+    <div
+      className={[
+        styles["tabs-container"],
+        variant === "pills" && styles["is-pills"],
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <ul
         ref={listRef}
         role="tablist"
         aria-label={ariaLabel}
-        className={styles["tabs-list"]}
+        className={[
+          styles["tabs-list"],
+          variant === "pills" && styles["variant-pills"],
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <li
           role="presentation"
@@ -155,6 +171,7 @@ export function Tabs({
                 aria-selected={isActive}
                 aria-controls={`tabpanel-${tab.id}`}
                 id={`tab-${tab.id}`}
+                data-testid={tab["data-testid"]}
                 disabled={tab.disabled}
                 onClick={() => !tab.disabled && onChange(tab.id)}
                 onKeyDown={(e) => handleKeyDown(e, idx)}

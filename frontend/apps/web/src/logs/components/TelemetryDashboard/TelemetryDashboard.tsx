@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Button, Spinner, Badge, Sparkline, LineChart, BarChart } from "@systrol/ui";
+import { Button, Spinner, Badge, Sparkline, LineChart, BarChart, Tabs, type TabItem } from "@systrol/ui";
 import { fetchTelemetrySummary } from "../../../api/logs";
 import type { TelemetrySummaryData } from "../../types";
 import styles from "./TelemetryDashboard.module.css";
@@ -93,40 +93,23 @@ export function TelemetryDashboard() {
       ]
     : [];
 
+  const rangeTabs: TabItem[] = [
+    { id: "1h", label: "1 Hour", "data-testid": "range-btn-1h" },
+    { id: "24h", label: "24 Hours", "data-testid": "range-btn-24h" },
+    { id: "7d", label: "7 Days", "data-testid": "range-btn-7d" },
+  ];
+
   return (
     <div className={styles.container} data-testid="telemetry-dashboard">
       <div className={styles.topBar}>
-        <div className={styles.rangeButtonGroup} role="group" aria-label="Time window selector">
-          <button
-            type="button"
-            className={[styles.rangeBtn, timeRange === "1h" && styles.rangeBtnActive]
-              .filter(Boolean)
-              .join(" ")}
-            onClick={() => setTimeRange("1h")}
-            data-testid="range-btn-1h"
-          >
-            1 Hour
-          </button>
-          <button
-            type="button"
-            className={[styles.rangeBtn, timeRange === "24h" && styles.rangeBtnActive]
-              .filter(Boolean)
-              .join(" ")}
-            onClick={() => setTimeRange("24h")}
-            data-testid="range-btn-24h"
-          >
-            24 Hours
-          </button>
-          <button
-            type="button"
-            className={[styles.rangeBtn, timeRange === "7d" && styles.rangeBtnActive]
-              .filter(Boolean)
-              .join(" ")}
-            onClick={() => setTimeRange("7d")}
-            data-testid="range-btn-7d"
-          >
-            7 Days
-          </button>
+        <div className={styles.rangeButtonGroup}>
+          <Tabs
+            tabs={rangeTabs}
+            activeTab={timeRange}
+            onChange={(id) => setTimeRange(id as TimeWindowKey)}
+            aria-label="Time window selector"
+            variant="pills"
+          />
         </div>
 
         <div className={styles.controlsRight}>

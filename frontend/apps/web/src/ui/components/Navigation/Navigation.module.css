@@ -3,6 +3,10 @@
   width: 100%;
 }
 
+.tabs-container.is-pills {
+  width: auto;
+}
+
 .tabs-list {
   position: relative;
   display: flex;
@@ -14,6 +18,11 @@
   padding: 0 0 6px 0;
   overflow-x: auto;
   scrollbar-width: none;
+}
+
+.tabs-list.variant-pills {
+  border-bottom: none;
+  padding: 0;
 }
 
 .tabs-list::-webkit-scrollbar {
@@ -71,13 +80,13 @@
 .tab-button.is-active {
   color: #ffffff;
   font-weight: var(--font-weight-semibold);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 [data-theme="dark"] .tab-button.is-active {
-  color: #062a14;
+  color: #ffffff;
   font-weight: var(--font-weight-bold);
-  text-shadow: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .tab-button:disabled {

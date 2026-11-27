@@ -20,29 +20,6 @@
 .rangeButtonGroup {
   display: flex;
   align-items: center;
-  gap: var(--space-2, 8px);
-}
-
-.rangeBtn {
-  padding: 6px 14px;
-  font-size: var(--font-size-sm, 14px);
-  font-weight: var(--font-weight-medium, 500);
-  border-radius: var(--radius-md, 6px);
-  border: 1px solid var(--color-neutral-60-border-subtle, #e2e8f0);
-  background-color: var(--color-neutral-60-surface, #ffffff);
-  color: var(--color-neutral-60-text-secondary, #475569);
-  cursor: pointer;
-  transition: all 0.15s ease-in-out;
-}
-
-.rangeBtn:hover {
-  background-color: var(--color-neutral-60-surface-raised, #f1f5f9);
-}
-
-.rangeBtnActive {
-  background-color: var(--color-brand-30-primary, #16a34a);
-  color: var(--color-neutral-60-surface, #ffffff);
-  border-color: var(--color-brand-30-primary, #16a34a);
 }
 
 .controlsRight {
