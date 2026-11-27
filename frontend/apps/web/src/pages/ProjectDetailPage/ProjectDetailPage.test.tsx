@@ -566,4 +566,79 @@ describe("ProjectDetailPage", () => {
     expect(screen.getByText("Jane Engineer")).toBeInTheDocument();
     expect(screen.queryByText("Bob Technician")).not.toBeInTheDocument();
   });
+
+  it("disables advance button on step whose predecessor has not started", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    const advanceBtn105 = screen.getByTestId("advance-step-btn-105");
+    expect(advanceBtn105).not.toBeDisabled();
+
+    const advanceBtn199 = screen.getByTestId("advance-step-btn-199");
+    expect(advanceBtn199).toBeDisabled();
+    expect(advanceBtn199).toHaveAttribute("title", expect.stringContaining("Custom Started Review"));
+  });
+
+  it("opens skip modal and skips eligible step with confirmation and reason", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    vi.mocked(projectsApi.updateStepStatus).mockResolvedValue({
+      id: 105,
+      key: "MANUFACTURING",
+      name: "Manufacturing",
+      position: 5,
+      is_custom: false,
+      status: "SKIPPED",
+      confirmed_at: "2026-11-27T10:00:00Z",
+      confirmed_by_label: "SYS-001",
+      skip_reason: "Pre-fabricated unit purchased directly",
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    const skipBtn105 = screen.getByTestId("skip-step-btn-105");
+    fireEvent.click(skipBtn105);
+
+    const modal = screen.getByTestId("skip-step-modal");
+    expect(modal).toBeInTheDocument();
+
+    const reasonInput = screen.getByTestId("skip-reason-input");
+    fireEvent.change(reasonInput, { target: { value: "Pre-fabricated unit purchased directly" } });
+
+    const confirmBtn = screen.getByTestId("confirm-skip-step-btn");
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(projectsApi.updateStepStatus).toHaveBeenCalledWith(
+        1,
+        105,
+        "SKIPPED",
+        true,
+        "Pre-fabricated unit purchased directly"
+      );
+    });
+  });
+
+  it("disables advance button on AMC due to closure hard gate", async () => {
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    const advanceBtn106 = screen.getByTestId("advance-step-btn-106");
+    expect(advanceBtn106).toBeDisabled();
+    expect(advanceBtn106).toHaveAttribute(
+      "title",
+      expect.stringContaining("prior stages must be Completed or Skipped")
+    );
+  });
 });

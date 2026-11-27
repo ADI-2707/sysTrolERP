@@ -134,4 +134,60 @@ describe("Stepper component", () => {
     const subStepIndicator = screen.getByTestId("step-indicator-s-sub");
     expect(subStepIndicator).toHaveClass(/is-substep/);
   });
+
+  it("renders skipped badge and skip reason", () => {
+    const skippedSteps: StepperItem[] = [
+      {
+        id: "s-skip",
+        title: "Civil Work",
+        status: "SKIPPED",
+        position: 1,
+        skipReason: "Client handled on-site civil work",
+      },
+    ];
+
+    render(<Stepper items={skippedSteps} />);
+
+    expect(screen.getByText("Civil Work")).toBeInTheDocument();
+    expect(screen.getByText("SKIPPED")).toBeInTheDocument();
+    expect(screen.getByTestId("step-skipped-tag-s-skip")).toBeInTheDocument();
+    expect(screen.getByTestId("step-skip-reason-s-skip")).toHaveTextContent("Skipped: Client handled on-site civil work");
+  });
+
+  it("disables advance button when canAdvanceStep returns false", () => {
+    const handleAdvance = vi.fn();
+    render(
+      <Stepper
+        items={steps}
+        onAdvanceStep={handleAdvance}
+        canAdvanceStep={(s) =>
+          s.id === "s3"
+            ? { canAdvance: false, reason: "Preceding step must be completed." }
+            : { canAdvance: true }
+        }
+      />
+    );
+
+    const advanceBtnS3 = screen.getByTestId("advance-step-btn-s3");
+    expect(advanceBtnS3).toBeDisabled();
+    expect(advanceBtnS3).toHaveAttribute("title", "Preceding step must be completed.");
+    fireEvent.click(advanceBtnS3);
+    expect(handleAdvance).not.toHaveBeenCalled();
+  });
+
+  it("triggers onSkipStep when skip button is clicked", () => {
+    const handleSkip = vi.fn();
+    render(
+      <Stepper
+        items={steps}
+        onSkipStep={handleSkip}
+        canSkipStep={(s) => s.id === "s3"}
+      />
+    );
+
+    const skipBtn = screen.getByTestId("skip-step-btn-s3");
+    expect(skipBtn).toBeInTheDocument();
+    fireEvent.click(skipBtn);
+    expect(handleSkip).toHaveBeenCalledWith("s3");
+  });
 });
