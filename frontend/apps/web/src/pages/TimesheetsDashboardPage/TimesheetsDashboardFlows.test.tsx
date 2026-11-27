@@ -234,19 +234,18 @@ describe("TimesheetsDashboardFlows", () => {
     render(<TimesheetsDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("navigation", { name: "Week navigation" })).toBeInTheDocument();
+      expect(screen.getByLabelText("Previous week")).toBeInTheDocument();
     });
 
-    const nav = screen.getByRole("navigation", { name: "Week navigation" });
-    const prevBtn = within(nav).getByLabelText("Previous week");
+    const prevBtn = screen.getByLabelText("Previous week");
     fireEvent.click(prevBtn);
 
     await waitFor(() => {
       expect(timesheetsApi.fetchOwnTimesheet).toHaveBeenCalledWith("2026-11-16");
     });
 
-    const currentBtn = screen.getByRole("button", { name: "This Week" });
-    fireEvent.click(currentBtn);
+    const nextBtn = screen.getByLabelText("Next week");
+    fireEvent.click(nextBtn);
 
     await waitFor(() => {
       expect(timesheetsApi.fetchOwnTimesheet).toHaveBeenCalledWith("2026-11-23");

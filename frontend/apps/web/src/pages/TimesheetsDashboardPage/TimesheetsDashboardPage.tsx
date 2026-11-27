@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useUiLock } from "@systrol/ui";
 import { useAuth } from "../../auth";
-import { WeekNavigator } from "../../timesheets/components/WeekNavigator";
 import { useWeekNavigation } from "../../timesheets/hooks/useWeekNavigation";
 import { DashboardSummaryCards } from "../../timesheets/components/DashboardSummaryCards";
 import { TimesheetGrid } from "../../timesheets/components/TimesheetGrid";
@@ -44,13 +43,11 @@ export function TimesheetsDashboardPage() {
   const [activeTab, setActiveTab] = useState<string>(isSuper ? "team" : "my");
   const {
     monday: currentWeekStart,
-    sunday: currentWeekEnd,
     displayRange,
     isCurrent,
     canGoNext,
     goToPreviousWeek,
     goToNextWeek,
-    goToCurrentWeek,
   } = useWeekNavigation();
 
   const [ownTimesheet, setOwnTimesheet] = useState<TimesheetData | null>(null);
@@ -242,16 +239,6 @@ export function TimesheetsDashboardPage() {
             Track and review project labor hours across weekly schedules.
           </p>
         </div>
-
-        <WeekNavigator
-          monday={currentWeekStart}
-          sunday={currentWeekEnd}
-          displayRange={displayRange}
-          isCurrent={isCurrent}
-          onPrevious={goToPreviousWeek}
-          onNext={goToNextWeek}
-          onCurrentWeek={goToCurrentWeek}
-        />
       </div>
 
       {isAdmin && (
