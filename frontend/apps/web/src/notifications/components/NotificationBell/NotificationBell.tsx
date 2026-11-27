@@ -137,7 +137,7 @@ export function NotificationBell() {
         aria-haspopup="dialog"
         data-testid="notification-bell-button"
       >
-        <IconBell size={18} color="#2563eb" />
+        <IconBell size={14} color="currentColor" />
         {unreadCount > 0 && (
           <span className={styles.redDot} data-testid="notification-red-dot" aria-hidden="true" />
         )}

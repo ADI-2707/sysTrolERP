@@ -50,18 +50,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: 0;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-full);
   background: none;
   border: none;
   cursor: pointer;
   color: inherit;
   font: inherit;
-  transition: background-color var(--duration-fast) var(--ease-standard);
+  transition: opacity var(--duration-fast) var(--ease-standard);
 }
 
 .userMenuTrigger:hover {
-  background-color: var(--color-bg-hover);
+  opacity: 0.85;
 }
 
 .userInfo {
