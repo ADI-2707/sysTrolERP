@@ -81,9 +81,11 @@ sysTrol projects follow a 14-stage standard execution pipeline:
 14. `AMC`: Annual Maintenance Contract operations.
 
 ### Step Progression Rules
-- **Status Options**: `NOT_STARTED` -> `INITIATED` -> `IN_PROGRESS` -> `COMPLETED`.
-- **Forward-Only**: Once a step reaches `COMPLETED`, it cannot regress.
-- **Overlapping Allowed**: Later steps may initiate before earlier steps finish (e.g. `MANUFACTURING` may begin while `ENGINEERING` completes final revisions).
+- **Status Options**: `NOT_STARTED` -> `INITIATED` -> `IN_PROGRESS` -> `COMPLETED`, plus terminal `SKIPPED`.
+- **Forward-Only**: Once a step reaches `COMPLETED` or `SKIPPED`, it is permanently locked and cannot regress.
+- **Predecessor Prerequisite (Option B)**: Step 1 (`ENQUIRY`) can initiate at any time. Any subsequent step can only initiate if its immediate predecessor is `IN_PROGRESS`, `COMPLETED`, or `SKIPPED`. Downstream steps cannot leapfrog unstarted predecessors.
+- **Closure Hard Gates**: `MOM_AND_HANDOVER`, `PAYMENT`, and `AMC` have a hard barrier requiring all prior engineering, trial, and execution stages to be `COMPLETED` or `SKIPPED`.
+- **Skipping Steps**: If a project scope excludes a stage (e.g. client handles civil/erection work), administrators can mark the step as `SKIPPED` with a documented reason. Skipped steps count as resolved and satisfy prerequisites for later steps.
 
 ### Sub-step Insertion Rules
 Administrators can insert custom sub-steps to handle project-specific tasks:

@@ -22,7 +22,10 @@ Fourteen distinct steps are defined in forward order:
 13. PAYMENT
 14. AMC
 
-Steps advance forward through statuses: NOT_STARTED -> INITIATED -> IN_PROGRESS -> COMPLETED. Overlapping steps are permitted.
+Steps advance forward through statuses: NOT_STARTED -> INITIATED -> IN_PROGRESS -> COMPLETED, or transition to SKIPPED.
+- **Moderate Predecessor Gate (Option B)**: Step 1 can start at any time. For step N (N > 1), transitioning to INITIATED or IN_PROGRESS requires that step N-1 is in [IN_PROGRESS, COMPLETED, SKIPPED]. Unstarted or merely initiated predecessors block downstream advancement.
+- **First-Class SKIPPED Status**: Authorized administrators can skip an eligible step with mandatory confirmation and optional skip reason. Skipped steps are terminal, cannot be modified or reopened, and satisfy predecessor requirements for subsequent steps.
+- **Closure Hard Gates**: Closure stages (MOM_AND_HANDOVER, PAYMENT, AMC, and any post-handover steps) cannot be initiated or completed unless all prior steps are strictly COMPLETED or SKIPPED.
 
 ### 2. Frontend Framework
 React 18.3 with TypeScript 5.x and Vite 6. React Router 6 is used for navigation, and TanStack Query 5 manages server state.
