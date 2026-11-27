@@ -10,12 +10,20 @@ def list_projects_for_user(
     *,
     search: str = "",
     status_filter: str = "",
+    client_name: str = "",
+    is_active: bool | None = None,
+    ordering: str = "-created_at",
 ) -> QuerySet[Project]:
     qs = Project.objects.prefetch_related("steps", "assignments__employee")
 
     is_employee = isinstance(user, User) and user.role == "EMPLOYEE"
     if is_employee:
         qs = qs.filter(is_active=True)
+    elif is_active is not None:
+        qs = qs.filter(is_active=is_active)
+
+    if client_name:
+        qs = qs.filter(client_name__icontains=client_name.strip())
 
     if search:
         search = search.strip()
@@ -70,6 +78,19 @@ def list_projects_for_user(
                 (Q(in_prog_steps__gt=0) | Q(completed_steps__gt=0))
                 & Q(completed_steps__lt=F("total_steps"))
             )
+
+    valid_orderings = {
+        "created_at",
+        "-created_at",
+        "code",
+        "-code",
+        "name",
+        "-name",
+        "client_name",
+        "-client_name",
+    }
+    if ordering in valid_orderings:
+        return qs.order_by(ordering)
 
     return qs.order_by("-created_at")
 

@@ -159,3 +159,22 @@ def test_project_list_granular_status_filters():
     assert p_initiated.code in act_codes
     assert p_in_prog.code in act_codes
     assert p_completed.code not in act_codes
+
+    resp_client = client.get(f"{reverse('project_list_create')}?client_name=Alpha")
+    assert resp_client.status_code == 200
+    assert resp_client.data["count"] == 1
+    assert resp_client.data["results"][0]["code"] == p_not_started.code
+
+    p_in_prog.is_active = False
+    p_in_prog.save()
+
+    resp_archived = client.get(f"{reverse('project_list_create')}?is_active=false")
+    assert resp_archived.status_code == 200
+    arch_codes = [r["code"] for r in resp_archived.data["results"]]
+    assert p_in_prog.code in arch_codes
+    assert p_not_started.code not in arch_codes
+
+    resp_order = client.get(f"{reverse('project_list_create')}?ordering=name")
+    assert resp_order.status_code == 200
+    names = [r["name"] for r in resp_order.data["results"]]
+    assert names == sorted(names)

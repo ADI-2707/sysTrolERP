@@ -38,11 +38,21 @@ class ProjectListCreateView(APIView):
     def get(self, request):
         search = request.query_params.get("search", "")
         status_filter = request.query_params.get("status", "")
+        client_name = request.query_params.get("client_name", "")
+        ordering = request.query_params.get("ordering", "-created_at")
+        is_active_param = request.query_params.get("is_active", None)
+
+        is_active = None
+        if is_active_param is not None and is_active_param != "":
+            is_active = is_active_param.lower() in ("true", "1")
 
         qs = list_projects_for_user(
             request.user,
             search=search,
             status_filter=status_filter,
+            client_name=client_name,
+            is_active=is_active,
+            ordering=ordering,
         )
 
         paginator = self.pagination_class()
