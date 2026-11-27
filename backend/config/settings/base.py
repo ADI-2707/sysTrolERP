@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.employees.apps.EmployeesConfig",
     "apps.projects.apps.ProjectsConfig",
     "apps.timesheets.apps.TimesheetsConfig",
+    "apps.notifications.apps.NotificationsConfig",
     "apps.audit.apps.AuditConfig",
     "apps.telemetry.apps.TelemetryConfig",
 ]
