@@ -28,6 +28,8 @@ describe("LogsPage Structure", () => {
 
     expect(screen.getByTestId("audit-tab-panel")).toBeInTheDocument();
     expect(screen.getByTestId("logs-filter-bar")).toBeInTheDocument();
+    expect(screen.getByText("From")).toBeInTheDocument();
+    expect(screen.getByText("To")).toBeInTheDocument();
   });
 
   it("switches tabs and displays respective tab panels", () => {

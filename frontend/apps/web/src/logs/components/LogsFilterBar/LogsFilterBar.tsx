@@ -85,23 +85,31 @@ export function LogsFilterBar({
           data-testid="logs-search-input"
         />
 
-        <input
-          type="date"
-          className={styles.dateInput}
-          value={startDate}
-          onChange={(e) => onStartDateChange(e.target.value)}
-          aria-label="Start date"
-          data-testid="logs-start-date"
-        />
+        <label className={styles.dateWrapper} htmlFor="logs-start-date">
+          <span className={styles.datePrefix}>From</span>
+          <input
+            id="logs-start-date"
+            type="date"
+            className={styles.dateInput}
+            value={startDate}
+            onChange={(e) => onStartDateChange(e.target.value)}
+            aria-label="Start date"
+            data-testid="logs-start-date"
+          />
+        </label>
 
-        <input
-          type="date"
-          className={styles.dateInput}
-          value={endDate}
-          onChange={(e) => onEndDateChange(e.target.value)}
-          aria-label="End date"
-          data-testid="logs-end-date"
-        />
+        <label className={styles.dateWrapper} htmlFor="logs-end-date">
+          <span className={styles.datePrefix}>To</span>
+          <input
+            id="logs-end-date"
+            type="date"
+            className={styles.dateInput}
+            value={endDate}
+            onChange={(e) => onEndDateChange(e.target.value)}
+            aria-label="End date"
+            data-testid="logs-end-date"
+          />
+        </label>
 
         {activeTab === "audit" && (
           <>
