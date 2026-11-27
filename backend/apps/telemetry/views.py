@@ -19,8 +19,12 @@ class RequestLogListView(APIView):
         qs = query_request_logs(
             user=request.user,
             status_code=request.query_params.get("status_code", ""),
+            status_class=request.query_params.get("status_class", ""),
+            min_duration_ms=request.query_params.get("min_duration_ms", ""),
             method=request.query_params.get("method", ""),
             search=request.query_params.get("search", ""),
+            start_date=request.query_params.get("start_date", ""),
+            end_date=request.query_params.get("end_date", ""),
         )
         paginator = TelemetryCursorPagination()
         page = paginator.paginate_queryset(qs, request)
@@ -36,6 +40,8 @@ class ErrorLogListView(APIView):
             user=request.user,
             error_class=request.query_params.get("error_class", ""),
             search=request.query_params.get("search", ""),
+            start_date=request.query_params.get("start_date", ""),
+            end_date=request.query_params.get("end_date", ""),
         )
         paginator = TelemetryCursorPagination()
         page = paginator.paginate_queryset(qs, request)

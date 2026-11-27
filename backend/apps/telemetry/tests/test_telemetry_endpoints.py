@@ -74,3 +74,27 @@ def test_telemetry_endpoints():
     assert res_err.status_code == 200
     assert "results" in res_err.json()
     assert any(e["error_class"] == "ValidationError" for e in res_err.json()["results"])
+
+    res_date_req = client_admin.get("/api/telemetry/requests/?start_date=2020-01-01&end_date=2030-01-01")
+    assert res_date_req.status_code == 200
+    assert len(res_date_req.json()["results"]) >= 2
+
+    res_past_req = client_admin.get("/api/telemetry/requests/?start_date=2010-01-01&end_date=2010-01-02")
+    assert res_past_req.status_code == 200
+    assert len(res_past_req.json()["results"]) == 0
+
+    res_class_req = client_admin.get("/api/telemetry/requests/?status_class=4xx")
+    assert res_class_req.status_code == 200
+    assert all(400 <= r["status_code"] < 500 for r in res_class_req.json()["results"])
+
+    res_dur_req = client_admin.get("/api/telemetry/requests/?min_duration_ms=40")
+    assert res_dur_req.status_code == 200
+    assert all(r["duration_ms"] >= 40 for r in res_dur_req.json()["results"])
+
+    res_date_err = client_admin.get("/api/telemetry/errors/?start_date=2020-01-01&end_date=2030-01-01")
+    assert res_date_err.status_code == 200
+    assert len(res_date_err.json()["results"]) >= 1
+
+    res_past_err = client_admin.get("/api/telemetry/errors/?start_date=2010-01-01&end_date=2010-01-02")
+    assert res_past_err.status_code == 200
+    assert len(res_past_err.json()["results"]) == 0

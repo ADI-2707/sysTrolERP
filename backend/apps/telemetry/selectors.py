@@ -16,12 +16,31 @@ def check_telemetry_access(user: User | SuperAdminPrincipal) -> None:
         raise PermissionDenied("Access to telemetry logs is restricted to administrators.")
 
 
+def _parse_filter_date(val: str, is_end: bool = False) -> datetime.datetime | None:
+    if not val:
+        return None
+    val = val.strip()
+    try:
+        dt = datetime.datetime.fromisoformat(val)
+        if len(val) <= 10 and is_end:
+            dt = dt.replace(hour=23, minute=59, second=59, microsecond=999999)
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt)
+        return dt
+    except (ValueError, TypeError):
+        return None
+
+
 def query_request_logs(
     user: User | SuperAdminPrincipal,
     *,
     status_code: str = "",
+    status_class: str = "",
+    min_duration_ms: str = "",
     method: str = "",
     search: str = "",
+    start_date: str = "",
+    end_date: str = "",
 ) -> QuerySet[RequestLog]:
     check_telemetry_access(user)
     qs = RequestLog.objects.all()
@@ -29,8 +48,32 @@ def query_request_logs(
     if status_code and status_code.isdigit():
         qs = qs.filter(status_code=int(status_code))
 
+    if status_class:
+        sc = status_class.strip().lower()
+        if sc == "2xx":
+            qs = qs.filter(status_code__gte=200, status_code__lt=300)
+        elif sc == "4xx":
+            qs = qs.filter(status_code__gte=400, status_code__lt=500)
+        elif sc == "5xx":
+            qs = qs.filter(status_code__gte=500, status_code__lt=600)
+
+    if min_duration_ms:
+        try:
+            dur = float(min_duration_ms.strip())
+            qs = qs.filter(duration_ms__gte=dur)
+        except ValueError:
+            pass
+
     if method:
         qs = qs.filter(method=method.strip().upper())
+
+    start_dt = _parse_filter_date(start_date)
+    if start_dt:
+        qs = qs.filter(created_at__gte=start_dt)
+
+    end_dt = _parse_filter_date(end_date, is_end=True)
+    if end_dt:
+        qs = qs.filter(created_at__lte=end_dt)
 
     if search:
         val = search.strip()
@@ -50,12 +93,22 @@ def query_error_logs(
     *,
     error_class: str = "",
     search: str = "",
+    start_date: str = "",
+    end_date: str = "",
 ) -> QuerySet[ErrorLog]:
     check_telemetry_access(user)
     qs = ErrorLog.objects.all()
 
     if error_class:
         qs = qs.filter(error_class__icontains=error_class.strip())
+
+    start_dt = _parse_filter_date(start_date)
+    if start_dt:
+        qs = qs.filter(created_at__gte=start_dt)
+
+    end_dt = _parse_filter_date(end_date, is_end=True)
+    if end_dt:
+        qs = qs.filter(created_at__lte=end_dt)
 
     if search:
         val = search.strip()
