@@ -512,24 +512,18 @@ describe("ProjectDetailPage", () => {
   it("filters lifecycle steps by status and filters team members", async () => {
     const detailWithTeam: ProjectDetailData = {
       ...mockProjectDetail,
-      assignments: [
+      members: [
         {
-          id: 1,
-          employee: {
-            id: 10,
-            employee_code: "SYS-010",
-            full_name: "Jane Engineer",
-            department: "Engineering",
-          },
+          id: 10,
+          employee_code: "SYS-010",
+          full_name: "Jane Engineer",
+          department: "Engineering",
         },
         {
-          id: 2,
-          employee: {
-            id: 20,
-            employee_code: "SYS-020",
-            full_name: "Bob Technician",
-            department: "Operations",
-          },
+          id: 20,
+          employee_code: "SYS-020",
+          full_name: "Bob Technician",
+          department: "Operations",
         },
       ],
     };

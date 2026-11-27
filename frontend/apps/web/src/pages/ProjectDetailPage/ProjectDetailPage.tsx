@@ -22,7 +22,7 @@ import {
   updateSubStep,
   deleteSubStep,
 } from "../../api/projects";
-import type { ProjectDetailData, ProjectStepDetail, StepStatusType } from "../../projects/types";
+import type { ProjectDetailData, ProjectStepDetail, StepStatusType, ProjectMemberDetail } from "../../projects/types";
 import { ProjectDetailSkeleton } from "./ProjectDetailSkeleton";
 import styles from "./ProjectDetailPage.module.css";
 
@@ -325,16 +325,16 @@ export function ProjectDetailPage() {
   }, [project, stepFilter]);
 
   const filteredMembers = useMemo(() => {
-    if (!project?.assignments) return [];
+    if (!project?.members) return [];
     const term = memberSearch.trim().toLowerCase();
-    if (!term) return project.assignments;
-    return project.assignments.filter((a) => {
-      const name = a.employee.full_name.toLowerCase();
-      const code = a.employee.employee_code.toLowerCase();
-      const dept = (a.employee.department || "").toLowerCase();
+    if (!term) return project.members;
+    return project.members.filter((m: ProjectMemberDetail) => {
+      const name = m.full_name.toLowerCase();
+      const code = m.employee_code.toLowerCase();
+      const dept = (m.department || "").toLowerCase();
       return name.includes(term) || code.includes(term) || dept.includes(term);
     });
-  }, [project?.assignments, memberSearch]);
+  }, [project?.members, memberSearch]);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -532,12 +532,12 @@ export function ProjectDetailPage() {
           {filteredMembers.length === 0 ? (
             <p className={styles.noMembers}>No team members found.</p>
           ) : (
-            filteredMembers.map((assignment) => (
-              <div key={assignment.id} className={styles.memberCard} data-testid={`member-card-${assignment.employee.id}`}>
+            filteredMembers.map((member: ProjectMemberDetail) => (
+              <div key={member.id} className={styles.memberCard} data-testid={`member-card-${member.id}`}>
                 <div className={styles.memberDetails}>
-                  <span className={styles.memberName}>{assignment.employee.full_name}</span>
+                  <span className={styles.memberName}>{member.full_name}</span>
                   <span className={styles.memberMeta}>
-                    {assignment.employee.employee_code} • {assignment.employee.department || "General"}
+                    {member.employee_code} • {member.department || "General"}
                   </span>
                 </div>
               </div>
