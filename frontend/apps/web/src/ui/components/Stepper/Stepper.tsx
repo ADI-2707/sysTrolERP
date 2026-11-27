@@ -77,6 +77,19 @@ export function Stepper({
     }
   };
 
+  const getActionLabel = (status: StepStatus): string => {
+    switch (status) {
+      case "NOT_STARTED":
+        return "Start Step";
+      case "INITIATED":
+        return "Mark In Progress";
+      case "IN_PROGRESS":
+        return "Complete Step";
+      default:
+        return "Advance Status";
+    }
+  };
+
   return (
     <div className={[styles.stepper, className].filter(Boolean).join(" ")}>
       {items.map((step, idx) => {
@@ -214,33 +227,14 @@ export function Stepper({
                   {step.isCustom && (
                     <span className={styles["custom-tag"]}>Custom Sub-step</span>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!onStatusChange || isTerminal || !isEligible) return;
-                      const nextMap: Record<StepStatus, StepStatus> = {
-                        NOT_STARTED: "INITIATED",
-                        INITIATED: "IN_PROGRESS",
-                        IN_PROGRESS: "COMPLETED",
-                        COMPLETED: "COMPLETED",
-                        SKIPPED: "SKIPPED",
-                      };
-                      onStatusChange(step.id, nextMap[step.status]);
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: onStatusChange && !isTerminal && isEligible ? "pointer" : "default",
-                    }}
-                    disabled={!onStatusChange || isTerminal || !isEligible}
+                  <span
+                    data-testid={`step-status-badge-${step.id}`}
                     aria-label={`Status: ${step.status}`}
-                    data-testid={`step-status-btn-${step.id}`}
                   >
                     <Badge variant={getBadgeVariant(step.status)}>
                       {step.status.replace("_", " ")}
                     </Badge>
-                  </button>
+                  </span>
                   {isCompleted && (
                     <span className={styles["locked-tag"]} data-testid={`step-locked-tag-${step.id}`}>
                       <IconLock size={12} />
@@ -256,22 +250,25 @@ export function Stepper({
                 </div>
 
                 <div className={styles["step-actions"]}>
-                  {!isTerminal && onAdvanceStep && (
+                  {!isTerminal && isEligible && onAdvanceStep && (
                     <button
                       type="button"
-                      onClick={() => isEligible && onAdvanceStep(step.id)}
-                      disabled={!isEligible}
-                      title={!isEligible ? advanceReason : undefined}
-                      className={[
-                        styles["advance-btn"],
-                        !isEligible && styles["is-disabled"],
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
+                      onClick={() => onAdvanceStep(step.id)}
+                      className={styles["advance-btn"]}
                       data-testid={`advance-step-btn-${step.id}`}
                     >
-                      Advance Status
+                      {getActionLabel(step.status)}
                     </button>
+                  )}
+                  {!isTerminal && !isEligible && (
+                    <span
+                      className={styles["locked-placeholder"]}
+                      title={advanceReason}
+                      data-testid={`locked-placeholder-${step.id}`}
+                    >
+                      <IconLock size={12} />
+                      <span>Locked</span>
+                    </span>
                   )}
                   {allowSkip && onSkipStep && (
                     <button

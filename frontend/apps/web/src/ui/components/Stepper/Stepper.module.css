@@ -210,6 +210,19 @@
   border-radius: var(--radius-sm);
 }
 
+.locked-placeholder {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 11px;
+  color: var(--color-neutral-60-text-muted);
+  background-color: var(--color-neutral-60-surface-subtle);
+  border: 1px dashed var(--color-neutral-60-border-subtle);
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: not-allowed;
+}
+
 .advance-btn {
   background: var(--color-brand-30-surface);
   border: 1px solid var(--color-brand-30-border);
