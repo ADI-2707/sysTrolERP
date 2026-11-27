@@ -328,6 +328,9 @@ def list_timesheets_for_admin(
     employee_filter: str = "",
     week_filter: str = "",
     status_filter: str = "",
+    department: str = "",
+    project_id: int | str | None = None,
+    all_pending: bool = False,
     search: str = "",
 ):
     qs = (
@@ -335,6 +338,23 @@ def list_timesheets_for_admin(
         .prefetch_related("rows__entries")
         .order_by("-week_start_date", "employee__employee_code")
     )
+
+    if all_pending:
+        qs = qs.filter(status=TimesheetWeekStatus.SUBMITTED)
+    elif week_filter:
+        target_date = parse_week_param(week_filter)
+        monday, _ = week_bounds(target_date)
+        qs = qs.filter(week_start_date=monday)
+
+    if department:
+        qs = qs.filter(employee__department__iexact=department.strip())
+
+    if project_id:
+        try:
+            pid = int(project_id)
+            qs = qs.filter(rows__project_id=pid).distinct()
+        except (ValueError, TypeError):
+            pass
 
     search_val = (search or employee_filter).strip()
     if search_val:
@@ -346,12 +366,7 @@ def list_timesheets_for_admin(
                 | Q(employee__full_name__icontains=search_val)
             )
 
-    if week_filter:
-        target_date = parse_week_param(week_filter)
-        monday, _ = week_bounds(target_date)
-        qs = qs.filter(week_start_date=monday)
-
-    if status_filter:
+    if not all_pending and status_filter:
         status_val = status_filter.strip().upper()
         if status_val in TimesheetWeekStatus.values:
             qs = qs.filter(status=status_val)

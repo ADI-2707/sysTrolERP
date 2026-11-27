@@ -190,8 +190,11 @@ class AdminTimesheetListView(APIView):
         employee_param = request.query_params.get("employee")
         week_param = request.query_params.get("week")
         search_param = request.query_params.get("search", "")
+        department_param = request.query_params.get("department", "")
+        project_param = request.query_params.get("project_id", "")
+        all_pending_param = request.query_params.get("all_pending", "").lower() in ("true", "1")
 
-        if employee_param and week_param and not search_param:
+        if employee_param and week_param and not search_param and not all_pending_param:
             data = get_timesheet_for_admin(
                 employee_param=employee_param,
                 week_param=week_param,
@@ -203,6 +206,9 @@ class AdminTimesheetListView(APIView):
             employee_filter=employee_param or "",
             week_filter=week_param or "",
             status_filter=request.query_params.get("status", ""),
+            department=department_param,
+            project_id=project_param or None,
+            all_pending=all_pending_param,
             search=search_param,
         )
         paginator = StandardPageNumberPagination()

@@ -118,3 +118,20 @@ def test_admin_timesheet_viewing():
         super_results = res_super_pending.json()["results"]
         for r in super_results:
             assert r["can_approve"] is True
+
+        res_all_pending = admin_client.get("/api/timesheets/?all_pending=true")
+        assert res_all_pending.status_code == 200
+        assert res_all_pending.json()["count"] == 2
+
+        emp.department = "Engineering"
+        emp.save()
+
+        res_dept = admin_client.get("/api/timesheets/?department=Engineering")
+        assert res_dept.status_code == 200
+        assert res_dept.json()["count"] == 1
+        assert res_dept.json()["results"][0]["employee"]["code"] == "SYS-0003"
+
+        res_proj = admin_client.get(f"/api/timesheets/?project_id={project.id}")
+        assert res_proj.status_code == 200
+        assert res_proj.json()["count"] == 1
+        assert res_proj.json()["results"][0]["employee"]["code"] == "SYS-0003"
