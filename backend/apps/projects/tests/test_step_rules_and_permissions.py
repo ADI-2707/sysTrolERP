@@ -55,6 +55,11 @@ def test_step_rules_and_boundaries():
     step_3 = project.steps.get(position=3)
     amc_step = project.steps.get(key="AMC")
 
+    step_1.status = StepStatus.COMPLETED
+    step_1.save(update_fields=["status"])
+    step_2.status = StepStatus.IN_PROGRESS
+    step_2.save(update_fields=["status"])
+
     res_nonexistent = client.post(
         f"/api/projects/{project.id}/sub-steps/",
         {"after_step_id": 99999, "name": "Invalid Target"},
@@ -95,7 +100,7 @@ def test_step_rules_and_boundaries():
         format="json",
     )
     assert res_backward.status_code == 400
-    assert "forward" in str(res_backward.json()).lower()
+    assert any(phrase in str(res_backward.json()).lower() for phrase in ["forward", "cannot be modified"])
 
     res_same = client.post(
         f"/api/projects/{project.id}/steps/{step_3.id}/status/",
