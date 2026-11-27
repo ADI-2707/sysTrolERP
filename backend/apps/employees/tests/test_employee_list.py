@@ -72,8 +72,8 @@ def test_employee_list_filtering_and_search():
     assert dept_resp.data["count"] == 1
     assert dept_resp.data["results"][0]["employee_code"] == "SYS-0111"
 
-    from apps.projects.services import create_project
     from apps.projects.models import ProjectAssignment
+    from apps.projects.services import create_project
 
     proj = create_project(name="Solar Tower", creator=admin)
     ProjectAssignment.objects.create(project=proj, employee=admin)
