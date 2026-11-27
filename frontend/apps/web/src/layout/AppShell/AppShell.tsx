@@ -168,9 +168,6 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
   const userMenuTrigger = (
     <button type="button" className={styles.userMenuTrigger} aria-label="User Account Menu">
       <Avatar name={user?.full_name || "User"} size="sm" />
-      <div className={styles.userInfo}>
-        <span className={styles.userName}>{user?.full_name || "Signed In"}</span>
-      </div>
     </button>
   );
 

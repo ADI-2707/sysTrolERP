@@ -65,7 +65,7 @@ describe("AppShell", () => {
     expect(screen.getByTestId("app-shell")).toBeInTheDocument();
     expect(screen.getByText("sysTrol ERP")).toBeInTheDocument();
     expect(screen.getByText("Timesheets View")).toBeInTheDocument();
-    expect(screen.getByText("Admin User")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Admin User" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Project Management" }));
     expect(screen.getByText("Projects View")).toBeInTheDocument();
