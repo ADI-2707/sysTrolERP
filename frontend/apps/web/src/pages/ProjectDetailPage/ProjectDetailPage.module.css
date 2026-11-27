@@ -154,6 +154,58 @@
   margin: 0;
 }
 
+.sectionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.stepFilterGroup {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.filterPill {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-fast);
+}
+
+.filterPill:hover {
+  border-color: var(--color-text-secondary);
+}
+
+.filterPillActive {
+  background: var(--color-brand-30-primary);
+  color: #ffffff;
+  border-color: var(--color-brand-30-primary);
+}
+
+.memberSearchInput {
+  padding: 6px 12px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  outline: none;
+  width: 220px;
+}
+
+.noMembers {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
 .timelineWrapper {
   padding: var(--space-2) 0;
 }

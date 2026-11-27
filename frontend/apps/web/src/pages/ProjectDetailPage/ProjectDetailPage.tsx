@@ -60,6 +60,8 @@ export function ProjectDetailPage() {
 
   const [stepToDelete, setStepToDelete] = useState<ProjectStepDetail | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [stepFilter, setStepFilter] = useState<string>("ALL");
+  const [memberSearch, setMemberSearch] = useState<string>("");
 
   const loadDetail = useCallback(async () => {
     if (!id) return;
@@ -303,7 +305,13 @@ export function ProjectDetailPage() {
 
   const stepperItems: StepperItem[] = useMemo(() => {
     if (!project) return [];
-    return project.steps.map((s) => ({
+    let steps = project.steps;
+    if (stepFilter === "PENDING") {
+      steps = steps.filter((s) => s.status !== "COMPLETED");
+    } else if (stepFilter === "COMPLETED") {
+      steps = steps.filter((s) => s.status === "COMPLETED");
+    }
+    return steps.map((s) => ({
       id: String(s.id),
       title: s.name,
       stepType: s.key,
@@ -314,7 +322,19 @@ export function ProjectDetailPage() {
         ? `Confirmed by ${s.confirmed_by_label || "Admin"} on ${new Date(s.confirmed_at).toLocaleDateString()}`
         : undefined,
     }));
-  }, [project]);
+  }, [project, stepFilter]);
+
+  const filteredMembers = useMemo(() => {
+    if (!project?.assignments) return [];
+    const term = memberSearch.trim().toLowerCase();
+    if (!term) return project.assignments;
+    return project.assignments.filter((a) => {
+      const name = a.employee.full_name.toLowerCase();
+      const code = a.employee.employee_code.toLowerCase();
+      const dept = (a.employee.department || "").toLowerCase();
+      return name.includes(term) || code.includes(term) || dept.includes(term);
+    });
+  }, [project?.assignments, memberSearch]);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -452,7 +472,35 @@ export function ProjectDetailPage() {
       </div>
 
       <div className={styles.sectionContainer}>
-        <h2 className={styles.sectionTitle}>Lifecycle Step Timeline</h2>
+        <div className={styles.sectionHeaderRow}>
+          <h2 className={styles.sectionTitle}>Lifecycle Step Timeline</h2>
+          <div className={styles.stepFilterGroup} data-testid="step-filter-group">
+            <button
+              type="button"
+              className={[styles.filterPill, stepFilter === "ALL" && styles.filterPillActive].filter(Boolean).join(" ")}
+              onClick={() => setStepFilter("ALL")}
+              data-testid="step-filter-all"
+            >
+              All Steps
+            </button>
+            <button
+              type="button"
+              className={[styles.filterPill, stepFilter === "PENDING" && styles.filterPillActive].filter(Boolean).join(" ")}
+              onClick={() => setStepFilter("PENDING")}
+              data-testid="step-filter-pending"
+            >
+              Pending
+            </button>
+            <button
+              type="button"
+              className={[styles.filterPill, stepFilter === "COMPLETED" && styles.filterPillActive].filter(Boolean).join(" ")}
+              onClick={() => setStepFilter("COMPLETED")}
+              data-testid="step-filter-completed"
+            >
+              Completed
+            </button>
+          </div>
+        </div>
         <div className={styles.timelineWrapper} data-testid="project-stepper-timeline">
           <Stepper
             items={stepperItems}
@@ -465,6 +513,36 @@ export function ProjectDetailPage() {
             canEditCustom={canEditCustom}
             canDeleteCustom={canDeleteCustom}
           />
+        </div>
+      </div>
+
+      <div className={styles.sectionContainer} data-testid="project-team-section">
+        <div className={styles.sectionHeaderRow}>
+          <h2 className={styles.sectionTitle}>Assigned Team Members</h2>
+          <input
+            type="search"
+            placeholder="Search team members..."
+            value={memberSearch}
+            onChange={(e) => setMemberSearch(e.target.value)}
+            className={styles.memberSearchInput}
+            data-testid="member-search-input"
+          />
+        </div>
+        <div className={styles.membersGrid}>
+          {filteredMembers.length === 0 ? (
+            <p className={styles.noMembers}>No team members found.</p>
+          ) : (
+            filteredMembers.map((assignment) => (
+              <div key={assignment.id} className={styles.memberCard} data-testid={`member-card-${assignment.employee.id}`}>
+                <div className={styles.memberDetails}>
+                  <span className={styles.memberName}>{assignment.employee.full_name}</span>
+                  <span className={styles.memberMeta}>
+                    {assignment.employee.employee_code} • {assignment.employee.department || "General"}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

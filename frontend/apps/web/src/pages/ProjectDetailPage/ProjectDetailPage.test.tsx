@@ -508,4 +508,68 @@ describe("ProjectDetailPage", () => {
       })
     );
   });
+
+  it("filters lifecycle steps by status and filters team members", async () => {
+    const detailWithTeam: ProjectDetailData = {
+      ...mockProjectDetail,
+      assignments: [
+        {
+          id: 1,
+          employee: {
+            id: 10,
+            employee_code: "SYS-010",
+            full_name: "Jane Engineer",
+            department: "Engineering",
+          },
+        },
+        {
+          id: 2,
+          employee: {
+            id: 20,
+            employee_code: "SYS-020",
+            full_name: "Bob Technician",
+            department: "Operations",
+          },
+        },
+      ],
+    };
+    vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(detailWithTeam);
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("step-filter-all")).toBeInTheDocument();
+    expect(screen.getByText("Enquiry")).toBeInTheDocument();
+    expect(screen.getByText("Engineering")).toBeInTheDocument();
+
+    const pendingFilter = screen.getByTestId("step-filter-pending");
+    fireEvent.click(pendingFilter);
+
+    expect(screen.queryByText("Enquiry")).not.toBeInTheDocument();
+    expect(screen.getByText("Engineering")).toBeInTheDocument();
+
+    const completedFilter = screen.getByTestId("step-filter-completed");
+    fireEvent.click(completedFilter);
+
+    expect(screen.getByText("Enquiry")).toBeInTheDocument();
+    expect(screen.queryByText("Engineering")).not.toBeInTheDocument();
+
+    const allFilter = screen.getByTestId("step-filter-all");
+    fireEvent.click(allFilter);
+
+    expect(screen.getByText("Enquiry")).toBeInTheDocument();
+    expect(screen.getByText("Engineering")).toBeInTheDocument();
+
+    expect(screen.getByText("Jane Engineer")).toBeInTheDocument();
+    expect(screen.getByText("Bob Technician")).toBeInTheDocument();
+
+    const memberSearch = screen.getByTestId("member-search-input");
+    fireEvent.change(memberSearch, { target: { value: "Jane" } });
+
+    expect(screen.getByText("Jane Engineer")).toBeInTheDocument();
+    expect(screen.queryByText("Bob Technician")).not.toBeInTheDocument();
+  });
 });
