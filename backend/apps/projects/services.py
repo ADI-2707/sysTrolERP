@@ -125,23 +125,67 @@ def update_step_status(
     new_status: str,
     confirm: bool,
     actor: User | SuperAdminPrincipal,
+    skip_reason: str = "",
     request=None,
 ) -> ProjectStep:
-    current_order = STEP_STATUS_ORDER.get(step.status, 0)
-    new_order = STEP_STATUS_ORDER.get(new_status, 0)
+    if step.status in [StepStatus.COMPLETED, StepStatus.SKIPPED]:
+        raise ValidationError({"status": ["Completed or skipped steps cannot be modified."]})
 
-    if new_order <= current_order:
+    if new_status == step.status:
         raise ValidationError({"status": ["Step status can only move forward."]})
 
-    if new_status == StepStatus.COMPLETED and not confirm:
-        raise ValidationError(
-            {"confirm": ["Confirmation is required to mark a step as completed."]}
-        )
+    if new_status == StepStatus.SKIPPED:
+        if not confirm:
+            raise ValidationError(
+                {"confirm": ["Confirmation is required to skip a step."]}
+            )
+    else:
+        current_order = STEP_STATUS_ORDER.get(step.status, 0)
+        new_order = STEP_STATUS_ORDER.get(new_status, 0)
+        if new_order <= current_order:
+            raise ValidationError({"status": ["Step status can only move forward."]})
+        if new_status == StepStatus.COMPLETED and not confirm:
+            raise ValidationError(
+                {"confirm": ["Confirmation is required to mark a step as completed."]}
+            )
+
+    closure_keys = {"MOM_AND_HANDOVER", "PAYMENT", "AMC"}
+    mom_step = step.project.steps.filter(key="MOM_AND_HANDOVER").first()
+    mom_pos = mom_step.position if mom_step else None
+    is_closure = (step.key in closure_keys) or (mom_pos is not None and step.position >= mom_pos)
+
+    if is_closure:
+        unresolved_prior = step.project.steps.filter(
+            position__lt=step.position
+        ).exclude(status__in=[StepStatus.COMPLETED, StepStatus.SKIPPED])
+        if unresolved_prior.exists():
+            first_unresolved = unresolved_prior.order_by("position").first()
+            raise ValidationError(
+                {
+                    "status": [
+                        f"Cannot advance '{step.name}'. All prior stages must be Completed or Skipped before entering closure milestones. Unresolved step: '{first_unresolved.name}'."
+                    ]
+                }
+            )
+    elif step.position > 1:
+        prev_step = step.project.steps.filter(position=step.position - 1).first()
+        if prev_step and prev_step.status not in [
+            StepStatus.IN_PROGRESS,
+            StepStatus.COMPLETED,
+            StepStatus.SKIPPED,
+        ]:
+            raise ValidationError(
+                {
+                    "status": [
+                        f"Cannot advance '{step.name}'. The previous step '{prev_step.name}' must be In Progress, Completed, or Skipped."
+                    ]
+                }
+            )
 
     old_status = step.status
     step.status = new_status
 
-    if new_status == StepStatus.COMPLETED:
+    if new_status in [StepStatus.COMPLETED, StepStatus.SKIPPED]:
         step.confirmed_at = timezone.now()
         step.confirmed_by = actor if isinstance(actor, User) else None
         step.confirmed_by_label = (
@@ -149,18 +193,37 @@ def update_step_status(
             if isinstance(actor, SuperAdminPrincipal)
             else actor.employee_code
         )
+        if new_status == StepStatus.SKIPPED:
+            step.skip_reason = skip_reason.strip()
 
     step.save(
-        update_fields=["status", "confirmed_at", "confirmed_by", "confirmed_by_label", "updated_at"]
+        update_fields=[
+            "status",
+            "confirmed_at",
+            "confirmed_by",
+            "confirmed_by_label",
+            "skip_reason",
+            "updated_at",
+        ]
     )
 
+    action = "STEP_SKIPPED" if new_status == StepStatus.SKIPPED else "STEP_STATUS_CHANGE"
+    summary = (
+        f"Skipped step {step.name} in project {step.project.code}"
+        if new_status == StepStatus.SKIPPED
+        else f"Changed step {step.name} status to {new_status} in project {step.project.code}"
+    )
+    changes = {"status": [old_status, new_status]}
+    if new_status == StepStatus.SKIPPED and step.skip_reason:
+        changes["skip_reason"] = [None, step.skip_reason]
+
     audit_services.record(
-        action="STEP_STATUS_CHANGE",
+        action=action,
         actor=actor,
         entity_type="ProjectStep",
         entity_id=str(step.id),
-        summary=f"Changed step {step.name} status to {new_status} in project {step.project.code}",
-        changes={"status": [old_status, new_status]},
+        summary=summary,
+        changes=changes,
         request=request,
     )
 
@@ -191,7 +254,9 @@ def insert_sub_step(
         if after_step.key == "AMC":
             raise ValidationError({"after_step_id": ["Sub-steps cannot be inserted after AMC."]})
 
-        max_completed_pos = project.steps.filter(status=StepStatus.COMPLETED).aggregate(
+        max_completed_pos = project.steps.filter(
+            status__in=[StepStatus.COMPLETED, StepStatus.SKIPPED]
+        ).aggregate(
             models.Max("position")
         )["position__max"]
         if max_completed_pos is not None and after_step.position < max_completed_pos:
