@@ -41,6 +41,9 @@ export async function fetchTeamTimesheets(params?: {
   status?: string;
   employee?: string;
   search?: string;
+  department?: string;
+  project_id?: number | string;
+  all_pending?: boolean;
   page?: number;
   page_size?: number;
 }): Promise<PaginatedResponse<TeamTimesheetItem>> {
@@ -49,6 +52,9 @@ export async function fetchTeamTimesheets(params?: {
   if (params?.status) queryParams.set("status", params.status);
   if (params?.employee) queryParams.set("employee", params.employee);
   if (params?.search) queryParams.set("search", params.search);
+  if (params?.department) queryParams.set("department", params.department);
+  if (params?.project_id) queryParams.set("project_id", String(params.project_id));
+  if (params?.all_pending) queryParams.set("all_pending", "true");
   if (params?.page) queryParams.set("page", String(params.page));
   if (params?.page_size) queryParams.set("page_size", String(params.page_size));
 

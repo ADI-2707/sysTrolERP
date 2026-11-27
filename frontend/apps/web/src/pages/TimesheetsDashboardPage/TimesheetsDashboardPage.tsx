@@ -57,6 +57,8 @@ export function TimesheetsDashboardPage() {
   const reviewPageSize = 20;
   const [reviewSearch, setReviewSearch] = useState<string>("");
   const [reviewStatus, setReviewStatus] = useState<string>("ALL");
+  const [reviewAllPending, setReviewAllPending] = useState<boolean>(false);
+  const [reviewDepartment, setReviewDepartment] = useState<string>("");
   const [totalReviewCount, setTotalReviewCount] = useState<number>(0);
   const [healthData, setHealthData] = useState<HealthCheckData | null>(null);
   const [telemetryData, setTelemetryData] = useState<TelemetrySummaryData | null>(null);
@@ -70,6 +72,16 @@ export function TimesheetsDashboardPage() {
 
   const handleReviewStatusChange = (val: string) => {
     setReviewStatus(val);
+    setReviewPage(1);
+  };
+
+  const handleReviewAllPendingChange = (val: boolean) => {
+    setReviewAllPending(val);
+    setReviewPage(1);
+  };
+
+  const handleReviewDepartmentChange = (val: string) => {
+    setReviewDepartment(val);
     setReviewPage(1);
   };
 
@@ -87,18 +99,25 @@ export function TimesheetsDashboardPage() {
 
       if (canReviewTeam) {
         const teamParams: {
-          week: string;
+          week?: string;
           page: number;
           page_size: number;
           search?: string;
           status?: string;
+          department?: string;
+          all_pending?: boolean;
         } = {
-          week: currentWeekStart,
           page: reviewPage,
           page_size: reviewPageSize,
         };
+        if (!reviewAllPending) {
+          teamParams.week = currentWeekStart;
+        } else {
+          teamParams.all_pending = true;
+        }
         if (reviewSearch.trim()) teamParams.search = reviewSearch.trim();
-        if (reviewStatus !== "ALL") teamParams.status = reviewStatus;
+        if (!reviewAllPending && reviewStatus !== "ALL") teamParams.status = reviewStatus;
+        if (reviewDepartment) teamParams.department = reviewDepartment;
 
         const [sumData, teamData] = await Promise.all([
           fetchTimesheetSummary(currentWeekStart),
@@ -121,7 +140,7 @@ export function TimesheetsDashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentWeekStart, isSuper, canReviewTeam, reviewPage, reviewSearch, reviewStatus]);
+  }, [currentWeekStart, isSuper, canReviewTeam, reviewPage, reviewSearch, reviewStatus, reviewAllPending, reviewDepartment]);
 
   useEffect(() => {
     loadData();
@@ -321,6 +340,10 @@ export function TimesheetsDashboardPage() {
             onSearchChange={handleReviewSearchChange}
             statusFilter={reviewStatus}
             onStatusFilterChange={handleReviewStatusChange}
+            allPending={reviewAllPending}
+            onAllPendingChange={handleReviewAllPendingChange}
+            departmentFilter={reviewDepartment}
+            onDepartmentFilterChange={handleReviewDepartmentChange}
           />
         </div>
       )}

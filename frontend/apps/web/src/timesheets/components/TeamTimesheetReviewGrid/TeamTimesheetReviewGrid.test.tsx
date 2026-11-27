@@ -283,4 +283,38 @@ describe("TeamTimesheetReviewGrid", () => {
       });
     });
   });
+
+  it("filters timesheets by department and all pending toggle", () => {
+    const handleDept = vi.fn();
+    const handleAllPending = vi.fn();
+
+    const { rerender } = render(
+      <TeamTimesheetReviewGrid
+        timesheets={mockTimesheets}
+        onApprove={vi.fn()}
+        onReturn={vi.fn()}
+        onDepartmentFilterChange={handleDept}
+        onAllPendingChange={handleAllPending}
+      />
+    );
+
+    const deptSelect = screen.getByTestId("filter-department-select");
+    fireEvent.change(deptSelect, { target: { value: "Engineering" } });
+    expect(handleDept).toHaveBeenCalledWith("Engineering");
+
+    const allPendingBtn = screen.getByTestId("toggle-all-pending-btn");
+    fireEvent.click(allPendingBtn);
+    expect(handleAllPending).toHaveBeenCalledWith(true);
+
+    rerender(
+      <TeamTimesheetReviewGrid
+        timesheets={mockTimesheets}
+        onApprove={vi.fn()}
+        onReturn={vi.fn()}
+        allPending={true}
+      />
+    );
+
+    expect(screen.getByTestId("filter-status-select")).toBeDisabled();
+  });
 });

@@ -22,6 +22,10 @@ export interface TeamTimesheetReviewGridProps {
   onSearchChange?: (val: string) => void;
   statusFilter?: string;
   onStatusFilterChange?: (val: string) => void;
+  allPending?: boolean;
+  onAllPendingChange?: (val: boolean) => void;
+  departmentFilter?: string;
+  onDepartmentFilterChange?: (val: string) => void;
 }
 
 export function TeamTimesheetReviewGrid({
@@ -41,15 +45,21 @@ export function TeamTimesheetReviewGrid({
   onSearchChange,
   statusFilter = "ALL",
   onStatusFilterChange,
+  allPending = false,
+  onAllPendingChange,
+  departmentFilter = "",
+  onDepartmentFilterChange,
 }: TeamTimesheetReviewGridProps) {
   const [localSearch, setLocalSearch] = useState("");
   const [localStatus, setLocalStatus] = useState<string>("ALL");
+  const [localDepartment, setLocalDepartment] = useState("");
   const [reviewItem, setReviewItem] = useState<TeamTimesheetItem | null>(null);
   const [overrideItem, setOverrideItem] = useState<TeamTimesheetItem | null>(null);
 
   const isServerFiltered = onSearchChange !== undefined;
   const currentSearch = isServerFiltered ? searchTerm : localSearch;
   const currentStatus = isServerFiltered ? statusFilter : localStatus;
+  const currentDepartment = onDepartmentFilterChange !== undefined ? (departmentFilter || "") : localDepartment;
 
   const handleSearchChange = (val: string) => {
     if (onSearchChange) onSearchChange(val);
@@ -61,10 +71,21 @@ export function TeamTimesheetReviewGrid({
     else setLocalStatus(val);
   };
 
+  const handleDepartmentChange = (val: string) => {
+    if (onDepartmentFilterChange) onDepartmentFilterChange(val);
+    else setLocalDepartment(val);
+  };
+
   const filteredTimesheets = useMemo(() => {
     if (isServerFiltered) return timesheets;
     return timesheets.filter((ts) => {
-      if (currentStatus !== "ALL" && ts.status !== currentStatus) {
+      if (allPending && ts.status !== "SUBMITTED") {
+        return false;
+      }
+      if (!allPending && currentStatus !== "ALL" && ts.status !== currentStatus) {
+        return false;
+      }
+      if (currentDepartment && ts.employee.department?.toLowerCase() !== currentDepartment.toLowerCase()) {
         return false;
       }
       if (currentSearch.trim()) {
@@ -77,7 +98,7 @@ export function TeamTimesheetReviewGrid({
       }
       return true;
     });
-  }, [timesheets, currentStatus, currentSearch, isServerFiltered]);
+  }, [timesheets, currentStatus, currentSearch, currentDepartment, allPending, isServerFiltered]);
 
   const handleOverrideConfirm = async (payload: { reason: string; status: TimesheetStatus }) => {
     if (!overrideItem || !onOverride) return;
@@ -106,6 +127,7 @@ export function TeamTimesheetReviewGrid({
             value={currentStatus}
             onChange={(e) => handleStatusChange(e.target.value)}
             data-testid="filter-status-select"
+            disabled={allPending}
           >
             <option value="ALL">All Statuses</option>
             <option value="SUBMITTED">Submitted</option>
@@ -113,6 +135,29 @@ export function TeamTimesheetReviewGrid({
             <option value="RETURNED">Returned</option>
             <option value="OPEN">Open</option>
           </select>
+
+          <select
+            className={styles.selectInput}
+            value={currentDepartment}
+            onChange={(e) => handleDepartmentChange(e.target.value)}
+            data-testid="filter-department-select"
+          >
+            <option value="">All Departments</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Project Management">Project Management</option>
+            <option value="Quality Assurance">Quality Assurance</option>
+            <option value="Site Operations">Site Operations</option>
+            <option value="Commissioning">Commissioning</option>
+          </select>
+
+          <button
+            type="button"
+            className={[styles.toggleBtn, allPending && styles.activeToggleBtn].filter(Boolean).join(" ")}
+            onClick={() => onAllPendingChange?.(!allPending)}
+            data-testid="toggle-all-pending-btn"
+          >
+            {allPending ? "Pending (All Weeks)" : "All Weeks Pending"}
+          </button>
         </div>
 
         <span className={styles.countNotice}>
