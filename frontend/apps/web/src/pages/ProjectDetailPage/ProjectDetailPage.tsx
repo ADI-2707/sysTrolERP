@@ -31,6 +31,7 @@ const nextStatusMap: Record<StepStatusType, StepStatusType> = {
   INITIATED: "IN_PROGRESS",
   IN_PROGRESS: "COMPLETED",
   COMPLETED: "COMPLETED",
+  SKIPPED: "SKIPPED",
 };
 
 export function ProjectDetailPage() {
@@ -47,6 +48,11 @@ export function ProjectDetailPage() {
 
   const [stepToComplete, setStepToComplete] = useState<ProjectStepDetail | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
+
+  const [stepToSkip, setStepToSkip] = useState<ProjectStepDetail | null>(null);
+  const [skipReason, setSkipReason] = useState<string>("");
+  const [skipError, setSkipError] = useState<string | null>(null);
+  const [isSkipping, setIsSkipping] = useState<boolean>(false);
 
   const [insertAfterStep, setInsertAfterStep] = useState<ProjectStepDetail | null>(null);
   const [subStepName, setSubStepName] = useState<string>("");
@@ -88,13 +94,14 @@ export function ProjectDetailPage() {
   const executeStatusChange = async (
     stepId: number,
     status: StepStatusType,
-    confirm: boolean
+    confirm: boolean,
+    reason?: string
   ) => {
     if (!project) return;
     setIsUpdatingStatus(true);
     lock("Updating step status...");
     try {
-      await updateStepStatus(project.id, stepId, status, confirm);
+      await updateStepStatus(project.id, stepId, status, confirm, reason);
       addToast({
         type: "success",
         title: "Status updated",
@@ -117,7 +124,7 @@ export function ProjectDetailPage() {
   const handleAdvanceStep = (stepIdStr: string) => {
     if (!project || !canManage) return;
     const step = project.steps.find((s) => String(s.id) === stepIdStr);
-    if (!step || step.status === "COMPLETED") return;
+    if (!step || step.status === "COMPLETED" || step.status === "SKIPPED") return;
 
     const nextStatus = nextStatusMap[step.status];
     if (nextStatus === "COMPLETED") {
@@ -130,20 +137,119 @@ export function ProjectDetailPage() {
   const handleStatusChange = (stepIdStr: string, nextStatus: StepStatus) => {
     if (!project || !canManage) return;
     const step = project.steps.find((s) => String(s.id) === stepIdStr);
-    if (!step || step.status === "COMPLETED") return;
+    if (!step || step.status === "COMPLETED" || step.status === "SKIPPED") return;
 
     if (nextStatus === "COMPLETED") {
       setStepToComplete(step);
+    } else if (nextStatus === "SKIPPED") {
+      handleOpenSkipModal(stepIdStr);
     } else {
       executeStatusChange(step.id, nextStatus as StepStatusType, false);
     }
   };
 
+  const canAdvanceStep = useCallback(
+    (stepItem: StepperItem): { canAdvance: boolean; reason?: string } => {
+      if (!project) return { canAdvance: false };
+      if (stepItem.status === "COMPLETED" || stepItem.status === "SKIPPED") {
+        return { canAdvance: false };
+      }
+
+      const closureKeys = new Set(["MOM_AND_HANDOVER", "PAYMENT", "AMC"]);
+      const momStep = project.steps.find((s) => s.key === "MOM_AND_HANDOVER");
+      const isClosure =
+        (stepItem.stepType && closureKeys.has(stepItem.stepType)) ||
+        (momStep && stepItem.position >= momStep.position);
+
+      if (isClosure) {
+        const unresolved = project.steps
+          .filter((s) => s.position < stepItem.position)
+          .filter((s) => s.status !== "COMPLETED" && s.status !== "SKIPPED");
+        if (unresolved.length > 0) {
+          return {
+            canAdvance: false,
+            reason: `All prior stages must be Completed or Skipped before entering closure milestones. Unresolved: ${unresolved[0].name}.`,
+          };
+        }
+      } else if (stepItem.position > 1) {
+        const prevStep = project.steps.find((s) => s.position === stepItem.position - 1);
+        if (
+          prevStep &&
+          prevStep.status !== "IN_PROGRESS" &&
+          prevStep.status !== "COMPLETED" &&
+          prevStep.status !== "SKIPPED"
+        ) {
+          return {
+            canAdvance: false,
+            reason: `Preceding step "${prevStep.name}" must be In Progress, Completed, or Skipped.`,
+          };
+        }
+      }
+
+      return { canAdvance: true };
+    },
+    [project]
+  );
+
+  const canSkipStep = useCallback(
+    (stepItem: StepperItem) => {
+      if (!canManage || !project) return false;
+      if (stepItem.status === "COMPLETED" || stepItem.status === "SKIPPED") return false;
+      return canAdvanceStep(stepItem).canAdvance;
+    },
+    [canManage, project, canAdvanceStep]
+  );
+
+  const handleOpenSkipModal = (stepIdStr: string) => {
+    if (!project || !canManage) return;
+    const step = project.steps.find((s) => String(s.id) === stepIdStr);
+    if (!step || step.status === "COMPLETED" || step.status === "SKIPPED") return;
+    setStepToSkip(step);
+    setSkipReason("");
+    setSkipError(null);
+  };
+
+  const handleCloseSkipModal = () => {
+    if (isSkipping) return;
+    setStepToSkip(null);
+    setSkipReason("");
+    setSkipError(null);
+  };
+
+  const handleConfirmSkip = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!project || !stepToSkip) return;
+    setIsSkipping(true);
+    setSkipError(null);
+    lock("Skipping step...");
+    try {
+      await updateStepStatus(project.id, stepToSkip.id, "SKIPPED", true, skipReason.trim());
+      addToast({
+        type: "success",
+        title: "Step skipped",
+        description: `Step "${stepToSkip.name}" has been marked as skipped.`,
+      });
+      handleCloseSkipModal();
+      await loadDetail();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to skip step.";
+      setSkipError(msg);
+      addToast({
+        type: "error",
+        title: "Skip failed",
+        description: msg,
+      });
+    } finally {
+      setIsSkipping(false);
+      unlock();
+    }
+  };
+
   const highestCompletedPosition = useMemo(() => {
     if (!project) return 0;
-    const completed = project.steps.filter((s) => s.status === "COMPLETED");
-    if (completed.length === 0) return 0;
-    return Math.max(...completed.map((s) => s.position));
+    const terminal = project.steps.filter((s) => s.status === "COMPLETED" || s.status === "SKIPPED");
+    if (terminal.length === 0) return 0;
+    return Math.max(...terminal.map((s) => s.position));
   }, [project]);
 
   const canInsertAfter = useCallback(
@@ -307,9 +413,9 @@ export function ProjectDetailPage() {
     if (!project) return [];
     let steps = project.steps;
     if (stepFilter === "PENDING") {
-      steps = steps.filter((s) => s.status !== "COMPLETED");
+      steps = steps.filter((s) => s.status !== "COMPLETED" && s.status !== "SKIPPED");
     } else if (stepFilter === "COMPLETED") {
-      steps = steps.filter((s) => s.status === "COMPLETED");
+      steps = steps.filter((s) => s.status === "COMPLETED" || s.status === "SKIPPED");
     }
     return steps.map((s) => ({
       id: String(s.id),
@@ -321,6 +427,7 @@ export function ProjectDetailPage() {
       description: s.confirmed_at
         ? `Confirmed by ${s.confirmed_by_label || "Admin"} on ${new Date(s.confirmed_at).toLocaleDateString()}`
         : undefined,
+      skipReason: s.skip_reason,
     }));
   }, [project, stepFilter]);
 
@@ -506,9 +613,12 @@ export function ProjectDetailPage() {
             items={stepperItems}
             onStatusChange={canManage ? handleStatusChange : undefined}
             onAdvanceStep={canManage ? handleAdvanceStep : undefined}
+            onSkipStep={canManage ? handleOpenSkipModal : undefined}
             onInsertAfter={canManage ? handleOpenInsertModal : undefined}
             onEditCustom={canManage ? handleOpenEditModal : undefined}
             onDeleteCustom={canManage ? handleOpenDeleteModal : undefined}
+            canAdvanceStep={canAdvanceStep}
+            canSkipStep={canSkipStep}
             canInsertAfter={canInsertAfter}
             canEditCustom={canEditCustom}
             canDeleteCustom={canDeleteCustom}
@@ -579,6 +689,52 @@ export function ProjectDetailPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!stepToSkip}
+        onClose={handleCloseSkipModal}
+        title="Confirm Skip Step"
+        size="md"
+      >
+        <form onSubmit={handleConfirmSkip} data-testid="skip-step-modal">
+          <p className={styles.modalText}>
+            Are you sure you want to skip step &ldquo;{stepToSkip?.name}&rdquo;? Skipping is permanent and records an audit log entry.
+          </p>
+          <FormField
+            id="skip-reason-input"
+            label="Reason for Skipping"
+            error={skipError || undefined}
+          >
+            <Input
+              id="skip-reason-input"
+              value={skipReason}
+              onChange={(e) => setSkipReason(e.target.value)}
+              placeholder="e.g. Scope excluded per contract amendment"
+              data-testid="skip-reason-input"
+              disabled={isSkipping}
+            />
+          </FormField>
+          <div className={styles.modalFooter}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCloseSkipModal}
+              data-testid="cancel-skip-step-btn"
+              disabled={isSkipping}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="danger"
+              data-testid="confirm-skip-step-btn"
+              loading={isSkipping}
+            >
+              Confirm Skip
+            </Button>
+          </div>
+        </form>
       </Modal>
 
       <Modal
