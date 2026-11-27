@@ -1,4 +1,4 @@
-export type StepStatusType = "NOT_STARTED" | "INITIATED" | "IN_PROGRESS" | "COMPLETED";
+export type StepStatusType = "NOT_STARTED" | "INITIATED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
 
 export interface ProjectCurrentStep {
   id: number;
@@ -42,6 +42,7 @@ export interface ProjectStepDetail {
   status: StepStatusType;
   confirmed_at: string | null;
   confirmed_by_label: string | null;
+  skip_reason?: string | null;
 }
 
 export interface ProjectMemberDetail {

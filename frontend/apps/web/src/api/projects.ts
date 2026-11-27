@@ -99,11 +99,12 @@ export async function updateStepStatus(
   projectId: number | string,
   stepId: number | string,
   status: StepStatusType,
-  confirm: boolean = false
+  confirm: boolean = false,
+  skip_reason?: string
 ): Promise<ProjectStepDetail> {
   return apiClient.post<ProjectStepDetail>(
     `/api/projects/${projectId}/steps/${stepId}/status/`,
-    { status, confirm }
+    { status, confirm, skip_reason }
   );
 }
 

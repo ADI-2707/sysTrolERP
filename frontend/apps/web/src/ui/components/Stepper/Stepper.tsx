@@ -2,7 +2,7 @@ import { IconCheck, IconEdit, IconLock, IconPlus, IconTrash } from "../../icons"
 import { Badge } from "../Display";
 import styles from "./Stepper.module.css";
 
-export type StepStatus = "NOT_STARTED" | "INITIATED" | "IN_PROGRESS" | "COMPLETED";
+export type StepStatus = "NOT_STARTED" | "INITIATED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
 
 export interface StepperItem {
   id: string;
@@ -13,15 +13,19 @@ export interface StepperItem {
   position: number;
   description?: string;
   completedAt?: string;
+  skipReason?: string | null;
 }
 
 export interface StepperProps {
   items: StepperItem[];
   onStatusChange?: (stepId: string, status: StepStatus) => void;
   onAdvanceStep?: (stepId: string) => void;
+  onSkipStep?: (stepId: string) => void;
   onInsertAfter?: (stepId: string) => void;
   onEditCustom?: (stepId: string) => void;
   onDeleteCustom?: (stepId: string) => void;
+  canAdvanceStep?: (step: StepperItem) => { canAdvance: boolean; reason?: string } | boolean;
+  canSkipStep?: (step: StepperItem) => boolean;
   canInsertAfter?: (step: StepperItem) => boolean;
   canEditCustom?: (step: StepperItem) => boolean;
   canDeleteCustom?: (step: StepperItem) => boolean;
@@ -32,9 +36,12 @@ export function Stepper({
   items,
   onStatusChange,
   onAdvanceStep,
+  onSkipStep,
   onInsertAfter,
   onEditCustom,
   onDeleteCustom,
+  canAdvanceStep,
+  canSkipStep = () => false,
   canInsertAfter = () => true,
   canEditCustom = (s) => Boolean(s.isCustom && s.status === "NOT_STARTED"),
   canDeleteCustom = (s) => Boolean(s.isCustom && s.status === "NOT_STARTED"),
@@ -48,6 +55,8 @@ export function Stepper({
         return "brand";
       case "INITIATED":
         return "info";
+      case "SKIPPED":
+        return "warning";
       default:
         return "default";
     }
@@ -61,6 +70,8 @@ export function Stepper({
         return styles["status-in-progress"];
       case "INITIATED":
         return styles["status-initiated"];
+      case "SKIPPED":
+        return styles["status-skipped"];
       default:
         return styles["status-not-started"];
     }
@@ -70,12 +81,19 @@ export function Stepper({
     <div className={[styles.stepper, className].filter(Boolean).join(" ")}>
       {items.map((step, idx) => {
         const isCompleted = step.status === "COMPLETED";
+        const isSkipped = step.status === "SKIPPED";
+        const isTerminal = isCompleted || isSkipped;
         const isLast = idx === items.length - 1;
         const nextStep = !isLast ? items[idx + 1] : null;
-        const isLineCompleted = nextStep?.status === "COMPLETED";
+        const isLineCompleted = nextStep?.status === "COMPLETED" || nextStep?.status === "SKIPPED";
         const isSubStep = Boolean(step.isCustom);
         const nextIsSubStep = Boolean(nextStep?.isCustom);
         const allowInsert = !isLast && onInsertAfter && canInsertAfter(step);
+
+        const advanceCheck = canAdvanceStep ? canAdvanceStep(step) : true;
+        const isEligible = typeof advanceCheck === "boolean" ? advanceCheck : advanceCheck.canAdvance;
+        const advanceReason = typeof advanceCheck === "object" ? advanceCheck.reason : undefined;
+        const allowSkip = Boolean(!isTerminal && onSkipStep && canSkipStep && canSkipStep(step));
 
         return (
           <div
@@ -163,7 +181,7 @@ export function Stepper({
                   .join(" ")}
                 data-testid={`step-indicator-${step.id}`}
               >
-                {isCompleted ? <IconCheck size={14} /> : idx + 1}
+                {isCompleted ? <IconCheck size={14} /> : isSkipped ? <span>—</span> : idx + 1}
               </div>
 
               {allowInsert && (
@@ -199,12 +217,13 @@ export function Stepper({
                   <button
                     type="button"
                     onClick={() => {
-                      if (!onStatusChange || isCompleted) return;
+                      if (!onStatusChange || isTerminal || !isEligible) return;
                       const nextMap: Record<StepStatus, StepStatus> = {
                         NOT_STARTED: "INITIATED",
                         INITIATED: "IN_PROGRESS",
                         IN_PROGRESS: "COMPLETED",
                         COMPLETED: "COMPLETED",
+                        SKIPPED: "SKIPPED",
                       };
                       onStatusChange(step.id, nextMap[step.status]);
                     }}
@@ -212,9 +231,9 @@ export function Stepper({
                       background: "none",
                       border: "none",
                       padding: 0,
-                      cursor: onStatusChange && !isCompleted ? "pointer" : "default",
+                      cursor: onStatusChange && !isTerminal && isEligible ? "pointer" : "default",
                     }}
-                    disabled={!onStatusChange || isCompleted}
+                    disabled={!onStatusChange || isTerminal || !isEligible}
                     aria-label={`Status: ${step.status}`}
                     data-testid={`step-status-btn-${step.id}`}
                   >
@@ -228,17 +247,40 @@ export function Stepper({
                       <span>Locked</span>
                     </span>
                   )}
+                  {isSkipped && (
+                    <span className={styles["locked-tag"]} data-testid={`step-skipped-tag-${step.id}`}>
+                      <IconLock size={12} />
+                      <span>Skipped</span>
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles["step-actions"]}>
-                  {!isCompleted && onAdvanceStep && (
+                  {!isTerminal && onAdvanceStep && (
                     <button
                       type="button"
-                      onClick={() => onAdvanceStep(step.id)}
-                      className={styles["advance-btn"]}
+                      onClick={() => isEligible && onAdvanceStep(step.id)}
+                      disabled={!isEligible}
+                      title={!isEligible ? advanceReason : undefined}
+                      className={[
+                        styles["advance-btn"],
+                        !isEligible && styles["is-disabled"],
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                       data-testid={`advance-step-btn-${step.id}`}
                     >
                       Advance Status
+                    </button>
+                  )}
+                  {allowSkip && onSkipStep && (
+                    <button
+                      type="button"
+                      onClick={() => onSkipStep(step.id)}
+                      className={styles["skip-btn"]}
+                      data-testid={`skip-step-btn-${step.id}`}
+                    >
+                      Skip Step
                     </button>
                   )}
                   {step.isCustom && canEditCustom(step) && onEditCustom && (
@@ -268,6 +310,11 @@ export function Stepper({
 
               {step.description && (
                 <div className={styles["step-description"]}>{step.description}</div>
+              )}
+              {step.skipReason && (
+                <div className={styles["skip-reason-text"]} data-testid={`step-skip-reason-${step.id}`}>
+                  Skipped: {step.skipReason}
+                </div>
               )}
             </div>
           </div>

@@ -101,6 +101,13 @@
   color: #ffffff;
 }
 
+.step-indicator.status-skipped {
+  border-color: var(--color-status-warning, #f59e0b);
+  background-color: var(--color-status-warning-bg, rgba(245, 158, 11, 0.1));
+  color: var(--color-status-warning, #f59e0b);
+  border-style: dashed;
+}
+
 .step-content {
   flex: 1;
   margin-left: 38px;
@@ -218,4 +225,41 @@
 .advance-btn:hover {
   background: var(--color-brand-30-primary);
   color: #ffffff;
+}
+
+.advance-btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: var(--color-neutral-60-border-subtle);
+  color: var(--color-neutral-60-text-muted);
+  background: var(--color-neutral-60-surface);
+}
+
+.advance-btn.is-disabled:hover {
+  background: var(--color-neutral-60-surface);
+  color: var(--color-neutral-60-text-muted);
+}
+
+.skip-btn {
+  background: none;
+  border: 1px solid var(--color-neutral-60-border-subtle);
+  color: var(--color-neutral-60-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.skip-btn:hover {
+  border-color: var(--color-status-warning, #f59e0b);
+  color: var(--color-status-warning, #f59e0b);
+}
+
+.skip-reason-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-60-text-muted);
+  font-style: italic;
+  margin-top: 2px;
 }
