@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { IconClose, IconError, IconInfo, IconSuccess, IconWarning } from "../../icons";
 import styles from "./Toast.module.css";
 
@@ -23,15 +23,29 @@ export interface ToastProps {
 
 export function Toast({ toast, onDismiss }: ToastProps) {
   const { id, type = "info", title, description, duration = 4000, action } = toast;
+  const [isExiting, setIsExiting] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const remainingRef = useRef<number>(duration);
   const startTimeRef = useRef<number>(Date.now());
 
+  const triggerDismiss = useCallback(() => {
+    if (isExiting) return;
+    setIsExiting(true);
+  }, [isExiting]);
+
+  useEffect(() => {
+    if (!isExiting) return;
+    const timer = setTimeout(() => {
+      onDismiss(id);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [isExiting, id, onDismiss]);
+
   const startTimer = () => {
-    if (duration <= 0) return;
+    if (duration <= 0 || isExiting) return;
     startTimeRef.current = Date.now();
     timerRef.current = setTimeout(() => {
-      onDismiss(id);
+      triggerDismiss();
     }, remainingRef.current);
   };
 
@@ -48,7 +62,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [id, duration]);
+  }, [id, duration, isExiting]);
 
   const getIcon = () => {
     switch (type) {
@@ -63,12 +77,18 @@ export function Toast({ toast, onDismiss }: ToastProps) {
     }
   };
 
+  const toastClass = [
+    styles.toast,
+    styles[`variant-${type}`],
+    isExiting ? styles["toast-exit"] : styles["toast-enter"],
+  ].filter(Boolean).join(" ");
+
   return (
     <div
       role="status"
       onMouseEnter={pauseTimer}
       onMouseLeave={startTimer}
-      className={[styles.toast, styles[`variant-${type}`]].filter(Boolean).join(" ")}
+      className={toastClass}
     >
       <div className={styles["icon-wrapper"]} aria-hidden="true">
         {getIcon()}
@@ -80,9 +100,10 @@ export function Toast({ toast, onDismiss }: ToastProps) {
           <button
             type="button"
             className={styles["action-button"]}
+            disabled={isExiting}
             onClick={() => {
               action.onClick();
-              onDismiss(id);
+              triggerDismiss();
             }}
           >
             {action.label}
@@ -91,9 +112,10 @@ export function Toast({ toast, onDismiss }: ToastProps) {
       </div>
       <button
         type="button"
-        onClick={() => onDismiss(id)}
+        onClick={triggerDismiss}
         className={styles["close-button"]}
         aria-label="Dismiss notification"
+        disabled={isExiting}
       >
         <IconClose size={16} />
       </button>

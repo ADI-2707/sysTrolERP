@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ToastProvider, useToast } from "./ToastContext";
 
@@ -24,7 +24,7 @@ function TestToastConsumer() {
 }
 
 describe("Toast system", () => {
-  it("renders toast notifications and aria-live region", () => {
+  it("renders toast notifications and aria-live region", async () => {
     render(
       <ToastProvider>
         <TestToastConsumer />
@@ -38,7 +38,9 @@ describe("Toast system", () => {
 
     const closeBtn = screen.getByRole("button", { name: "Dismiss notification" });
     fireEvent.click(closeBtn);
-    expect(screen.queryByText("Changes saved")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText("Changes saved")).not.toBeInTheDocument();
+    });
   });
 
   it("handles promise toast resolution", async () => {
