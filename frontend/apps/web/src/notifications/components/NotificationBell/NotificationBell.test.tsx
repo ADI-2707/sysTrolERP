@@ -65,8 +65,6 @@ describe("NotificationBell", () => {
       count: 1,
       next: null,
       previous: null,
-      page: 1,
-      total_pages: 1,
       results: [
         {
           id: 101,
@@ -140,8 +138,6 @@ describe("NotificationBell", () => {
       count: 2,
       next: null,
       previous: null,
-      page: 1,
-      total_pages: 1,
       results: [
         {
           id: 1,
@@ -197,8 +193,6 @@ describe("NotificationBell", () => {
       count: 0,
       next: null,
       previous: null,
-      page: 1,
-      total_pages: 0,
       results: [],
     });
 
