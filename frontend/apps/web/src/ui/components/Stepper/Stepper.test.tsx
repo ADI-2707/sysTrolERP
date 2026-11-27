@@ -154,7 +154,7 @@ describe("Stepper component", () => {
     expect(screen.getByTestId("step-skip-reason-s-skip")).toHaveTextContent("Skipped: Client handled on-site civil work");
   });
 
-  it("disables advance button when canAdvanceStep returns false", () => {
+  it("renders locked placeholder and hides advance button when canAdvanceStep returns false", () => {
     const handleAdvance = vi.fn();
     render(
       <Stepper
@@ -168,11 +168,10 @@ describe("Stepper component", () => {
       />
     );
 
-    const advanceBtnS3 = screen.getByTestId("advance-step-btn-s3");
-    expect(advanceBtnS3).toBeDisabled();
-    expect(advanceBtnS3).toHaveAttribute("title", "Preceding step must be completed.");
-    fireEvent.click(advanceBtnS3);
-    expect(handleAdvance).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("advance-step-btn-s3")).not.toBeInTheDocument();
+    const lockedS3 = screen.getByTestId("locked-placeholder-s3");
+    expect(lockedS3).toBeInTheDocument();
+    expect(lockedS3).toHaveAttribute("title", "Preceding step must be completed.");
   });
 
   it("triggers onSkipStep when skip button is clicked", () => {

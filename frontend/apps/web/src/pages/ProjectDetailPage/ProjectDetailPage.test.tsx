@@ -567,7 +567,7 @@ describe("ProjectDetailPage", () => {
     expect(screen.queryByText("Bob Technician")).not.toBeInTheDocument();
   });
 
-  it("disables advance button on step whose predecessor has not started", async () => {
+  it("locks downstream step whose predecessor has not started", async () => {
     vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
     renderComponent();
 
@@ -576,11 +576,11 @@ describe("ProjectDetailPage", () => {
     });
 
     const advanceBtn105 = screen.getByTestId("advance-step-btn-105");
-    expect(advanceBtn105).not.toBeDisabled();
+    expect(advanceBtn105).toHaveTextContent("Start Step");
 
-    const advanceBtn199 = screen.getByTestId("advance-step-btn-199");
-    expect(advanceBtn199).toBeDisabled();
-    expect(advanceBtn199).toHaveAttribute("title", expect.stringContaining("Custom Started Review"));
+    expect(screen.queryByTestId("advance-step-btn-199")).not.toBeInTheDocument();
+    const locked199 = screen.getByTestId("locked-placeholder-199");
+    expect(locked199).toHaveAttribute("title", expect.stringContaining("Custom Started Review"));
   });
 
   it("opens skip modal and skips eligible step with confirmation and reason", async () => {
@@ -626,7 +626,7 @@ describe("ProjectDetailPage", () => {
     });
   });
 
-  it("disables advance button on AMC due to closure hard gate", async () => {
+  it("locks AMC step due to closure hard gate", async () => {
     vi.mocked(projectsApi.fetchProjectDetail).mockResolvedValue(mockProjectDetail);
     renderComponent();
 
@@ -634,9 +634,9 @@ describe("ProjectDetailPage", () => {
       expect(screen.getByTestId("project-detail-page")).toBeInTheDocument();
     });
 
-    const advanceBtn106 = screen.getByTestId("advance-step-btn-106");
-    expect(advanceBtn106).toBeDisabled();
-    expect(advanceBtn106).toHaveAttribute(
+    expect(screen.queryByTestId("advance-step-btn-106")).not.toBeInTheDocument();
+    const locked106 = screen.getByTestId("locked-placeholder-106");
+    expect(locked106).toHaveAttribute(
       "title",
       expect.stringContaining("prior stages must be Completed or Skipped")
     );
