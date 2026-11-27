@@ -20,16 +20,26 @@
     "test:e2e": "playwright test",
     "audit": "npm audit --omit=dev --audit-level=high",
     "smoke:deploy": "python scripts/smoke_test_deploy.py",
-    "lint": "python scripts/check_no_comments.py",
+    "lint": "python -m ruff check . && python -m ruff format --check . && python scripts/check_no_comments.py",
+    "lint:fix": "python -m ruff check --fix . && python -m ruff format .",
+    "format": "python -m ruff format .",
+    "format:check": "python -m ruff format --check .",
     "seed": "python backend/manage.py seed_demo",
     "seed:fresh": "python backend/manage.py seed_demo --clear",
     "migrate": "python backend/manage.py migrate"
+  },
+  "lint-staged": {
+    "*.py": [
+      "python -m ruff check --fix",
+      "python -m ruff format"
+    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^19.7.1",
     "@commitlint/config-conventional": "^19.7.1",
     "@playwright/test": "^1.65.1",
     "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "typescript": "^5.7.3"
   }
 }
