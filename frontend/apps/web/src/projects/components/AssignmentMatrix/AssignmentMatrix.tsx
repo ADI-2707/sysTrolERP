@@ -31,6 +31,8 @@ export function AssignmentMatrix() {
       const res = await fetchAssignmentMatrix({
         page: pageToLoad,
         page_size: employeePageSize,
+        employee_search: employeeSearch.trim() || undefined,
+        project_search: projectSearch.trim() || undefined,
       });
       setData(res);
     } catch (err: unknown) {
@@ -42,11 +44,21 @@ export function AssignmentMatrix() {
     } finally {
       setIsLoading(false);
     }
-  }, [employeePage, employeePageSize]);
+  }, [employeePage, employeePageSize, employeeSearch, projectSearch]);
 
   useEffect(() => {
     loadMatrix(employeePage);
-  }, [employeePage]);
+  }, [loadMatrix, employeePage]);
+
+  const handleEmployeeSearchChange = (val: string) => {
+    setEmployeeSearch(val);
+    setEmployeePage(1);
+  };
+
+  const handleProjectSearchChange = (val: string) => {
+    setProjectSearch(val);
+    setEmployeePage(1);
+  };
 
   const assignmentSet = useMemo(() => {
     const set = new Set<string>();
@@ -139,7 +151,7 @@ export function AssignmentMatrix() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !data) {
     return (
       <div className={styles.loadingWrapper} data-testid="matrix-loading">
         <Spinner size="lg" />
@@ -180,7 +192,7 @@ export function AssignmentMatrix() {
         <div className={styles.filterInput}>
           <Input
             value={employeeSearch}
-            onChange={(e) => setEmployeeSearch(e.target.value)}
+            onChange={(e) => handleEmployeeSearchChange(e.target.value)}
             placeholder="Filter employees..."
             data-testid="matrix-employee-filter"
             size="sm"
@@ -189,7 +201,7 @@ export function AssignmentMatrix() {
         <div className={styles.filterInput}>
           <Input
             value={projectSearch}
-            onChange={(e) => setProjectSearch(e.target.value)}
+            onChange={(e) => handleProjectSearchChange(e.target.value)}
             placeholder="Filter projects..."
             data-testid="matrix-project-filter"
             size="sm"
