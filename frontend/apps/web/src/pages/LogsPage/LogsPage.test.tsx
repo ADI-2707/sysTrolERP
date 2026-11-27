@@ -74,6 +74,14 @@ describe("LogsPage Structure", () => {
     fireEvent.change(actionFilter, { target: { value: "PROJECT_CREATE" } });
     expect(actionFilter.value).toBe("PROJECT_CREATE");
 
+    const entityFilter = screen.getByTestId("logs-entity-type-filter") as HTMLSelectElement;
+    fireEvent.change(entityFilter, { target: { value: "Project" } });
+    expect(entityFilter.value).toBe("Project");
+
+    const actorInput = screen.getByTestId("logs-actor-input") as HTMLInputElement;
+    fireEvent.change(actorInput, { target: { value: "admin@systrol.com" } });
+    expect(actorInput.value).toBe("admin@systrol.com");
+
     const clearBtn = screen.getByTestId("logs-clear-filters-btn");
     expect(clearBtn).toBeInTheDocument();
     fireEvent.click(clearBtn);

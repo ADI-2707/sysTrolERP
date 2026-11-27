@@ -8,6 +8,8 @@ export interface LogsFilterBarProps {
   startDate: string;
   endDate: string;
   actionFilter: string;
+  actorFilter?: string;
+  entityTypeFilter?: string;
   statusCodeFilter: string;
   methodFilter: string;
   errorClassFilter: string;
@@ -15,6 +17,8 @@ export interface LogsFilterBarProps {
   onStartDateChange: (value: string) => void;
   onEndDateChange: (value: string) => void;
   onActionFilterChange: (value: string) => void;
+  onActorFilterChange?: (value: string) => void;
+  onEntityTypeFilterChange?: (value: string) => void;
   onStatusCodeFilterChange: (value: string) => void;
   onMethodFilterChange: (value: string) => void;
   onErrorClassFilterChange: (value: string) => void;
@@ -29,6 +33,8 @@ export function LogsFilterBar({
   startDate,
   endDate,
   actionFilter,
+  actorFilter = "",
+  entityTypeFilter = "",
   statusCodeFilter,
   methodFilter,
   errorClassFilter,
@@ -36,6 +42,8 @@ export function LogsFilterBar({
   onStartDateChange,
   onEndDateChange,
   onActionFilterChange,
+  onActorFilterChange,
+  onEntityTypeFilterChange,
   onStatusCodeFilterChange,
   onMethodFilterChange,
   onErrorClassFilterChange,
@@ -48,6 +56,8 @@ export function LogsFilterBar({
       startDate ||
       endDate ||
       actionFilter ||
+      actorFilter ||
+      entityTypeFilter ||
       statusCodeFilter ||
       methodFilter ||
       errorClassFilter
@@ -84,24 +94,51 @@ export function LogsFilterBar({
         />
 
         {activeTab === "audit" && (
-          <select
-            className={styles.selectInput}
-            value={actionFilter}
-            onChange={(e) => onActionFilterChange(e.target.value)}
-            aria-label="Filter by action"
-            data-testid="logs-action-filter"
-          >
-            <option value="">All Actions</option>
-            <option value="EMPLOYEE_CREATE">EMPLOYEE_CREATE</option>
-            <option value="EMPLOYEE_UPDATE">EMPLOYEE_UPDATE</option>
-            <option value="EMPLOYEE_REVOKE">EMPLOYEE_REVOKE</option>
-            <option value="EMPLOYEE_RESTORE">EMPLOYEE_RESTORE</option>
-            <option value="PROJECT_CREATE">PROJECT_CREATE</option>
-            <option value="PROJECT_STATUS_CHANGE">PROJECT_STATUS_CHANGE</option>
-            <option value="TIMESHEET_APPROVE">TIMESHEET_APPROVE</option>
-            <option value="TIMESHEET_RETURN">TIMESHEET_RETURN</option>
-            <option value="TIMESHEET_OVERRIDE">TIMESHEET_OVERRIDE</option>
-          </select>
+          <>
+            <select
+              className={styles.selectInput}
+              value={actionFilter}
+              onChange={(e) => onActionFilterChange(e.target.value)}
+              aria-label="Filter by action"
+              data-testid="logs-action-filter"
+            >
+              <option value="">All Actions</option>
+              <option value="EMPLOYEE_CREATE">EMPLOYEE_CREATE</option>
+              <option value="EMPLOYEE_UPDATE">EMPLOYEE_UPDATE</option>
+              <option value="EMPLOYEE_REVOKE">EMPLOYEE_REVOKE</option>
+              <option value="EMPLOYEE_RESTORE">EMPLOYEE_RESTORE</option>
+              <option value="PROJECT_CREATE">PROJECT_CREATE</option>
+              <option value="PROJECT_STATUS_CHANGE">PROJECT_STATUS_CHANGE</option>
+              <option value="TIMESHEET_APPROVE">TIMESHEET_APPROVE</option>
+              <option value="TIMESHEET_RETURN">TIMESHEET_RETURN</option>
+              <option value="TIMESHEET_OVERRIDE">TIMESHEET_OVERRIDE</option>
+            </select>
+
+            <select
+              className={styles.selectInput}
+              value={entityTypeFilter}
+              onChange={(e) => onEntityTypeFilterChange?.(e.target.value)}
+              aria-label="Filter by entity type"
+              data-testid="logs-entity-type-filter"
+            >
+              <option value="">All Entity Types</option>
+              <option value="Employee">Employee</option>
+              <option value="Project">Project</option>
+              <option value="TimesheetWeek">TimesheetWeek</option>
+              <option value="TimesheetDay">TimesheetDay</option>
+              <option value="User">User</option>
+            </select>
+
+            <input
+              type="text"
+              className={styles.searchInput}
+              style={{ maxWidth: "160px" }}
+              placeholder="Filter by actor..."
+              value={actorFilter}
+              onChange={(e) => onActorFilterChange?.(e.target.value)}
+              data-testid="logs-actor-input"
+            />
+          </>
         )}
 
         {activeTab === "auth" && (

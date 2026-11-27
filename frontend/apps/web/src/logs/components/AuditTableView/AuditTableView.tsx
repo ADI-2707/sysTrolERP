@@ -8,6 +8,8 @@ import styles from "./AuditTableView.module.css";
 export interface AuditTableViewProps {
   search?: string;
   actionFilter?: string;
+  actorFilter?: string;
+  entityTypeFilter?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -15,6 +17,8 @@ export interface AuditTableViewProps {
 export function AuditTableView({
   search = "",
   actionFilter = "",
+  actorFilter = "",
+  entityTypeFilter = "",
   startDate = "",
   endDate = "",
 }: AuditTableViewProps) {
@@ -44,6 +48,8 @@ export function AuditTableView({
         const res = await fetchAuditLogs({
           search: search.trim() || undefined,
           action: actionFilter || undefined,
+          actor: actorFilter.trim() || undefined,
+          entity_type: entityTypeFilter || undefined,
           start_date: startDate || undefined,
           end_date: endDate || undefined,
           cursor,
@@ -61,7 +67,7 @@ export function AuditTableView({
         setIsLoading(false);
       }
     },
-    [search, actionFilter, startDate, endDate]
+    [search, actionFilter, actorFilter, entityTypeFilter, startDate, endDate]
   );
 
   useEffect(() => {

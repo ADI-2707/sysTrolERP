@@ -42,6 +42,8 @@ export function LogsPage() {
   const startDate = searchParams.get("start_date") || "";
   const endDate = searchParams.get("end_date") || "";
   const actionFilter = searchParams.get("action") || "";
+  const actorFilter = searchParams.get("actor") || "";
+  const entityTypeFilter = searchParams.get("entity_type") || "";
   const statusCodeFilter = searchParams.get("status_code") || "";
   const methodFilter = searchParams.get("method") || "";
   const errorClassFilter = searchParams.get("error_class") || "";
@@ -76,6 +78,8 @@ export function LogsPage() {
       {
         search: search || undefined,
         action: action || undefined,
+        actor: actorFilter || undefined,
+        entity_type: entityTypeFilter || undefined,
         start_date: startDate || undefined,
         end_date: endDate || undefined,
       },
@@ -124,6 +128,8 @@ export function LogsPage() {
           startDate={startDate}
           endDate={endDate}
           actionFilter={actionFilter}
+          actorFilter={actorFilter}
+          entityTypeFilter={entityTypeFilter}
           statusCodeFilter={statusCodeFilter}
           methodFilter={methodFilter}
           errorClassFilter={errorClassFilter}
@@ -131,6 +137,8 @@ export function LogsPage() {
           onStartDateChange={(v) => updateParam("start_date", v)}
           onEndDateChange={(v) => updateParam("end_date", v)}
           onActionFilterChange={(v) => updateParam("action", v)}
+          onActorFilterChange={(v) => updateParam("actor", v)}
+          onEntityTypeFilterChange={(v) => updateParam("entity_type", v)}
           onStatusCodeFilterChange={(v) => updateParam("status_code", v)}
           onMethodFilterChange={(v) => updateParam("method", v)}
           onErrorClassFilterChange={(v) => updateParam("error_class", v)}
@@ -151,6 +159,8 @@ export function LogsPage() {
             <AuditTableView
               search={search}
               actionFilter={actionFilter}
+              actorFilter={actorFilter}
+              entityTypeFilter={entityTypeFilter}
               startDate={startDate}
               endDate={endDate}
             />
