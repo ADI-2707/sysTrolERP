@@ -34,7 +34,6 @@ export interface StepperProps {
 
 export function Stepper({
   items,
-  onStatusChange,
   onAdvanceStep,
   onSkipStep,
   onInsertAfter,
