@@ -76,11 +76,6 @@
   line-height: 1.2;
 }
 
-.userRole {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-}
-
 .actionsGroup {
   display: flex;
   align-items: center;

@@ -9,7 +9,6 @@ import {
   ErrorBoundary,
   DropdownMenu,
   Avatar,
-  Badge,
   IconDashboard,
   IconBriefcase,
   IconUsers,
@@ -165,18 +164,11 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     onClick: handleLogout,
   });
 
-  const roleBadgeVariant = isSuperAdmin ? "brand" : isAdmin ? "info" : "default";
-
   const userMenuTrigger = (
     <button type="button" className={styles.userMenuTrigger} aria-label="User Account Menu">
       <Avatar name={user?.full_name || "User"} size="sm" />
       <div className={styles.userInfo}>
         <span className={styles.userName}>{user?.full_name || "Signed In"}</span>
-        <span className={styles.userRole}>
-          <Badge variant={roleBadgeVariant}>
-            {user?.role || "USER"}
-          </Badge>
-        </span>
       </div>
     </button>
   );
