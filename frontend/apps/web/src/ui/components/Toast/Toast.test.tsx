@@ -56,4 +56,15 @@ describe("Toast system", () => {
     await new Promise((resolve) => setTimeout(resolve, 70));
     expect(screen.getByText("Data loaded")).toBeInTheDocument();
   });
+
+  it("renders countdown progress bar when duration is positive", () => {
+    render(
+      <ToastProvider>
+        <TestToastConsumer />
+      </ToastProvider>
+    );
+
+    fireEvent.click(screen.getByText("Trigger Success"));
+    expect(screen.getByTestId("toast-progress-bar")).toBeInTheDocument();
+  });
 });

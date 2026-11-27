@@ -119,6 +119,15 @@ export function Toast({ toast, onDismiss }: ToastProps) {
       >
         <IconClose size={16} />
       </button>
+      {duration > 0 && (
+        <div className={styles["progress-track"]} aria-hidden="true">
+          <div
+            className={[styles["progress-bar"], styles[`progress-${type}`]].filter(Boolean).join(" ")}
+            style={{ animationDuration: `${duration}ms` }}
+            data-testid="toast-progress-bar"
+          />
+        </div>
+      )}
     </div>
   );
 }

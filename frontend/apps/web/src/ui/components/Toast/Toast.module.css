@@ -16,13 +16,14 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + 3px);
   background-color: var(--color-neutral-60-surface);
   border: 1px solid var(--color-neutral-60-border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   color: var(--color-neutral-60-text-primary);
   pointer-events: auto;
+  overflow: hidden;
 }
 
 .toast-enter {
@@ -109,6 +110,52 @@
 
 .close-button:hover {
   color: var(--color-neutral-60-text-primary);
+}
+
+.progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  animation: toastProgressBar linear forwards;
+}
+
+.toast:hover .progress-bar {
+  animation-play-state: paused;
+}
+
+.progress-info {
+  background-color: var(--color-status-info);
+}
+
+.progress-success {
+  background-color: var(--color-brand-30-primary);
+}
+
+.progress-warning {
+  background-color: var(--color-status-warning);
+}
+
+.progress-error {
+  background-color: var(--color-status-danger);
+}
+
+@keyframes toastProgressBar {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 @keyframes slideInUpBounce {
