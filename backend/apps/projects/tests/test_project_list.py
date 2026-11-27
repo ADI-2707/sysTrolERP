@@ -74,3 +74,88 @@ def test_project_list_view_permissions_and_filtering():
 
     emp_create = emp_client.post(reverse("project_list_create"), create_payload, format="json")
     assert emp_create.status_code == 403
+
+
+@pytest.mark.django_db
+def test_project_list_granular_status_filters():
+    from apps.projects.models import StepStatus
+
+    admin = User.objects.create_user(
+        email="status_admin@example.com",
+        employee_code="SYS-0499",
+        full_name="Status Admin",
+        password="ValidPassword123!",
+        role=UserRole.ADMIN,
+    )
+
+    p_not_started = create_project(
+        name="Project Not Started",
+        creator=admin,
+        client_name="Client Alpha",
+    )
+
+    p_initiated = create_project(
+        name="Project Initiated",
+        creator=admin,
+        client_name="Client Beta",
+    )
+    s_init = p_initiated.steps.first()
+    s_init.status = StepStatus.INITIATED
+    s_init.save()
+
+    p_in_prog = create_project(
+        name="Project In Progress",
+        creator=admin,
+        client_name="Client Gamma",
+    )
+    s_prog = p_in_prog.steps.first()
+    s_prog.status = StepStatus.IN_PROGRESS
+    s_prog.save()
+
+    p_completed = create_project(
+        name="Project Completed",
+        creator=admin,
+        client_name="Client Delta",
+    )
+    for step in p_completed.steps.all():
+        step.status = StepStatus.COMPLETED
+        step.save()
+
+    client = APIClient()
+    client.force_authenticate(user=admin)
+
+    resp_ns = client.get(f"{reverse('project_list_create')}?status=NOT_STARTED")
+    assert resp_ns.status_code == 200
+    ns_codes = [r["code"] for r in resp_ns.data["results"]]
+    assert p_not_started.code in ns_codes
+    assert p_completed.code not in ns_codes
+    assert p_in_prog.code not in ns_codes
+
+    resp_init = client.get(f"{reverse('project_list_create')}?status=INITIATED")
+    assert resp_init.status_code == 200
+    init_codes = [r["code"] for r in resp_init.data["results"]]
+    assert p_initiated.code in init_codes
+    assert p_completed.code not in init_codes
+    assert p_not_started.code not in init_codes
+
+    resp_prog = client.get(f"{reverse('project_list_create')}?status=IN_PROGRESS")
+    assert resp_prog.status_code == 200
+    prog_codes = [r["code"] for r in resp_prog.data["results"]]
+    assert p_in_prog.code in prog_codes
+    assert p_completed.code not in prog_codes
+    assert p_not_started.code not in prog_codes
+
+    resp_comp = client.get(f"{reverse('project_list_create')}?status=COMPLETED")
+    assert resp_comp.status_code == 200
+    comp_codes = [r["code"] for r in resp_comp.data["results"]]
+    assert p_completed.code in comp_codes
+    assert p_not_started.code not in comp_codes
+    assert p_in_prog.code not in comp_codes
+
+    resp_act = client.get(f"{reverse('project_list_create')}?status=ACTIVE")
+    assert resp_act.status_code == 200
+    act_codes = [r["code"] for r in resp_act.data["results"]]
+    assert p_not_started.code in act_codes
+    assert p_initiated.code in act_codes
+    assert p_in_prog.code in act_codes
+    assert p_completed.code not in act_codes

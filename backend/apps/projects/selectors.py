@@ -39,6 +39,37 @@ def list_projects_for_user(
                     "steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True
                 ),
             ).filter(Q(total_steps=0) | Q(completed_steps__lt=F("total_steps")))
+        elif sf == "NOT_STARTED":
+            qs = qs.annotate(
+                started_steps=Count(
+                    "steps",
+                    filter=Q(
+                        steps__status__in=[
+                            StepStatus.INITIATED,
+                            StepStatus.IN_PROGRESS,
+                            StepStatus.COMPLETED,
+                        ]
+                    ),
+                    distinct=True,
+                )
+            ).filter(started_steps=0)
+        elif sf == "INITIATED":
+            qs = qs.filter(steps__status=StepStatus.INITIATED).distinct()
+        elif sf == "IN_PROGRESS":
+            qs = qs.annotate(
+                total_steps=Count("steps", distinct=True),
+                completed_steps=Count(
+                    "steps", filter=Q(steps__status=StepStatus.COMPLETED), distinct=True
+                ),
+                in_prog_steps=Count(
+                    "steps",
+                    filter=Q(steps__status=StepStatus.IN_PROGRESS),
+                    distinct=True,
+                ),
+            ).filter(
+                (Q(in_prog_steps__gt=0) | Q(completed_steps__gt=0))
+                & Q(completed_steps__lt=F("total_steps"))
+            )
 
     return qs.order_by("-created_at")
 
