@@ -8,6 +8,7 @@ export interface DrawerProps {
   onClose: () => void;
   title?: ReactNode;
   side?: "left" | "right";
+  size?: "sm" | "md" | "lg" | "xl";
   children: ReactNode;
   className?: string;
 }
@@ -17,6 +18,7 @@ export function Drawer({
   onClose,
   title,
   side = "right",
+  size = "sm",
   children,
   className,
 }: DrawerProps) {
@@ -50,7 +52,7 @@ export function Drawer({
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}
-            className={[styles.drawer, styles[`drawer-${side}`], className].filter(Boolean).join(" ")}
+            className={[styles.drawer, styles[`drawer-${side}`], styles[`drawer-${size}`], className].filter(Boolean).join(" ")}
           >
             {title && (
               <div className={styles.header}>

@@ -110,6 +110,7 @@ export function TimesheetReviewDrawer({
       onClose={onClose}
       title={timesheetItem ? `Timesheet Review: ${timesheetItem.employee.name}` : "Timesheet Review"}
       side="right"
+      size="lg"
     >
       <div className={styles.container} data-testid="timesheet-review-drawer">
         {isLoading && (

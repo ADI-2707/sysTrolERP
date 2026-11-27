@@ -106,12 +106,28 @@
   top: 0;
   bottom: 0;
   width: 100%;
-  max-width: 320px;
+  max-width: 380px;
   background-color: var(--color-neutral-60-surface);
   box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
   z-index: var(--z-drawer);
+}
+
+.drawer-sm {
+  max-width: 380px;
+}
+
+.drawer-md {
+  max-width: min(560px, 90vw);
+}
+
+.drawer-lg {
+  max-width: min(780px, 92vw);
+}
+
+.drawer-xl {
+  max-width: min(960px, 95vw);
 }
 
 .drawer-right {
@@ -178,7 +194,11 @@
     max-width: 100%;
   }
 
-  .drawer {
+  .drawer,
+  .drawer-sm,
+  .drawer-md,
+  .drawer-lg,
+  .drawer-xl {
     max-width: 100vw;
   }
 }
