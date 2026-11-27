@@ -4,6 +4,7 @@ import type {
   TimesheetData,
   DashboardSummaryData,
   TeamTimesheetItem,
+  AdminTimesheetDetailData,
 } from "../timesheets/types";
 
 export interface UpsertCellPayload {
@@ -68,6 +69,17 @@ export async function fetchOwnTimesheetHistory(
 
 export async function fetchPendingTimesheets(): Promise<PaginatedResponse<TeamTimesheetItem>> {
   return apiClient.get<PaginatedResponse<TeamTimesheetItem>>("/api/timesheets/pending/");
+}
+
+export async function fetchAdminTimesheetDetail(
+  employee: string | number,
+  week: string
+): Promise<AdminTimesheetDetailData> {
+  const queryParams = new URLSearchParams({
+    employee: String(employee),
+    week,
+  });
+  return apiClient.get<AdminTimesheetDetailData>(`/api/timesheets/?${queryParams.toString()}`);
 }
 
 export async function approveTimesheet(timesheetId: number): Promise<unknown> {

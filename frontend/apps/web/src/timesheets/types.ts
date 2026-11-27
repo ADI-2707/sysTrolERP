@@ -105,3 +105,28 @@ export interface TimesheetData {
   assigned_projects: AssignedProject[];
   available_projects?: AssignedProject[];
 }
+
+export interface AdminTimesheetDetailData {
+  id: number;
+  employee: TeamTimesheetEmployee;
+  week_start_date: string;
+  week_end_date: string;
+  status: TimesheetStatus;
+  can_approve: boolean;
+  can_return: boolean;
+  can_override?: boolean;
+  return_reason: string | null;
+  submitted_at: string | null;
+  approved_at: string | null;
+  approved_by_label: string | null;
+  returned_at: string | null;
+  returned_by_label: string | null;
+  days: string[];
+  day_totals: Record<string, string>;
+  day_regular: Record<string, string>;
+  day_overtime: Record<string, string>;
+  total_week_hours: string;
+  total_regular_hours: string;
+  total_overtime_hours: string;
+  rows: TimesheetRowData[];
+}
