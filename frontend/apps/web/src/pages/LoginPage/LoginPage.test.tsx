@@ -144,4 +144,39 @@ describe("LoginPage", () => {
       expect(screen.getByText("Invalid credentials.")).toBeInTheDocument();
     });
   });
+
+  it("displays UiLock with status message while login request is in flight", async () => {
+    let resolveLogin: (value: unknown) => void;
+    mockLogin.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveLogin = resolve;
+      })
+    );
+
+    renderLoginPage();
+    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
+      target: { value: "SYS-0001" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Password/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+
+    expect(screen.getByTestId("ui-lock-overlay")).toBeInTheDocument();
+    expect(screen.getByText("Signing in...")).toBeInTheDocument();
+
+    resolveLogin!({
+      id: 1,
+      employee_code: "SYS-0001",
+      email: "admin@systrol.com",
+      full_name: "Admin User",
+      role: "ADMIN",
+      must_change_password: false,
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("ui-lock-overlay")).not.toBeInTheDocument();
+      expect(screen.getByText("Dashboard Home")).toBeInTheDocument();
+    });
+  });
 });

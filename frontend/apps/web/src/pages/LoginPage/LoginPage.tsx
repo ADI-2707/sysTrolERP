@@ -8,6 +8,7 @@ import {
   IconArrowRight,
   IconWarning,
   IconError,
+  UiLock,
 } from "@systrol/ui";
 import { useAuth } from "../../auth";
 import { ApiClientError } from "../../api";
@@ -69,6 +70,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.container}>
+      <UiLock active={isSubmitting} message="Signing in..." />
       <h1 className={styles.srOnly}>sysTrol ERP</h1>
 
       <div className={styles.lockup}>
