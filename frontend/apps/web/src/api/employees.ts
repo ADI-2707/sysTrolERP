@@ -12,6 +12,8 @@ export interface EmployeeListParams {
   search?: string;
   role?: string;
   status?: string;
+  department?: string;
+  allocation_status?: string;
   ordering?: string;
   page?: number;
 }
@@ -23,6 +25,8 @@ export async function fetchEmployees(
   if (params?.search) queryParams.set("search", params.search);
   if (params?.role) queryParams.set("role", params.role);
   if (params?.status) queryParams.set("status", params.status);
+  if (params?.department) queryParams.set("department", params.department);
+  if (params?.allocation_status) queryParams.set("allocation_status", params.allocation_status);
   if (params?.ordering) queryParams.set("ordering", params.ordering);
   if (params?.page) queryParams.set("page", String(params.page));
 

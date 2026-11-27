@@ -68,6 +68,8 @@ export function EmployeesPage() {
   const [search, setSearch] = useState<string>("");
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("");
+  const [allocationFilter, setAllocationFilter] = useState<string>("");
   const [sortColumn, setSortColumn] = useState<string>("employee_code");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState<number>(1);
@@ -82,6 +84,8 @@ export function EmployeesPage() {
         search: search.trim() || undefined,
         role: roleFilter || undefined,
         status: statusFilter || undefined,
+        department: departmentFilter || undefined,
+        allocation_status: allocationFilter || undefined,
         ordering: orderingParam,
         page,
       });
@@ -96,7 +100,7 @@ export function EmployeesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [search, roleFilter, statusFilter, sortColumn, sortDirection, page]);
+  }, [search, roleFilter, statusFilter, departmentFilter, allocationFilter, sortColumn, sortDirection, page]);
 
   useEffect(() => {
     loadEmployees();
@@ -407,6 +411,40 @@ export function EmployeesPage() {
             <option value="">All Statuses</option>
             <option value="active">Active</option>
             <option value="revoked">Revoked</option>
+          </select>
+
+          <select
+            className={styles.selectInput}
+            value={departmentFilter}
+            onChange={(e) => {
+              setDepartmentFilter(e.target.value);
+              setPage(1);
+            }}
+            data-testid="employee-department-filter"
+            aria-label="Filter by department"
+          >
+            <option value="">All Departments</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Operations">Operations</option>
+            <option value="Accounts">Accounts</option>
+            <option value="HR">HR</option>
+            <option value="Management">Management</option>
+          </select>
+
+          <select
+            className={styles.selectInput}
+            value={allocationFilter}
+            onChange={(e) => {
+              setAllocationFilter(e.target.value);
+              setPage(1);
+            }}
+            data-testid="employee-allocation-filter"
+            aria-label="Filter by project allocation"
+          >
+            <option value="">All Allocations</option>
+            <option value="assigned">Assigned to Projects</option>
+            <option value="unassigned">Unassigned (Bench)</option>
           </select>
         </div>
       </div>

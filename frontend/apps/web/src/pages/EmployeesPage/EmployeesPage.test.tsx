@@ -199,6 +199,30 @@ describe("EmployeesPage", () => {
         })
       );
     });
+
+    const deptSelect = screen.getByTestId("employee-department-filter");
+    fireEvent.change(deptSelect, { target: { value: "Engineering" } });
+
+    await waitFor(() => {
+      expect(employeesApi.fetchEmployees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          department: "Engineering",
+          page: 1,
+        })
+      );
+    });
+
+    const allocSelect = screen.getByTestId("employee-allocation-filter");
+    fireEvent.change(allocSelect, { target: { value: "assigned" } });
+
+    await waitFor(() => {
+      expect(employeesApi.fetchEmployees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allocation_status: "assigned",
+          page: 1,
+        })
+      );
+    });
   });
 
   it("handles sorting toggle", async () => {
