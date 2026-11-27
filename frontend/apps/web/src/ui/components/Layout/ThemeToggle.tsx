@@ -20,10 +20,10 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     >
       <span className={styles["theme-switch-track"]}>
         <span className={styles["theme-switch-icon-sun"]} aria-hidden="true">
-          <IconSun size={9} />
+          <IconSun size={8} />
         </span>
         <span className={styles["theme-switch-icon-moon"]} aria-hidden="true">
-          <IconMoon size={9} />
+          <IconMoon size={8} />
         </span>
         <span className={styles["theme-switch-thumb"]} />
       </span>

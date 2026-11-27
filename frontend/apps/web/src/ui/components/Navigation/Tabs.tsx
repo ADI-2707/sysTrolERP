@@ -33,6 +33,7 @@ export function Tabs({
 }: TabsProps) {
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const listRef = useRef<HTMLUListElement | null>(null);
+  const hasMountedRef = useRef(false);
   const [sliderStyle, setSliderStyle] = useState<{
     left: number;
     top: number;
@@ -65,14 +66,31 @@ export function Tabs({
 
   useIsomorphicLayoutEffect(() => {
     updateIndicator();
-    const raf = requestAnimationFrame(updateIndicator);
+    const raf = requestAnimationFrame(() => {
+      updateIndicator();
+      hasMountedRef.current = true;
+    });
     return () => cancelAnimationFrame(raf);
   }, [activeTab, tabs]);
 
   useEffect(() => {
     const handleResize = () => updateIndicator();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(updateIndicator);
+    }
+
+    let ro: ResizeObserver | null = null;
+    if (listRef.current && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => updateIndicator());
+      ro.observe(listRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      ro?.disconnect();
+    };
   }, [activeTab, tabs]);
 
   const handleKeyDown = (e: KeyboardEvent, index: number) => {
@@ -117,6 +135,9 @@ export function Tabs({
               width: `${sliderStyle.width}px`,
               height: `${sliderStyle.height}px`,
               opacity: sliderStyle.ready && sliderStyle.width > 0 ? 1 : 0,
+              transition: hasMountedRef.current
+                ? "transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), width 0.24s cubic-bezier(0.4, 0, 0.2, 1), height 0.24s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease"
+                : "opacity 0.15s ease",
             }}
           />
         </li>
