@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   IconMail,
@@ -27,6 +27,16 @@ export function LoginPage() {
   const location = useLocation();
 
   const fromPath = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
+
+  useEffect(() => {
+    const prevTheme = document.documentElement.getAttribute("data-theme");
+    document.documentElement.setAttribute("data-theme", "light");
+    return () => {
+      if (prevTheme) {
+        document.documentElement.setAttribute("data-theme", prevTheme);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,7 +79,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-theme="light" data-testid="login-container">
       <UiLock active={isSubmitting} message="Signing in..." />
       <h1 className={styles.srOnly}>sysTrol ERP</h1>
 

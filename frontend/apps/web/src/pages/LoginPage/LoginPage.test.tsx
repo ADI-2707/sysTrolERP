@@ -179,4 +179,17 @@ describe("LoginPage", () => {
       expect(screen.getByText("Dashboard Home")).toBeInTheDocument();
     });
   });
+
+  it("always forces light theme and restores previous theme on unmount", () => {
+    document.documentElement.setAttribute("data-theme", "dark");
+
+    const { unmount } = renderLoginPage();
+
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    expect(screen.getByTestId("login-container")).toHaveAttribute("data-theme", "light");
+
+    unmount();
+
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+  });
 });
