@@ -99,8 +99,8 @@ export function LogsPage() {
     { id: "audit", label: "Audit" },
     { id: "requests", label: "Requests" },
     { id: "errors", label: "Errors" },
-    { id: "auth", label: "Auth" },
-    { id: "telemetry", label: "Telemetry" },
+    { id: "auth", label: "Auth & Security" },
+    { id: "telemetry", label: "Performance Matrix" },
   ];
 
   return (

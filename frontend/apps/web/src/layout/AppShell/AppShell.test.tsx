@@ -109,7 +109,7 @@ describe("AppShell", () => {
     expect(screen.getByRole("button", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Project Management" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Employee Management/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Audit Trail/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /System Logs/i })).not.toBeInTheDocument();
   });
 
   it("shows administrative navigation items for admin", () => {
@@ -127,7 +127,7 @@ describe("AppShell", () => {
     expect(screen.getByRole("button", { name: "Dashboard" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Project Management" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Employee Management" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Audit Trail" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "System Logs" })).toBeInTheDocument();
   });
 
   it("shows system telemetry for super admin without change password option", () => {
@@ -143,7 +143,7 @@ describe("AppShell", () => {
     renderShell(user);
 
     expect(screen.getByRole("button", { name: "Employee Management" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Audit Trail" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "System Logs" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "User Account Menu" }));
     expect(screen.queryByRole("menuitem", { name: "Change Password" })).not.toBeInTheDocument();

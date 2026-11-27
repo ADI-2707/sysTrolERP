@@ -71,7 +71,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       const isCurrent = i === segments.length - 1;
 
       let label = seg.charAt(0).toUpperCase() + seg.slice(1);
-      if (seg === "audit") label = "Audit Logs";
+      if (seg === "audit") label = "System Logs";
       if (seg === "projects") label = "Projects";
       if (seg === "employees") label = "Employees";
       if (seg === "timesheets") label = "Timesheets";
@@ -117,7 +117,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
 
     navItems.push({
       key: "audit",
-      label: "Audit Trail",
+      label: "System Logs",
       icon: <IconShieldAlert size={17} />,
       isActive: location.pathname.startsWith("/audit"),
       onClick: () => navigate("/audit"),

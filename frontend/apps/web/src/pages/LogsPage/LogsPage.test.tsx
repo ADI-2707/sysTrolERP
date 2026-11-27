@@ -23,8 +23,8 @@ describe("LogsPage Structure", () => {
     expect(screen.getByRole("tab", { name: /Audit/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Requests/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Errors/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Auth/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Telemetry/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Auth & Security/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Performance Matrix/i })).toBeInTheDocument();
 
     expect(screen.getByTestId("audit-tab-panel")).toBeInTheDocument();
     expect(screen.getByTestId("logs-filter-bar")).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe("LogsPage Structure", () => {
     expect(screen.getByTestId("auth-tab-panel")).toBeInTheDocument();
     expect(screen.getByTestId("logs-auth-action-filter")).toBeInTheDocument();
 
-    const telemetryTab = screen.getByRole("tab", { name: /Telemetry/i });
+    const telemetryTab = screen.getByRole("tab", { name: /Performance Matrix/i });
     fireEvent.click(telemetryTab);
     expect(screen.getByTestId("telemetry-tab-panel")).toBeInTheDocument();
     expect(screen.queryByTestId("logs-filter-bar")).not.toBeInTheDocument();
