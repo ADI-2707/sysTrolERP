@@ -6,7 +6,7 @@ from apps.projects.models import Project, ProjectStep, StepStatus
 class ProjectStepBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectStep
-        fields = ["id", "key", "name", "position", "is_custom", "status"]
+        fields = ["id", "key", "name", "position", "is_custom", "status", "skip_reason"]
 
 
 class ProjectMemberBriefSerializer(serializers.Serializer):
@@ -57,7 +57,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
     def get_current_step(self, obj):
         steps = sorted(obj.steps.all(), key=lambda s: s.position)
         for s in steps:
-            if s.status != StepStatus.COMPLETED:
+            if s.status not in [StepStatus.COMPLETED, StepStatus.SKIPPED]:
                 return {
                     "id": s.id,
                     "key": s.key,
@@ -102,6 +102,7 @@ class ProjectStepDetailSerializer(serializers.ModelSerializer):
             "status",
             "confirmed_at",
             "confirmed_by_label",
+            "skip_reason",
         ]
 
 
@@ -189,6 +190,7 @@ class ProjectCreateSerializer(serializers.Serializer):
 class StepStatusUpdateSerializer(serializers.Serializer):
     status = serializers.ChoiceField(choices=StepStatus.choices, required=True)
     confirm = serializers.BooleanField(required=False, default=False)
+    skip_reason = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class SubStepCreateSerializer(serializers.Serializer):

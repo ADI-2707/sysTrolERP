@@ -121,6 +121,7 @@ class ProjectStepStatusView(APIView):
             new_status=serializer.validated_data["status"],
             confirm=serializer.validated_data.get("confirm", False),
             actor=request.user,
+            skip_reason=serializer.validated_data.get("skip_reason", ""),
             request=request,
         )
 
