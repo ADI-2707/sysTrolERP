@@ -138,19 +138,6 @@ export function ProjectDetailPage() {
     }
   };
 
-  const handleStatusChange = (stepIdStr: string, nextStatus: StepStatus) => {
-    if (!project || !canManage) return;
-    const step = project.steps.find((s) => String(s.id) === stepIdStr);
-    if (!step || step.status === "COMPLETED" || step.status === "SKIPPED") return;
-
-    if (nextStatus === "COMPLETED") {
-      setStepToComplete(step);
-    } else if (nextStatus === "SKIPPED") {
-      handleOpenSkipModal(stepIdStr);
-    } else {
-      executeStatusChange(step.id, nextStatus as StepStatusType, false);
-    }
-  };
 
   const canAdvanceStep = useCallback(
     (stepItem: StepperItem): { canAdvance: boolean; reason?: string } => {
@@ -615,7 +602,6 @@ export function ProjectDetailPage() {
         <div className={styles.timelineWrapper} data-testid="project-stepper-timeline">
           <Stepper
             items={stepperItems}
-            onStatusChange={canManage ? handleStatusChange : undefined}
             onAdvanceStep={canManage ? handleAdvanceStep : undefined}
             onSkipStep={canManage ? handleOpenSkipModal : undefined}
             onInsertAfter={canManage ? handleOpenInsertModal : undefined}
