@@ -9,6 +9,12 @@ from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
 from apps.core.timezone import company_today, week_bounds
+from apps.notifications.events import (
+    TimesheetApprovedEvent,
+    TimesheetReturnedEvent,
+    TimesheetSubmittedEvent,
+    dispatch_event,
+)
 from apps.projects.models import Project
 from apps.timesheets.models import (
     Timesheet,
@@ -342,6 +348,17 @@ def submit_own_timesheet(
             request=request,
         )
 
+        dispatch_event(
+            TimesheetSubmittedEvent(
+                timesheet_id=timesheet.id,
+                employee_id=user.id,
+                employee_name=user.full_name,
+                employee_code=user.employee_code,
+                week_start_date=timesheet.week_start_date,
+                actor_label=user.employee_code,
+            )
+        )
+
         return get_own_timesheet(user=user, week_str=monday.isoformat())
 
 
@@ -368,6 +385,17 @@ def close_expired_weeks(*, dry_run: bool = False) -> int:
                 entity_id=str(ts.id),
                 summary=f"Auto-submitted expired timesheet for {ts.employee.employee_code} week {ts.week_start_date}",
                 changes={"status": [TimesheetWeekStatus.OPEN, TimesheetWeekStatus.SUBMITTED]},
+            )
+
+            dispatch_event(
+                TimesheetSubmittedEvent(
+                    timesheet_id=ts.id,
+                    employee_id=ts.employee_id,
+                    employee_name=ts.employee.full_name,
+                    employee_code=ts.employee.employee_code,
+                    week_start_date=ts.week_start_date,
+                    actor_label="SYSTEM",
+                )
             )
 
     return count
@@ -428,6 +456,16 @@ def approve_timesheet(
             summary=f"Approved timesheet {timesheet.id} for {timesheet.employee.employee_code}",
             changes={"status": [old_status, TimesheetWeekStatus.APPROVED]},
             request=request,
+        )
+
+        dispatch_event(
+            TimesheetApprovedEvent(
+                timesheet_id=timesheet.id,
+                employee_id=timesheet.employee_id,
+                actor_id=actor.id if isinstance(actor, User) else None,
+                actor_label=timesheet.approved_by_label,
+                week_start_date=timesheet.week_start_date,
+            )
         )
 
         return timesheet
@@ -492,6 +530,17 @@ def return_timesheet(
                 "reason": [None, reason],
             },
             request=request,
+        )
+
+        dispatch_event(
+            TimesheetReturnedEvent(
+                timesheet_id=timesheet.id,
+                employee_id=timesheet.employee_id,
+                actor_id=actor.id if isinstance(actor, User) else None,
+                actor_label=timesheet.returned_by_label,
+                week_start_date=timesheet.week_start_date,
+                reason=reason,
+            )
         )
 
         return timesheet
