@@ -27,6 +27,7 @@ class StepStatus(models.TextChoices):
     INITIATED = "INITIATED", "Initiated"
     IN_PROGRESS = "IN_PROGRESS", "In Progress"
     COMPLETED = "COMPLETED", "Completed"
+    SKIPPED = "SKIPPED", "Skipped"
 
 
 STEP_STATUS_ORDER = {
@@ -34,6 +35,7 @@ STEP_STATUS_ORDER = {
     StepStatus.INITIATED: 1,
     StepStatus.IN_PROGRESS: 2,
     StepStatus.COMPLETED: 3,
+    StepStatus.SKIPPED: 3,
 }
 
 
@@ -68,7 +70,7 @@ class Project(TimestampedModel):
     def status(self) -> str:
         steps = list(self.steps.all())
         total = len(steps)
-        if total > 0 and sum(1 for s in steps if s.status == StepStatus.COMPLETED) == total:
+        if total > 0 and sum(1 for s in steps if s.status in [StepStatus.COMPLETED, StepStatus.SKIPPED]) == total:
             return "COMPLETED"
         return "ACTIVE"
 
@@ -78,8 +80,11 @@ class Project(TimestampedModel):
         total = len(steps)
         if total == 0:
             return 0.0
-        completed = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
-        return round((completed / total) * 100.0, 1)
+        active_steps = [s for s in steps if s.status != StepStatus.SKIPPED]
+        if not active_steps:
+            return 100.0
+        completed = sum(1 for s in active_steps if s.status == StepStatus.COMPLETED)
+        return round((completed / len(active_steps)) * 100.0, 1)
 
 
 class ProjectStep(TimestampedModel):
@@ -106,6 +111,7 @@ class ProjectStep(TimestampedModel):
         related_name="confirmed_steps",
     )
     confirmed_by_label = models.CharField(max_length=150, blank=True)
+    skip_reason = models.TextField(blank=True, default="")
 
     class Meta:
         verbose_name = "Project Step"
