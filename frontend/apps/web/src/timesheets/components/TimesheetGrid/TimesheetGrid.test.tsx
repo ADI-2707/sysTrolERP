@@ -318,4 +318,30 @@ describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
 
     expect(handleSubmit).toHaveBeenCalledTimes(1);
   });
+
+  it("filters project rows by search query and empty hours toggle", () => {
+    render(<TimesheetGrid timesheet={mockTimesheet} />);
+
+    expect(screen.getByTestId("timesheet-row-101")).toBeInTheDocument();
+    expect(screen.getByTestId("timesheet-row-102")).toBeInTheDocument();
+
+    const searchInput = screen.getByTestId("timesheet-row-search-input");
+    fireEvent.change(searchInput, { target: { value: "Robotics" } });
+
+    expect(screen.queryByTestId("timesheet-row-101")).not.toBeInTheDocument();
+    expect(screen.getByTestId("timesheet-row-102")).toBeInTheDocument();
+
+    fireEvent.change(searchInput, { target: { value: "" } });
+    expect(screen.getByTestId("timesheet-row-101")).toBeInTheDocument();
+    expect(screen.getByTestId("timesheet-row-102")).toBeInTheDocument();
+
+    const hideEmptyBtn = screen.getByTestId("toggle-hide-empty-rows-btn");
+    fireEvent.click(hideEmptyBtn);
+
+    expect(screen.getByTestId("timesheet-row-101")).toBeInTheDocument();
+    expect(screen.queryByTestId("timesheet-row-102")).not.toBeInTheDocument();
+
+    fireEvent.change(searchInput, { target: { value: "NonExistent" } });
+    expect(screen.getByText("No project rows match your filter.")).toBeInTheDocument();
+  });
 });

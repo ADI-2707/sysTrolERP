@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useState, useMemo, useRef } from "react";
 import type { TimesheetData, AssignedProject } from "../../types";
 import type { CellSaveStatus } from "../../hooks/useTimesheetAutosave";
 import { getDayLabel, isCurrentWeek as checkIsCurrentWeek } from "../../utils/dateUtils";
@@ -45,6 +45,8 @@ export function TimesheetGrid({
 }: TimesheetGridProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canEdit = !readOnly && timesheet.can_edit;
+  const [projectSearch, setProjectSearch] = useState("");
+  const [hideEmptyRows, setHideEmptyRows] = useState(false);
 
   const existingProjectIds = useMemo(
     () => timesheet.rows.map((r) => r.project.id),
@@ -54,6 +56,23 @@ export function TimesheetGrid({
   const availableProjects: AssignedProject[] = useMemo(() => {
     return timesheet.available_projects || timesheet.assigned_projects || [];
   }, [timesheet.available_projects, timesheet.assigned_projects]);
+
+  const filteredRows = useMemo(() => {
+    return timesheet.rows.filter((row) => {
+      if (hideEmptyRows && parseFloat(row.row_total || "0") === 0) {
+        return false;
+      }
+      if (projectSearch.trim()) {
+        const query = projectSearch.toLowerCase().trim();
+        const code = row.project.code.toLowerCase();
+        const name = row.project.name.toLowerCase();
+        if (!code.includes(query) && !name.includes(query)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [timesheet.rows, hideEmptyRows, projectSearch]);
 
   const step = parseFloat(timesheet.policy?.hour_step || "0.25");
 
@@ -134,6 +153,24 @@ export function TimesheetGrid({
                 Week Total: <strong>{parseFloat(timesheet.total_week_hours || "0").toFixed(1)}h</strong>
               </span>
 
+              <input
+                type="text"
+                className={styles.rowSearchInput}
+                placeholder="Filter rows..."
+                value={projectSearch}
+                onChange={(e) => setProjectSearch(e.target.value)}
+                data-testid="timesheet-row-search-input"
+              />
+
+              <button
+                type="button"
+                className={[styles.filterToggleBtn, hideEmptyRows && styles.filterToggleActive].filter(Boolean).join(" ")}
+                onClick={() => setHideEmptyRows(!hideEmptyRows)}
+                data-testid="toggle-hide-empty-rows-btn"
+              >
+                {hideEmptyRows ? "Show Empty Rows" : "Hide Empty Rows"}
+              </button>
+
               {canEdit && timesheet.can_submit && onSubmitTimesheet && (
                 <button
                   type="button"
@@ -185,8 +222,14 @@ export function TimesheetGrid({
             </thead>
 
           <tbody>
-            {/* Render Logged Project Rows */}
-            {timesheet.rows.map((row) => {
+            {filteredRows.length === 0 && timesheet.rows.length > 0 && (
+              <tr>
+                <td colSpan={16} className={styles.emptyFilteredRows}>
+                  No project rows match your filter.
+                </td>
+              </tr>
+            )}
+            {filteredRows.map((row) => {
               const isEmptyRow = parseFloat(row.row_total || "0") === 0;
 
               return (

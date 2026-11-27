@@ -170,6 +170,59 @@
   border-radius: var(--radius-sm, 4px);
 }
 
+.rowSearchInput {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--color-neutral-60-text-primary);
+  background-color: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-strong);
+  border-radius: var(--radius-sm, 4px);
+  outline: none;
+  width: 140px;
+}
+
+.rowSearchInput:focus {
+  border-color: var(--color-brand-30-primary);
+}
+
+.filterToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-neutral-60-text-secondary);
+  background: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-subtle);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.filterToggleBtn:hover {
+  border-color: var(--color-neutral-60-border-strong);
+  color: var(--color-neutral-60-text-primary);
+}
+
+.filterToggleActive {
+  background-color: var(--color-brand-30-primary);
+  border-color: var(--color-brand-30-primary);
+  color: #ffffff;
+}
+
+.filterToggleActive:hover {
+  background-color: var(--color-brand-30-hover);
+  color: #ffffff;
+}
+
+.emptyFilteredRows {
+  text-align: center;
+  padding: var(--space-6, 24px);
+  color: var(--color-neutral-60-text-muted);
+  font-style: italic;
+}
+
 .weekTotalPill strong {
   color: var(--color-brand-30-primary);
 }
