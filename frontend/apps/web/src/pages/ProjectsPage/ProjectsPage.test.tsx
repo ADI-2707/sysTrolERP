@@ -252,6 +252,28 @@ describe("ProjectsPage", () => {
         })
       );
     });
+
+    const activeFilter = screen.getByTestId("project-active-filter");
+    fireEvent.change(activeFilter, { target: { value: "inactive" } });
+
+    await waitFor(() => {
+      expect(projectsApi.fetchProjects).toHaveBeenCalledWith(
+        expect.objectContaining({
+          is_active: false,
+        })
+      );
+    });
+
+    const sortFilter = screen.getByTestId("project-sort-filter");
+    fireEvent.change(sortFilter, { target: { value: "name" } });
+
+    await waitFor(() => {
+      expect(projectsApi.fetchProjects).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ordering: "name",
+        })
+      );
+    });
   });
 
   it("navigates to project detail when a card is clicked", async () => {

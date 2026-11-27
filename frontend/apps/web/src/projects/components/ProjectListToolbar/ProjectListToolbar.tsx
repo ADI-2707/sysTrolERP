@@ -6,6 +6,10 @@ export interface ProjectListToolbarProps {
   onSearchChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
+  activeFilter?: string;
+  onActiveFilterChange?: (active: string) => void;
+  sortFilter?: string;
+  onSortFilterChange?: (sort: string) => void;
   canCreateProject?: boolean;
   onCreateProject?: () => void;
 }
@@ -15,6 +19,10 @@ export function ProjectListToolbar({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
+  activeFilter = "active",
+  onActiveFilterChange,
+  sortFilter = "-created_at",
+  onSortFilterChange,
   canCreateProject = false,
   onCreateProject,
 }: ProjectListToolbarProps) {
@@ -43,6 +51,37 @@ export function ProjectListToolbar({
           <option value="IN_PROGRESS">In Progress</option>
           <option value="COMPLETED">Completed</option>
         </select>
+
+        {onActiveFilterChange && (
+          <select
+            value={activeFilter}
+            onChange={(e) => onActiveFilterChange(e.target.value)}
+            className={styles.selectInput}
+            data-testid="project-active-filter"
+            aria-label="Filter by active state"
+          >
+            <option value="active">Active Projects</option>
+            <option value="all">All Projects</option>
+            <option value="inactive">Archived / Inactive</option>
+          </select>
+        )}
+
+        {onSortFilterChange && (
+          <select
+            value={sortFilter}
+            onChange={(e) => onSortFilterChange(e.target.value)}
+            className={styles.selectInput}
+            data-testid="project-sort-filter"
+            aria-label="Sort projects"
+          >
+            <option value="-created_at">Newest First</option>
+            <option value="created_at">Oldest First</option>
+            <option value="code">Code A-Z</option>
+            <option value="-code">Code Z-A</option>
+            <option value="name">Name A-Z</option>
+            <option value="-name">Name Z-A</option>
+          </select>
+        )}
       </div>
 
       {canCreateProject && onCreateProject && (

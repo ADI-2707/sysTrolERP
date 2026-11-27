@@ -22,6 +22,8 @@ export function ProjectsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [activeFilter, setActiveFilter] = useState<string>("active");
+  const [sortFilter, setSortFilter] = useState<string>("-created_at");
   const [page, setPage] = useState<number>(1);
   const pageSize = 12;
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -42,18 +44,40 @@ export function ProjectsPage() {
     setPage(1);
   };
 
+  const handleActiveFilterChange = (val: string) => {
+    setActiveFilter(val);
+    setPage(1);
+  };
+
+  const handleSortFilterChange = (val: string) => {
+    setSortFilter(val);
+    setPage(1);
+  };
+
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const params: { search?: string; status?: string; is_active?: boolean; page?: number; page_size?: number } = {
+      const params: {
+        search?: string;
+        status?: string;
+        is_active?: boolean;
+        ordering?: string;
+        page?: number;
+        page_size?: number;
+      } = {
         page,
         page_size: pageSize,
       };
       if (search.trim()) params.search = search.trim();
       if (statusFilter) params.status = statusFilter;
+      if (sortFilter) params.ordering = sortFilter;
       if (!canManageProjects) {
         params.is_active = true;
+      } else if (activeFilter === "active") {
+        params.is_active = true;
+      } else if (activeFilter === "inactive") {
+        params.is_active = false;
       }
 
       const res = await fetchProjects(params);
@@ -68,7 +92,7 @@ export function ProjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [search, statusFilter, canManageProjects, page]);
+  }, [search, statusFilter, activeFilter, sortFilter, canManageProjects, page]);
 
   useEffect(() => {
     loadProjects();
@@ -125,6 +149,10 @@ export function ProjectsPage() {
             onSearchChange={handleSearchChange}
             statusFilter={statusFilter}
             onStatusFilterChange={handleStatusFilterChange}
+            activeFilter={activeFilter}
+            onActiveFilterChange={handleActiveFilterChange}
+            sortFilter={sortFilter}
+            onSortFilterChange={handleSortFilterChange}
             canCreateProject={canManageProjects}
             onCreateProject={() => setIsCreateModalOpen(true)}
           />

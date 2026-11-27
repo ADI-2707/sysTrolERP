@@ -11,7 +11,9 @@ import type {
 export interface ProjectListParams {
   search?: string;
   status?: string;
+  client_name?: string;
   is_active?: boolean;
+  ordering?: string;
   page?: number;
   page_size?: number;
 }
@@ -37,7 +39,9 @@ export async function fetchProjects(
   const queryParams = new URLSearchParams();
   if (params?.search) queryParams.set("search", params.search);
   if (params?.status) queryParams.set("status", params.status);
+  if (params?.client_name) queryParams.set("client_name", params.client_name);
   if (params?.is_active !== undefined) queryParams.set("is_active", String(params.is_active));
+  if (params?.ordering) queryParams.set("ordering", params.ordering);
   if (params?.page) queryParams.set("page", String(params.page));
   if (params?.page_size) queryParams.set("page_size", String(params.page_size));
 
