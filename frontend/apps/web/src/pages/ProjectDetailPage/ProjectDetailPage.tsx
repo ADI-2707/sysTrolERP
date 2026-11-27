@@ -101,7 +101,11 @@ export function ProjectDetailPage() {
     setIsUpdatingStatus(true);
     lock("Updating step status...");
     try {
-      await updateStepStatus(project.id, stepId, status, confirm, reason);
+      if (reason) {
+        await updateStepStatus(project.id, stepId, status, confirm, reason);
+      } else {
+        await updateStepStatus(project.id, stepId, status, confirm);
+      }
       addToast({
         type: "success",
         title: "Status updated",
