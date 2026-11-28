@@ -84,6 +84,11 @@ class ApiClient {
       Accept: "application/json",
       ...options.headers,
     };
+    const userTimezone =
+      typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "";
+    if (userTimezone) {
+      headers["X-Client-Timezone"] = userTimezone;
+    }
 
     const isMutative = ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase());
     if (isMutative) {
@@ -133,6 +138,58 @@ class ApiClient {
     }
 
     return (await response.json()) as T;
+  }
+
+  public async downloadFile(
+    path: string,
+    options: RequestOptions = {}
+  ): Promise<{ blob: Blob; filename: string }> {
+    const url = this.buildUrl(path, options.params);
+    const headers: Record<string, string> = {
+      ...options.headers,
+    };
+    const userTimezone =
+      typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "";
+    if (userTimezone) {
+      headers["X-Client-Timezone"] = userTimezone;
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+      credentials: "same-origin",
+      signal: options.signal,
+    });
+
+    if (response.status === 401) {
+      this.notifyUnauthorized();
+    }
+
+    if (!response.ok) {
+      let envelope: ApiErrorEnvelope;
+      try {
+        envelope = (await response.json()) as ApiErrorEnvelope;
+      } catch {
+        envelope = {
+          code: "error",
+          message: `Request failed with status ${response.status}`,
+          fields: {},
+        };
+      }
+      throw new ApiClientError(response.status, envelope);
+    }
+
+    let filename = "download";
+    const disposition = response.headers.get("Content-Disposition");
+    if (disposition && disposition.includes("filename=")) {
+      const match = disposition.match(/filename="?([^";]+)"?/);
+      if (match && match[1]) {
+        filename = match[1];
+      }
+    }
+
+    const blob = await response.blob();
+    return { blob, filename };
   }
 
   public get<T>(path: string, options?: RequestOptions): Promise<T> {

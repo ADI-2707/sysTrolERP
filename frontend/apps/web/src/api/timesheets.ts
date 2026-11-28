@@ -122,3 +122,28 @@ export async function deleteTimesheetRow(rowId: number): Promise<void> {
 export async function submitOwnTimesheet(weekDate?: string): Promise<unknown> {
   return apiClient.post("/api/timesheets/me/submit/", { week: weekDate });
 }
+
+export async function exportSiteDiary(
+  timesheetId: number,
+  projectId: number,
+  format: "pdf" | "excel" = "pdf"
+): Promise<void> {
+  const { blob, filename } = await apiClient.downloadFile(
+    `/api/timesheets/${timesheetId}/site-diary/`,
+    {
+      params: {
+        project_id: projectId,
+        format,
+      },
+    }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
+}
