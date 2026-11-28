@@ -19,6 +19,7 @@ export interface ProjectListParams {
 }
 
 export interface CreateProjectPayload {
+  code: string;
   name: string;
   client_name?: string;
   description?: string;

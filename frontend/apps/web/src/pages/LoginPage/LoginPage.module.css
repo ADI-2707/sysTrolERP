@@ -308,6 +308,41 @@
   pointer-events: none;
 }
 
+.otpContainer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.otpBox {
+  width: 56px;
+  height: 58px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: var(--radius-md, 8px);
+  border: 1.5px solid var(--color-border-default, #cbd5e1);
+  background-color: var(--color-bg-surface, #ffffff);
+  color: var(--color-text-primary, #0f172a);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.otpBox:focus {
+  border-color: var(--color-accent-10-primary, #16375b);
+  box-shadow: 0 0 0 3px rgba(22, 55, 91, 0.15);
+}
+
+.otpBox:disabled {
+  background-color: var(--color-bg-secondary, #f1f5f9);
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
   .lockup {
     flex-direction: column;

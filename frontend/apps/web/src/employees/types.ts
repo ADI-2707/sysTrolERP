@@ -50,7 +50,7 @@ export interface EmployeeDetailData {
 }
 
 export interface CreateEmployeePayload {
-  email: string;
+  email?: string;
   full_name: string;
   phone?: string;
   designation?: string;

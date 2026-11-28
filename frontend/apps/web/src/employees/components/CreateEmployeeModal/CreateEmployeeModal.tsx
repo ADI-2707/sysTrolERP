@@ -48,18 +48,13 @@ export function CreateEmployeeModal({
       return;
     }
 
-    if (!trimmedEmail) {
-      setError("Email address is required.");
-      return;
-    }
-
     setIsSubmitting(true);
     setError(null);
 
     try {
       await onSubmit({
         full_name: trimmedName,
-        email: trimmedEmail,
+        email: trimmedEmail || undefined,
         role,
         designation: designation.trim() || undefined,
         department: department.trim() || undefined,
@@ -104,7 +99,7 @@ export function CreateEmployeeModal({
 
         <div className={styles.fieldGroup}>
           <label htmlFor="create-emp-email" className={styles.label}>
-            Email Address <span className={styles.required}>*</span>
+            Email Address (Optional)
           </label>
           <input
             id="create-emp-email"
@@ -114,7 +109,6 @@ export function CreateEmployeeModal({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="e.g. rahul@example.com"
             data-testid="create-emp-email-input"
-            required
           />
         </div>
 

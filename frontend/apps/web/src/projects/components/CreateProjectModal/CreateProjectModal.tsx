@@ -21,6 +21,7 @@ export function CreateProjectModal({
   onSubmit,
   isLoading = false,
 }: CreateProjectModalProps) {
+  const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [clientName, setClientName] = useState("");
   const [description, setDescription] = useState("");
@@ -55,6 +56,7 @@ export function CreateProjectModal({
 
   useEffect(() => {
     if (isOpen) {
+      setCode("");
       setName("");
       setClientName("");
       setDescription("");
@@ -73,7 +75,20 @@ export function CreateProjectModal({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    const trimmedCode = code.trim().toUpperCase();
     const trimmedName = name.trim();
+    if (!trimmedCode) {
+      setError("Project ID / Code is required.");
+      return;
+    }
+    if (!/^[a-zA-Z0-9]+$/.test(trimmedCode)) {
+      setError("Project ID / Code must be alphanumeric with no spaces or special characters.");
+      return;
+    }
+    if (trimmedCode.length > 15) {
+      setError("Project ID / Code cannot exceed 15 characters.");
+      return;
+    }
     if (!trimmedName) {
       setError("Project name is required.");
       return;
@@ -82,6 +97,7 @@ export function CreateProjectModal({
     try {
       setError(null);
       await onSubmit({
+        code: trimmedCode,
         name: trimmedName,
         client_name: clientName.trim(),
         description: description.trim(),
@@ -111,6 +127,25 @@ export function CreateProjectModal({
             {error}
           </div>
         )}
+
+        <div className={styles.fieldGroup}>
+          <label htmlFor="project-code" className={styles.label}>
+            Project ID / Code (Required, Alphanumeric, max 15 chars)
+          </label>
+          <input
+            id="project-code"
+            type="text"
+            className={styles.input}
+            placeholder="e.g. PRJ001 or GTU2026"
+            maxLength={15}
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value);
+              if (error) setError(null);
+            }}
+            data-testid="create-project-code-input"
+          />
+        </div>
 
         <div className={styles.fieldGroup}>
           <label htmlFor="project-name" className={styles.label}>
@@ -220,7 +255,7 @@ export function CreateProjectModal({
             type="submit"
             variant="primary"
             loading={isLoading}
-            disabled={!name.trim() || isLoading}
+            disabled={!name.trim() || !code.trim() || isLoading}
             data-testid="submit-create-project-btn"
           >
             Create Project
