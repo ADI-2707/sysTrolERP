@@ -13,10 +13,10 @@ class SuperAdminPrincipal:
     must_change_password = False
 
     def __init__(self, username: str | None = None):
-        self.username = username or getattr(settings, "SUPER_ADMIN_USERNAME", "superadmin")
-        self.email = self.username
+        self.username = username or getattr(settings, "SUPER_ADMIN_USERNAME", "9999")
+        self.email = None
         self.full_name = "Super Administrator"
-        self.employee_code = "SUPER-ADMIN"
+        self.employee_code = self.username
 
     def has_perm(self, perm, obj=None):
         return True

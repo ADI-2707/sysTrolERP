@@ -49,22 +49,23 @@ def test_login_and_me_database_user():
 def test_login_and_me_super_admin(settings):
     hasher = Argon2PasswordHasher()
     hashed = hasher.encode("SuperSecret123!", hasher.salt())
-    settings.SUPER_ADMIN_USERNAME = "superadmin"
+    settings.SUPER_ADMIN_USERNAME = "9999"
     settings.SUPER_ADMIN_PASSWORD_HASH = hashed
 
     client = APIClient()
     login_resp = client.post(
         reverse("auth_login"),
-        {"identifier": "superadmin", "password": "SuperSecret123!"},
+        {"identifier": "9999", "password": "SuperSecret123!"},
         format="json",
     )
     assert login_resp.status_code == 200
     assert login_resp.data["role"] == "SUPER"
-    assert login_resp.data["employee_code"] == "SUPER-ADMIN"
+    assert login_resp.data["employee_code"] == "9999"
 
     me_resp = client.get(reverse("auth_me"))
     assert me_resp.status_code == 200
     assert me_resp.data["role"] == "SUPER"
+    assert me_resp.data["employee_code"] == "9999"
 
     logout_resp = client.post(reverse("auth_logout"))
     assert logout_resp.status_code == 200
