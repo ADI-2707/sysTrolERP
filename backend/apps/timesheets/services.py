@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.audit import services as audit_services
-from apps.core.timezone import company_today, week_bounds
+from apps.core.timezone import company_today, get_effective_today, week_bounds
 from apps.notifications.events import (
     TimesheetApprovedEvent,
     TimesheetReturnedEvent,
@@ -97,7 +97,12 @@ def upsert_timesheet_cell(
         raise ValidationError({"project_id": ["Cannot enter hours for an inactive project."]})
 
     monday, _ = week_bounds(cell_date)
-    today = company_today()
+    client_tz = None
+    if request:
+        client_tz = request.headers.get("X-Client-Timezone") or request.query_params.get(
+            "client_timezone"
+        )
+    today = get_effective_today(client_tz, getattr(project, "site_timezone", None))
 
     with transaction.atomic():
         timesheet, _ = Timesheet.objects.select_for_update().get_or_create(

@@ -19,6 +19,30 @@ def company_today() -> date:
     return company_now().date()
 
 
+def get_safe_zoneinfo(tz_name: str | None) -> ZoneInfo | None:
+    if not tz_name or not isinstance(tz_name, str):
+        return None
+    try:
+        return ZoneInfo(tz_name.strip())
+    except Exception:
+        return None
+
+
+def get_effective_today(
+    client_tz_name: str | None = None,
+    project_tz_name: str | None = None,
+) -> date:
+    today = company_today()
+    now_utc = timezone.now()
+    for candidate in (client_tz_name, project_tz_name):
+        zi = get_safe_zoneinfo(candidate)
+        if zi:
+            cand_today = now_utc.astimezone(zi).date()
+            if cand_today > today:
+                today = cand_today
+    return today
+
+
 def week_bounds(target: date | datetime | None = None) -> tuple[date, date]:
     if target is None:
         target = company_today()

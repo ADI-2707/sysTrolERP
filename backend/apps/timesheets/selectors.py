@@ -6,7 +6,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 
 from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
-from apps.core.timezone import company_today, week_bounds
+from apps.core.timezone import company_today, get_effective_today, week_bounds
 from apps.projects.models import Project
 from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
 from apps.timesheets.rules import can_edit_week, is_cell_editable
@@ -24,13 +24,14 @@ def parse_week_param(week_str: str | None) -> datetime.date:
 def get_own_timesheet(
     user: User | SuperAdminPrincipal,
     week_str: str | None = None,
+    client_tz: str | None = None,
 ) -> dict:
     if isinstance(user, SuperAdminPrincipal) or getattr(user, "role", None) == "SUPER":
         raise PermissionDenied("Super admin does not have a personal timesheet.")
 
     target_date = parse_week_param(week_str)
     monday, sunday = week_bounds(target_date)
-    today = company_today()
+    today = get_effective_today(client_tz)
     current_monday, _ = week_bounds(today)
     if monday > current_monday:
         raise ValidationError({"week": ["Cannot navigate to a future week."]})
@@ -59,8 +60,12 @@ def get_own_timesheet(
     for d in week_days:
         day_entries = [e for r in rows for e in r.entries.all() if e.date == d]
         day_total = sum((e.hours for e in day_entries), Decimal("0.00"))
-        regular = min(day_total, policy.daily_regular_hours)
-        overtime = max(Decimal("0.00"), day_total - policy.daily_regular_hours)
+        if d.weekday() == 6:
+            regular = Decimal("0.00")
+            overtime = day_total
+        else:
+            regular = min(day_total, policy.daily_regular_hours)
+            overtime = max(Decimal("0.00"), day_total - policy.daily_regular_hours)
 
         d_str = d.isoformat()
         day_totals[d_str] = str(day_total)
@@ -82,13 +87,15 @@ def get_own_timesheet(
             hours_dec = entry.hours if entry else Decimal("0.00")
             row_total += hours_dec
 
+            project_tz = getattr(r.project, "site_timezone", None)
+            cell_effective_today = get_effective_today(client_tz, project_tz)
             editable = is_cell_editable(
                 cell_date=d,
                 week_start_date=monday,
                 week_status=timesheet.status,
                 project_is_active=r.project.is_active,
                 is_assigned=is_assigned,
-                today=today,
+                today=cell_effective_today,
             )
 
             row_entries.append(
@@ -195,8 +202,12 @@ def build_timesheet_detail_for_admin(
     for d in week_days:
         day_entries = [e for r in rows for e in r.entries.all() if e.date == d]
         day_total = sum((e.hours for e in day_entries), Decimal("0.00"))
-        regular = min(day_total, policy.daily_regular_hours)
-        overtime = max(Decimal("0.00"), day_total - policy.daily_regular_hours)
+        if d.weekday() == 6:
+            regular = Decimal("0.00")
+            overtime = day_total
+        else:
+            regular = min(day_total, policy.daily_regular_hours)
+            overtime = max(Decimal("0.00"), day_total - policy.daily_regular_hours)
 
         d_str = d.isoformat()
         day_totals[d_str] = str(day_total)
@@ -406,8 +417,12 @@ def get_timesheet_dashboard_summary(week_str: str | None = None) -> dict:
                 (e.hours for r in ts.rows.all() for e in r.entries.all() if e.date == d),
                 Decimal("0.00"),
             )
-            reg = min(day_hours, policy.daily_regular_hours)
-            ot = max(Decimal("0.00"), day_hours - policy.daily_regular_hours)
+            if d.weekday() == 6:
+                reg = Decimal("0.00")
+                ot = day_hours
+            else:
+                reg = min(day_hours, policy.daily_regular_hours)
+                ot = max(Decimal("0.00"), day_hours - policy.daily_regular_hours)
             total_hours += day_hours
             total_regular += reg
             total_overtime += ot

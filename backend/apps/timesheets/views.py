@@ -64,7 +64,10 @@ class OwnTimesheetView(APIView):
 
     def get(self, request):
         week_param = request.query_params.get("week")
-        data = get_own_timesheet(user=request.user, week_str=week_param)
+        client_tz = request.headers.get("X-Client-Timezone") or request.query_params.get(
+            "client_timezone"
+        )
+        data = get_own_timesheet(user=request.user, week_str=week_param, client_tz=client_tz)
         return Response(data, status=status.HTTP_200_OK)
 
 
