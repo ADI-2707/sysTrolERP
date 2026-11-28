@@ -57,11 +57,12 @@ class WatermarkCanvas(canvas.Canvas):
 
 def generate_site_diary_pdf(
     *,
-    timesheet,
-    project,
-    rows,
-    week_days,
-    policy,
+    timesheet=None,
+    project=None,
+    rows=None,
+    week_days=None,
+    policy=None,
+    range_data=None,
 ) -> bytes:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -190,9 +191,20 @@ def generate_site_diary_pdf(
         )
     )
 
-    engineer = timesheet.employee
-    week_start = timesheet.week_start_date
-    week_end = week_start + date.resolution * 6
+    if range_data:
+        engineer = range_data["employee"]
+        project = range_data["project"]
+        policy = range_data["policy"]
+        period_start = range_data["start_date"]
+        period_end = range_data["end_date"]
+        period_label = f"{period_start.strftime('%d/%m/%Y')} — {period_end.strftime('%d/%m/%Y')} ({range_data['total_days']} Days)"
+        ref_num = f"SD-{project.code}-{period_start.strftime('%Y%m%d')}-{period_end.strftime('%Y%m%d')}-{engineer.employee_code}"
+    else:
+        engineer = timesheet.employee
+        period_start = timesheet.week_start_date
+        period_end = period_start + date.resolution * 6
+        period_label = f"{period_start.strftime('%d/%m/%Y')} — {period_end.strftime('%d/%m/%Y')}"
+        ref_num = f"SD-{project.code}-{period_start.strftime('%Y%m%d')}-{engineer.employee_code}"
 
     meta_left = [
         [Paragraph("Project Code:", meta_label), Paragraph(project.code, meta_val)],
@@ -210,7 +222,6 @@ def generate_site_diary_pdf(
         ],
     ]
 
-    ref_num = f"SD-{project.code}-{week_start.strftime('%Y%m%d')}-{engineer.employee_code}"
     meta_right = [
         [Paragraph("Site Engineer:", meta_label), Paragraph(engineer.full_name, meta_val)],
         [Paragraph("Employee Code:", meta_label), Paragraph(engineer.employee_code, meta_val)],
@@ -220,9 +231,7 @@ def generate_site_diary_pdf(
         ],
         [
             Paragraph("Period:", meta_label),
-            Paragraph(
-                f"{week_start.strftime('%d/%m/%Y')} — {week_end.strftime('%d/%m/%Y')}", meta_val
-            ),
+            Paragraph(period_label, meta_val),
         ],
         [Paragraph("Document Ref:", meta_label), Paragraph(ref_num, meta_val)],
     ]
@@ -267,6 +276,41 @@ def generate_site_diary_pdf(
         )
     )
     story.append(meta_wrapper)
+
+    if range_data:
+        metrics_table = Table(
+            [
+                [
+                    Paragraph(f"<b>Duration:</b> {range_data['total_days']} Days", meta_val),
+                    Paragraph(f"<b>Days Worked:</b> {range_data['days_worked']}", meta_val),
+                    Paragraph(f"<b>Rest Days:</b> {range_data['rest_days_worked']}", meta_val),
+                    Paragraph(
+                        f"<b>Regular:</b> {range_data['total_regular_hours']:.2f}h", meta_val
+                    ),
+                    Paragraph(
+                        f"<b>Overtime:</b> {range_data['total_overtime_hours']:.2f}h", meta_val
+                    ),
+                    Paragraph(f"<b>Total Hours:</b> {range_data['total_hours']:.2f}h", meta_val),
+                ]
+            ],
+            colWidths=[30 * mm, 30 * mm, 30 * mm, 30 * mm, 30 * mm, 30 * mm],
+        )
+        metrics_table.setStyle(
+            TableStyle(
+                [
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E1")),
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#EFF6FF")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 2 * mm),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 2 * mm),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 2 * mm),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 2 * mm),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ]
+            )
+        )
+        story.append(Spacer(1, 2 * mm))
+        story.append(metrics_table)
+
     story.append(Spacer(1, 5 * mm))
 
     table_data = [
@@ -281,12 +325,6 @@ def generate_site_diary_pdf(
         ]
     ]
 
-    total_reg = Decimal("0.00")
-    total_ot = Decimal("0.00")
-    total_all = Decimal("0.00")
-
-    project_rows = [r for r in rows if r.project_id == project.id]
-
     current_step_name = "-"
     if hasattr(project, "steps"):
         for s in project.steps.all():
@@ -294,38 +332,69 @@ def generate_site_diary_pdf(
                 current_step_name = s.name
                 break
 
-    for d in week_days:
-        day_entries = [e for r in project_rows for e in r.entries.all() if e.date == d]
-        day_hours = sum((e.hours for e in day_entries), Decimal("0.00"))
+    if range_data:
+        total_reg = range_data["total_regular_hours"]
+        total_ot = range_data["total_overtime_hours"]
+        total_all = range_data["total_hours"]
 
-        if d.weekday() == 6:
-            reg = Decimal("0.00")
-            ot = day_hours
-        else:
-            reg = min(day_hours, policy.daily_regular_hours)
-            ot = max(Decimal("0.00"), day_hours - policy.daily_regular_hours)
+        for d_item in range_data["days"]:
+            d = d_item["date"]
+            day_hours = d_item["hours"]
+            reg = d_item["regular_hours"]
+            ot = d_item["overtime_hours"]
+            notes_combined = d_item["note"] or (
+                "Site regular activities / standby" if day_hours > 0 else "-"
+            )
 
-        total_reg += reg
-        total_ot += ot
-        total_all += day_hours
+            table_data.append(
+                [
+                    Paragraph(d.strftime("%d/%m/%Y"), table_cell_center),
+                    Paragraph(d.strftime("%A"), table_cell_center),
+                    Paragraph(current_step_name, table_cell_center),
+                    Paragraph(notes_combined, table_cell),
+                    Paragraph(f"{reg:.2f}", table_cell_center),
+                    Paragraph(f"{ot:.2f}", table_cell_center),
+                    Paragraph(f"{day_hours:.2f}", table_cell_bold),
+                ]
+            )
+    else:
+        total_reg = Decimal("0.00")
+        total_ot = Decimal("0.00")
+        total_all = Decimal("0.00")
+        project_rows = [r for r in rows if r.project_id == project.id]
 
-        notes_combined = " ".join(
-            [e.note.strip() for e in day_entries if e.note and e.note.strip()]
-        )
-        if not notes_combined:
-            notes_combined = "Site regular activities / standby" if day_hours > 0 else "-"
+        for d in week_days:
+            day_entries = [e for r in project_rows for e in r.entries.all() if e.date == d]
+            day_hours = sum((e.hours for e in day_entries), Decimal("0.00"))
 
-        table_data.append(
-            [
-                Paragraph(d.strftime("%d/%m/%Y"), table_cell_center),
-                Paragraph(d.strftime("%A"), table_cell_center),
-                Paragraph(current_step_name, table_cell_center),
-                Paragraph(notes_combined, table_cell),
-                Paragraph(f"{reg:.2f}", table_cell_center),
-                Paragraph(f"{ot:.2f}", table_cell_center),
-                Paragraph(f"{day_hours:.2f}", table_cell_bold),
-            ]
-        )
+            if d.weekday() == 6:
+                reg = Decimal("0.00")
+                ot = day_hours
+            else:
+                reg = min(day_hours, policy.daily_regular_hours)
+                ot = max(Decimal("0.00"), day_hours - policy.daily_regular_hours)
+
+            total_reg += reg
+            total_ot += ot
+            total_all += day_hours
+
+            notes_combined = " ".join(
+                [e.note.strip() for e in day_entries if e.note and e.note.strip()]
+            )
+            if not notes_combined:
+                notes_combined = "Site regular activities / standby" if day_hours > 0 else "-"
+
+            table_data.append(
+                [
+                    Paragraph(d.strftime("%d/%m/%Y"), table_cell_center),
+                    Paragraph(d.strftime("%A"), table_cell_center),
+                    Paragraph(current_step_name, table_cell_center),
+                    Paragraph(notes_combined, table_cell),
+                    Paragraph(f"{reg:.2f}", table_cell_center),
+                    Paragraph(f"{ot:.2f}", table_cell_center),
+                    Paragraph(f"{day_hours:.2f}", table_cell_bold),
+                ]
+            )
 
     table_data.append(
         [
