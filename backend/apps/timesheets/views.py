@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.http import HttpResponse
 from rest_framework import status
@@ -16,6 +16,7 @@ from apps.timesheets.reports.pdf_generator import generate_site_diary_pdf
 from apps.timesheets.selectors import (
     build_timesheet_detail_for_admin,
     get_own_timesheet,
+    get_site_diary_range_data,
     get_timesheet_dashboard_summary,
     get_timesheet_for_admin,
     list_timesheets_for_admin,
@@ -300,9 +301,88 @@ class SiteDiaryExportView(APIView):
         return (renderers[0], renderers[0].media_type)
 
     def get(self, request, timesheet_id=None):
+        start_date_param = request.query_params.get("start_date")
+        end_date_param = request.query_params.get("end_date")
+        project_id_param = request.query_params.get("project_id")
+        format_type = request.query_params.get("format", "pdf").lower()
+
+        if start_date_param or end_date_param:
+            if not start_date_param or not end_date_param:
+                raise ValidationError(
+                    {"date_range": ["Both start_date and end_date query parameters are required."]}
+                )
+
+            try:
+                start_date = date.fromisoformat(start_date_param.strip())
+                end_date = date.fromisoformat(end_date_param.strip())
+            except (ValueError, AttributeError):
+                raise ValidationError(
+                    {
+                        "date_range": [
+                            "Invalid date format. Use YYYY-MM-DD for start_date and end_date."
+                        ]
+                    }
+                )
+
+            if not project_id_param:
+                raise ValidationError({"project_id": ["project_id query parameter is required."]})
+
+            try:
+                project_id = int(project_id_param)
+            except (ValueError, TypeError):
+                raise ValidationError({"project_id": ["Invalid project_id."]})
+
+            employee_id_param = request.query_params.get("employee_id")
+            role = getattr(request.user, "role", "")
+            if employee_id_param and role in ("ADMIN", "SUPER"):
+                try:
+                    target_employee_id = int(employee_id_param)
+                except (ValueError, TypeError):
+                    raise ValidationError({"employee_id": ["Invalid employee_id."]})
+            else:
+                target_employee_id = request.user.id
+
+            range_data = get_site_diary_range_data(
+                employee_id=target_employee_id,
+                project_id=project_id,
+                start_date=start_date,
+                end_date=end_date,
+            )
+
+            if not range_data["has_entries"]:
+                raise ValidationError(
+                    {
+                        "project_id": [
+                            "No recorded entries for this project in the selected date range."
+                        ]
+                    }
+                )
+
+            project = range_data["project"]
+            engineer = range_data["employee"]
+
+            if format_type in ("excel", "xlsx"):
+                content = generate_site_diary_excel(range_data=range_data)
+                content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                filename = f"Site_Diary_{project.code}_{engineer.employee_code}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.xlsx"
+            else:
+                content = generate_site_diary_pdf(range_data=range_data)
+                content_type = "application/pdf"
+                filename = f"Site_Diary_{project.code}_{engineer.employee_code}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.pdf"
+
+            resp = HttpResponse(content, content_type=content_type)
+            resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+            return resp
+
         ts_id = timesheet_id or request.query_params.get("timesheet_id")
         if not ts_id:
-            raise ValidationError({"timesheet_id": ["Timesheet ID is required."]})
+            raise ValidationError(
+                {
+                    "timesheet_id": [
+                        "Either timesheet_id or both start_date and end_date must be provided."
+                    ]
+                }
+            )
 
         try:
             timesheet = (
@@ -317,7 +397,6 @@ class SiteDiaryExportView(APIView):
         if role == "EMPLOYEE" and timesheet.employee_id != request.user.id:
             raise PermissionDenied("You can only export your own site diary.")
 
-        project_id_param = request.query_params.get("project_id")
         if not project_id_param:
             raise ValidationError({"project_id": ["project_id query parameter is required."]})
 
@@ -333,7 +412,6 @@ class SiteDiaryExportView(APIView):
                 {"project_id": ["No recorded entries for this project in the selected timesheet."]}
             )
 
-        format_type = request.query_params.get("format", "pdf").lower()
         monday = timesheet.week_start_date
         week_days = [monday + timedelta(days=i) for i in range(7)]
         policy = TimesheetPolicy.get_current()
