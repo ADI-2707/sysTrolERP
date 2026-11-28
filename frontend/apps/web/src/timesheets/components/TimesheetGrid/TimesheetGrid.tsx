@@ -90,7 +90,11 @@ export function TimesheetGrid({
       setIsExporting(true);
       setExportError(null);
       if (onExportSiteDiary) {
-        await onExportSiteDiary(projectId, format, range);
+        if (range) {
+          await onExportSiteDiary(projectId, format, range);
+        } else {
+          await onExportSiteDiary(projectId, format);
+        }
       } else {
         if (range) {
           await exportSiteDiary({

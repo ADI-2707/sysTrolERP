@@ -400,4 +400,41 @@ describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
       expect(handleExport).toHaveBeenCalledWith(2, "excel");
     });
   });
+
+  it("supports date range selection with presets and custom dates in export modal", async () => {
+    const handleExport = vi.fn().mockResolvedValue(undefined);
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onExportSiteDiary={handleExport}
+      />
+    );
+
+    const openModalBtn = screen.getByTestId("open-export-diary-modal-btn");
+    fireEvent.click(openModalBtn);
+
+    const presetMonthBtn = screen.getByTestId("preset-month-btn");
+    fireEvent.click(presetMonthBtn);
+
+    const startDateInput = screen.getByTestId("range-start-date") as HTMLInputElement;
+    const endDateInput = screen.getByTestId("range-end-date") as HTMLInputElement;
+    expect(startDateInput.value).toBe("2026-11-01");
+    expect(endDateInput.value).toBe("2026-11-30");
+
+    const presetCustomBtn = screen.getByTestId("preset-custom-btn");
+    fireEvent.click(presetCustomBtn);
+
+    fireEvent.change(startDateInput, { target: { value: "2026-10-15" } });
+    fireEvent.change(endDateInput, { target: { value: "2026-12-15" } });
+
+    const downloadBtn = screen.getByTestId("confirm-download-diary-btn");
+    fireEvent.click(downloadBtn);
+
+    await waitFor(() => {
+      expect(handleExport).toHaveBeenCalledWith(1, "pdf", {
+        startDate: "2026-10-15",
+        endDate: "2026-12-15",
+      });
+    });
+  });
 });
