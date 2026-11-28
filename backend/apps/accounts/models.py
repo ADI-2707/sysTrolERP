@@ -9,14 +9,22 @@ class UserRole(models.TextChoices):
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, employee_code, full_name, password=None, **extra_fields):
-        if not email:
-            raise ValueError("The Email field must be set")
+    def create_user(
+        self,
+        email=None,
+        employee_code=None,
+        full_name="",
+        password=None,
+        **extra_fields,
+    ):
+        if employee_code is None and email and "@" not in email:
+            employee_code = email
+            email = None
         if not employee_code:
             raise ValueError("The Employee Code field must be set")
-        email = self.normalize_email(email)
+        clean_email = self.normalize_email(email) if email else None
         user = self.model(
-            email=email,
+            email=clean_email,
             employee_code=employee_code,
             full_name=full_name,
             **extra_fields,
@@ -28,7 +36,9 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, employee_code, full_name, password=None, **extra_fields):
+    def create_superuser(
+        self, email=None, employee_code=None, full_name="", password=None, **extra_fields
+    ):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("role", UserRole.ADMIN)
@@ -43,7 +53,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     employee_code = models.CharField(max_length=20, unique=True, db_index=True)
-    email = models.EmailField(unique=True, db_index=True)
+    email = models.EmailField(unique=True, null=True, blank=True, db_index=True)
     full_name = models.CharField(max_length=150)
     phone = models.CharField(max_length=30, blank=True, default="")
     designation = models.CharField(max_length=100, blank=True, default="")
@@ -68,8 +78,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["employee_code", "full_name"]
+    USERNAME_FIELD = "employee_code"
+    REQUIRED_FIELDS = ["full_name"]
 
     class Meta:
         verbose_name = "User"

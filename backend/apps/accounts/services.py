@@ -213,7 +213,7 @@ def clear_login_lockout(
     qs.delete()
 
 
-def generate_next_employee_code(prefix: str = "SYS-", padding: int = 4) -> str:
+def generate_next_employee_code(prefix: str = "", padding: int = 4) -> str:
     max_retries = 20
     for attempt in range(max_retries):
         try:
@@ -223,6 +223,8 @@ def generate_next_employee_code(prefix: str = "SYS-", padding: int = 4) -> str:
                     defaults={"last_number": 0},
                 )
                 seq.last_number += 1
+                if seq.last_number == 9999:
+                    seq.last_number += 1
                 seq.save(update_fields=["last_number"])
                 return f"{prefix}{seq.last_number:0{padding}d}"
         except OperationalError:

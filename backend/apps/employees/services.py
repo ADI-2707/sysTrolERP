@@ -26,9 +26,9 @@ def generate_temporary_password(length: int = 14) -> str:
 
 def create_employee(
     *,
-    email: str,
     full_name: str,
     creator: User | SuperAdminPrincipal,
+    email: str = "",
     phone: str = "",
     designation: str = "",
     department: str = "",
@@ -38,7 +38,8 @@ def create_employee(
     if role == UserRole.ADMIN and getattr(creator, "role", "") != "SUPER":
         raise PermissionDenied("Only super admin can create administrators.")
 
-    if User.objects.filter(email__iexact=email).exists():
+    clean_email = email.strip() if email else ""
+    if clean_email and User.objects.filter(email__iexact=clean_email).exists():
         raise ValidationError({"email": ["An account with this email already exists."]})
 
     temp_password = generate_temporary_password()
@@ -46,7 +47,7 @@ def create_employee(
     with transaction.atomic():
         code = generate_next_employee_code()
         user = User.objects.create_user(
-            email=email,
+            email=clean_email or None,
             employee_code=code,
             full_name=full_name,
             password=temp_password,

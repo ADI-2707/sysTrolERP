@@ -38,7 +38,7 @@ class EmployeeListSerializer(serializers.ModelSerializer):
 
 
 class EmployeeCreateSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=False, allow_blank=True, default="")
     full_name = serializers.CharField(max_length=150, required=True)
     phone = serializers.CharField(max_length=30, required=False, allow_blank=True, default="")
     designation = serializers.CharField(
