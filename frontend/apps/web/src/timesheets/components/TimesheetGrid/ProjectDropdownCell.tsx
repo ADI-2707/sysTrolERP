@@ -10,6 +10,7 @@ export interface ProjectDropdownCellProps {
   onDeleteRow?: () => void;
   canEdit: boolean;
   isEmptyRow?: boolean;
+  onExportSiteDiary?: (format: "pdf" | "excel") => void;
 }
 
 export function ProjectDropdownCell({
@@ -20,26 +21,32 @@ export function ProjectDropdownCell({
   onDeleteRow,
   canEdit,
   isEmptyRow = false,
+  onExportSiteDiary,
 }: ProjectDropdownCellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [isDiaryMenuOpen, setIsDiaryMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const diaryMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
+      if (diaryMenuRef.current && !diaryMenuRef.current.contains(event.target as Node)) {
+        setIsDiaryMenuOpen(false);
+      }
     }
+    document.addEventListener("mousedown", handleClickOutside);
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
       setTimeout(() => searchInputRef.current?.focus(), 50);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, isDiaryMenuOpen]);
 
   const selectableProjects = useMemo(() => {
     return availableProjects.filter((p) => {
@@ -69,22 +76,65 @@ export function ProjectDropdownCell({
             {project.name}
           </span>
         </div>
-        {canEdit && onDeleteRow && isEmptyRow && (
-          <button
-            type="button"
-            className={styles.deleteBtn}
-            onClick={onDeleteRow}
-            title="Remove row"
-            aria-label={`Remove row for ${project.code}`}
-          >
-            ✕
-          </button>
-        )}
+        <div className={styles.rowActionsGroup}>
+          {onExportSiteDiary && (
+            <div className={styles.diaryMenuWrapper} ref={diaryMenuRef}>
+              <button
+                type="button"
+                className={styles.diaryExportBtn}
+                onClick={() => setIsDiaryMenuOpen((prev) => !prev)}
+                title="Site Diary Options"
+                aria-label={`Export site diary for ${project.code}`}
+                data-testid={`export-site-diary-btn-${project.id}`}
+              >
+                Diary ▾
+              </button>
+              {isDiaryMenuOpen && (
+                <div className={styles.diaryDropdownPopover} role="menu">
+                  <button
+                    type="button"
+                    className={styles.diaryMenuItem}
+                    role="menuitem"
+                    onClick={() => {
+                      setIsDiaryMenuOpen(false);
+                      onExportSiteDiary("pdf");
+                    }}
+                    data-testid={`export-pdf-${project.id}`}
+                  >
+                    📄 Download PDF
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.diaryMenuItem}
+                    role="menuitem"
+                    onClick={() => {
+                      setIsDiaryMenuOpen(false);
+                      onExportSiteDiary("excel");
+                    }}
+                    data-testid={`export-excel-${project.id}`}
+                  >
+                    📊 Export Excel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          {canEdit && onDeleteRow && isEmptyRow && (
+            <button
+              type="button"
+              className={styles.deleteBtn}
+              onClick={onDeleteRow}
+              title="Remove row"
+              aria-label={`Remove row for ${project.code}`}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
     );
   }
 
-  // Placeholder row ready for selection
   return (
     <div
       className={[styles.placeholderContainer, isOpen && styles.isOpen].filter(Boolean).join(" ")}

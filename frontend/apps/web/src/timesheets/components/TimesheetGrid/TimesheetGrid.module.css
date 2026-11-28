@@ -540,3 +540,138 @@
   padding: 1px 6px;
   border-radius: 4px;
 }
+
+.exportDiaryHeaderBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-brand-30-primary);
+  background: rgba(31, 122, 77, 0.08);
+  border: 1px solid var(--color-brand-30-primary);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.exportDiaryHeaderBtn:hover {
+  background-color: var(--color-brand-30-primary);
+  color: #ffffff;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  padding: var(--space-2, 8px) 0;
+}
+
+.modalEmptyNotice {
+  font-size: 13px;
+  color: var(--color-neutral-60-text-secondary);
+  text-align: center;
+  margin: 16px 0;
+}
+
+.modalDescription {
+  font-size: 12px;
+  color: var(--color-neutral-60-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.modalAlertDanger {
+  padding: 8px 12px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  color: #ef4444;
+  font-size: 12px;
+}
+
+.modalFieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modalFieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-neutral-60-text-primary);
+}
+
+.modalSelect {
+  padding: 6px 10px;
+  font-size: 12px;
+  background-color: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-strong);
+  border-radius: 4px;
+  color: var(--color-neutral-60-text-primary);
+  outline: none;
+}
+
+.modalSelect:focus {
+  border-color: var(--color-brand-30-primary);
+}
+
+.formatRadioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formatRadioLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-neutral-60-text-primary);
+  cursor: pointer;
+}
+
+.modalActionsRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.modalCancelBtn {
+  padding: 6px 12px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--color-neutral-60-border-strong);
+  border-radius: 4px;
+  color: var(--color-neutral-60-text-secondary);
+  cursor: pointer;
+}
+
+.modalCancelBtn:hover:not(:disabled) {
+  background-color: var(--color-neutral-60-surface-raised);
+  color: var(--color-neutral-60-text-primary);
+}
+
+.modalDownloadBtn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--color-brand-30-primary);
+  border: 1px solid var(--color-brand-30-primary);
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.modalDownloadBtn:hover:not(:disabled) {
+  background-color: var(--color-brand-30-hover);
+}
+
+.modalDownloadBtn:disabled,
+.modalCancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

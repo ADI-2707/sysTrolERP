@@ -153,3 +153,72 @@
   font-size: 11px;
   text-align: center;
 }
+
+.rowActionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.diaryMenuWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.diaryExportBtn {
+  background: transparent;
+  border: 1px solid var(--color-neutral-60-border-subtle);
+  color: var(--color-neutral-60-text-secondary);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.diaryExportBtn:hover {
+  border-color: var(--color-brand-30-primary);
+  color: var(--color-brand-30-primary);
+  background: rgba(31, 122, 77, 0.08);
+}
+
+.diaryDropdownPopover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 140px;
+  background-color: var(--color-neutral-60-surface);
+  border: 1px solid var(--color-neutral-60-border-strong);
+  border-radius: var(--radius-md, 6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 2500;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  gap: 2px;
+}
+
+.diaryMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--color-neutral-60-text-primary);
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease;
+}
+
+.diaryMenuItem:hover {
+  background-color: var(--color-neutral-60-surface-raised);
+  color: var(--color-brand-30-primary);
+}

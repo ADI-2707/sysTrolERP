@@ -344,4 +344,60 @@ describe("TimesheetGrid - Redesigned Excel-Style Infinite Grid", () => {
     fireEvent.change(searchInput, { target: { value: "NonExistent" } });
     expect(screen.getByText("No project rows match your filter.")).toBeInTheDocument();
   });
+
+  it("triggers onExportSiteDiary directly from row quick-export menu", async () => {
+    const handleExport = vi.fn().mockResolvedValue(undefined);
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onExportSiteDiary={handleExport}
+      />
+    );
+
+    const diaryRowBtn = screen.getByTestId("export-site-diary-btn-1");
+    expect(diaryRowBtn).toBeInTheDocument();
+    fireEvent.click(diaryRowBtn);
+
+    const pdfBtn = screen.getByTestId("export-pdf-1");
+    expect(pdfBtn).toBeInTheDocument();
+    fireEvent.click(pdfBtn);
+
+    expect(handleExport).toHaveBeenCalledWith(1, "pdf");
+
+    fireEvent.click(diaryRowBtn);
+    const excelBtn = screen.getByTestId("export-excel-1");
+    expect(excelBtn).toBeInTheDocument();
+    fireEvent.click(excelBtn);
+
+    expect(handleExport).toHaveBeenCalledWith(1, "excel");
+  });
+
+  it("opens export site diary modal from header and downloads selected project", async () => {
+    const handleExport = vi.fn().mockResolvedValue(undefined);
+    render(
+      <TimesheetGrid
+        timesheet={mockTimesheet}
+        onExportSiteDiary={handleExport}
+      />
+    );
+
+    const openModalBtn = screen.getByTestId("open-export-diary-modal-btn");
+    expect(openModalBtn).toBeInTheDocument();
+    fireEvent.click(openModalBtn);
+
+    expect(screen.getByText("Export Project Site Diary")).toBeInTheDocument();
+
+    const select = screen.getByTestId("site-diary-project-select");
+    fireEvent.change(select, { target: { value: "2" } });
+
+    const excelRadio = screen.getByTestId("format-radio-excel");
+    fireEvent.click(excelRadio);
+
+    const downloadBtn = screen.getByTestId("confirm-download-diary-btn");
+    fireEvent.click(downloadBtn);
+
+    await waitFor(() => {
+      expect(handleExport).toHaveBeenCalledWith(2, "excel");
+    });
+  });
 });

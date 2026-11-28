@@ -2,6 +2,8 @@ import { useState, useMemo, useRef } from "react";
 import type { TimesheetData, AssignedProject } from "../../types";
 import type { CellSaveStatus } from "../../hooks/useTimesheetAutosave";
 import { getDayLabel, isCurrentWeek as checkIsCurrentWeek } from "../../utils/dateUtils";
+import { exportSiteDiary } from "../../../api/timesheets";
+import { Modal } from "../../../ui/components/Modal";
 import { ProjectDropdownCell } from "./ProjectDropdownCell";
 import { TimesheetDescCell } from "./TimesheetDescCell";
 import { TimesheetHoursCell } from "./TimesheetHoursCell";
@@ -24,6 +26,7 @@ export interface TimesheetGridProps {
   globalStatus?: CellSaveStatus;
   className?: string;
   readOnly?: boolean;
+  onExportSiteDiary?: (projectId: number, format: "pdf" | "excel") => Promise<void> | void;
 }
 
 export function TimesheetGrid({
@@ -42,11 +45,35 @@ export function TimesheetGrid({
   globalStatus,
   className,
   readOnly = false,
+  onExportSiteDiary,
 }: TimesheetGridProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canEdit = !readOnly && timesheet.can_edit;
   const [projectSearch, setProjectSearch] = useState("");
   const [hideEmptyRows, setHideEmptyRows] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedExportProjectId, setSelectedExportProjectId] = useState<number | null>(null);
+  const [selectedExportFormat, setSelectedExportFormat] = useState<"pdf" | "excel">("pdf");
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const handleExportSiteDiary = async (projectId: number, format: "pdf" | "excel") => {
+    try {
+      setIsExporting(true);
+      setExportError(null);
+      if (onExportSiteDiary) {
+        await onExportSiteDiary(projectId, format);
+      } else {
+        await exportSiteDiary(timesheet.id, projectId, format);
+      }
+      setIsExportModalOpen(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to export site diary";
+      setExportError(message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const existingProjectIds = useMemo(
     () => timesheet.rows.map((r) => r.project.id),
@@ -171,6 +198,22 @@ export function TimesheetGrid({
                 {hideEmptyRows ? "Show Empty Rows" : "Hide Empty Rows"}
               </button>
 
+              <button
+                type="button"
+                className={styles.exportDiaryHeaderBtn}
+                onClick={() => {
+                  if (timesheet.rows.length > 0) {
+                    setSelectedExportProjectId(timesheet.rows[0].project.id);
+                  }
+                  setExportError(null);
+                  setIsExportModalOpen(true);
+                }}
+                data-testid="open-export-diary-modal-btn"
+                title="Export site diary report (PDF or Excel)"
+              >
+                Site Diary
+              </button>
+
               {canEdit && timesheet.can_submit && onSubmitTimesheet && (
                 <button
                   type="button"
@@ -244,6 +287,7 @@ export function TimesheetGrid({
                       onDeleteRow={onDeleteRow ? () => onDeleteRow(row.id) : undefined}
                       canEdit={canEdit}
                       isEmptyRow={isEmptyRow}
+                      onExportSiteDiary={(format) => handleExportSiteDiary(row.project.id, format)}
                     />
                   </td>
 
@@ -394,6 +438,110 @@ export function TimesheetGrid({
         </table>
       </div>
     </div>
+
+    {isExportModalOpen && (
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => {
+          if (!isExporting) setIsExportModalOpen(false);
+        }}
+        title="Export Project Site Diary"
+        size="sm"
+      >
+        <div className={styles.modalContent}>
+          {timesheet.rows.length === 0 ? (
+            <p className={styles.modalEmptyNotice}>No projects recorded in this timesheet to export.</p>
+          ) : (
+            <>
+              <p className={styles.modalDescription}>
+                Export an official site diary for this week with daily activity logs, hours, overtime calculations, and sign-off blocks.
+              </p>
+
+              {exportError && (
+                <div className={styles.modalAlertDanger} role="alert">
+                  {exportError}
+                </div>
+              )}
+
+              <div className={styles.modalFieldGroup}>
+                <label htmlFor="site-diary-project-select" className={styles.modalFieldLabel}>
+                  Select Project
+                </label>
+                <select
+                  id="site-diary-project-select"
+                  className={styles.modalSelect}
+                  value={selectedExportProjectId ?? timesheet.rows[0]?.project.id}
+                  onChange={(e) => setSelectedExportProjectId(Number(e.target.value))}
+                  disabled={isExporting}
+                  data-testid="site-diary-project-select"
+                >
+                  {timesheet.rows.map((r) => (
+                    <option key={r.project.id} value={r.project.id}>
+                      {r.project.code} — {r.project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.modalFieldGroup}>
+                <label className={styles.modalFieldLabel}>Export Format</label>
+                <div className={styles.formatRadioGroup}>
+                  <label className={styles.formatRadioLabel}>
+                    <input
+                      type="radio"
+                      name="exportFormat"
+                      value="pdf"
+                      checked={selectedExportFormat === "pdf"}
+                      onChange={() => setSelectedExportFormat("pdf")}
+                      disabled={isExporting}
+                      data-testid="format-radio-pdf"
+                    />
+                    <span>PDF Document (.pdf)</span>
+                  </label>
+                  <label className={styles.formatRadioLabel}>
+                    <input
+                      type="radio"
+                      name="exportFormat"
+                      value="excel"
+                      checked={selectedExportFormat === "excel"}
+                      onChange={() => setSelectedExportFormat("excel")}
+                      disabled={isExporting}
+                      data-testid="format-radio-excel"
+                    />
+                    <span>Excel Spreadsheet (.xlsx)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className={styles.modalActionsRow}>
+                <button
+                  type="button"
+                  className={styles.modalCancelBtn}
+                  onClick={() => setIsExportModalOpen(false)}
+                  disabled={isExporting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={styles.modalDownloadBtn}
+                  onClick={() => {
+                    const pid = selectedExportProjectId ?? timesheet.rows[0]?.project.id;
+                    if (pid) {
+                      handleExportSiteDiary(pid, selectedExportFormat);
+                    }
+                  }}
+                  disabled={isExporting}
+                  data-testid="confirm-download-diary-btn"
+                >
+                  {isExporting ? "Exporting..." : "Download Diary"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
+    )}
   </div>
   );
 }
