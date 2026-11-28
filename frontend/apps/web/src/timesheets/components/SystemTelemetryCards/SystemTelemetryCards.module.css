@@ -80,9 +80,21 @@
   color: var(--color-text-secondary);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 1024px) {
   .cardsGrid {
-    grid-template-columns: 1fr;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
     gap: var(--space-3);
+    padding-bottom: var(--space-2);
+    scrollbar-width: thin;
+  }
+
+  .card {
+    flex: 0 0 220px;
+    min-width: 220px;
+    scroll-snap-align: start;
   }
 }

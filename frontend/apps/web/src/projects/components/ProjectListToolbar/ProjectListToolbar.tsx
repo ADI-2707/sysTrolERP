@@ -28,7 +28,7 @@ export function ProjectListToolbar({
 }: ProjectListToolbarProps) {
   return (
     <div className={styles.toolbar} data-testid="project-list-toolbar">
-      <div className={styles.filterGroup}>
+      <div className={styles.topRow}>
         <input
           type="search"
           placeholder="Search projects by name, code, client..."
@@ -38,6 +38,21 @@ export function ProjectListToolbar({
           data-testid="project-search-input"
         />
 
+        {canCreateProject && onCreateProject && (
+          <div className={styles.actionGroup}>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={onCreateProject}
+              data-testid="create-project-btn"
+            >
+              Create Project
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.filterGroup}>
         <select
           value={statusFilter}
           onChange={(e) => onStatusFilterChange(e.target.value)}
@@ -83,19 +98,6 @@ export function ProjectListToolbar({
           </select>
         )}
       </div>
-
-      {canCreateProject && onCreateProject && (
-        <div className={styles.actionGroup}>
-          <Button
-            type="button"
-            variant="primary"
-            onClick={onCreateProject}
-            data-testid="create-project-btn"
-          >
-            Create Project
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
