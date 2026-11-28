@@ -29,7 +29,8 @@ def test_admin_create_employee_success():
     response = client.post(reverse("employee_list_create"), payload, format="json")
     assert response.status_code == 201
     assert response.data["email"] == "new.hire@example.com"
-    assert response.data["employee_code"].startswith("SYS-")
+    assert len(response.data["employee_code"]) == 4
+    assert response.data["employee_code"].isdigit()
     assert "temporary_password" in response.data
     assert len(response.data["temporary_password"]) >= 10
     assert response.data["must_change_password"] is True

@@ -77,7 +77,7 @@ describe("CreateProjectModal", () => {
     fireEvent.submit(screen.getByTestId("create-project-form"));
 
     await waitFor(() => {
-      expect(screen.getByText("Project name is required.")).toBeInTheDocument();
+      expect(screen.getByText("Project ID / Code is required.")).toBeInTheDocument();
     });
 
     expect(defaultProps.onSubmit).not.toHaveBeenCalled();
@@ -90,6 +90,9 @@ describe("CreateProjectModal", () => {
       expect(screen.getByText("Alice Engineer")).toBeInTheDocument();
     });
 
+    fireEvent.change(screen.getByLabelText(/Project ID \/ Code/i), {
+      target: { value: "PRJ001" },
+    });
     fireEvent.change(screen.getByLabelText(/Project Name/i), {
       target: { value: "New Automation Line" },
     });
@@ -106,6 +109,7 @@ describe("CreateProjectModal", () => {
 
     await waitFor(() => {
       expect(defaultProps.onSubmit).toHaveBeenCalledWith({
+        code: "PRJ001",
         name: "New Automation Line",
         client_name: "Apex Industries",
         description: "Project scope",

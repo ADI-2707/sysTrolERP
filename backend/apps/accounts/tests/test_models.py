@@ -19,13 +19,15 @@ def test_create_user_employee():
 
 
 @pytest.mark.django_db
-def test_create_user_missing_email():
-    with pytest.raises(ValueError, match="The Email field must be set"):
-        User.objects.create_user(
-            email="",
-            employee_code="SYS-0002",
-            full_name="No Email",
-        )
+def test_create_user_optional_email():
+    user = User.objects.create_user(
+        employee_code="0002",
+        full_name="No Email",
+        password="ValidPassword123!",
+    )
+    assert user.pk is not None
+    assert user.email is None
+    assert user.employee_code == "0002"
 
 
 @pytest.mark.django_db

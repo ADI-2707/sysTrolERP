@@ -226,6 +226,9 @@ describe("ProjectsFlows", () => {
     const form = screen.getByTestId("create-project-form");
     expect(form).toBeInTheDocument();
 
+    const codeInput = screen.getByTestId("create-project-code-input");
+    fireEvent.change(codeInput, { target: { value: "PRJ001" } });
+
     const nameInput = screen.getByTestId("create-project-name-input");
     fireEvent.change(nameInput, { target: { value: "Wind Turbine Stage 2" } });
 

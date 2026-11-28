@@ -35,11 +35,21 @@ describe("LoginPage", () => {
     );
   };
 
+  const fillEmployeeCode = (code: string) => {
+    const chars = code.split("");
+    for (let i = 0; i < 4; i++) {
+      fireEvent.change(screen.getByTestId(`employee-code-digit-${i}`), {
+        target: { value: chars[i] || "" },
+      });
+    }
+  };
+
   it("renders brand panel, logo, and login form fields", () => {
     renderLoginPage();
     expect(screen.getByRole("heading", { name: "sysTrol ERP" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Sign In" })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Employee Code or Email/i)).toBeInTheDocument();
+    expect(screen.getByTestId("employee-code-container")).toBeInTheDocument();
+    expect(screen.getByTestId("employee-code-digit-0")).toBeInTheDocument();
     expect(screen.getByLabelText(/^Password/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign In" })).toBeInTheDocument();
   });
@@ -48,30 +58,28 @@ describe("LoginPage", () => {
     renderLoginPage();
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
     expect(mockLogin).not.toHaveBeenCalled();
-    expect(screen.getByRole("alert")).toHaveTextContent("Please enter both your identifier and password.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Please enter both your 4-digit Employee ID and password.");
   });
 
   it("submits valid credentials and navigates on success", async () => {
     mockLogin.mockResolvedValueOnce({
       id: 1,
-      employee_code: "SYS-0001",
+      employee_code: "9999",
       email: "admin@systrol.com",
-      full_name: "Admin User",
+      full_name: "Super Admin",
       role: "ADMIN",
       must_change_password: false,
     });
 
     renderLoginPage();
-    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
-      target: { value: "SYS-0001" },
-    });
+    fillEmployeeCode("9999");
     fireEvent.change(screen.getByLabelText(/^Password/i), {
-      target: { value: "password123" },
+      target: { value: "SysTrol@9999" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
 
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith("SYS-0001", "password123");
+      expect(mockLogin).toHaveBeenCalledWith("9999", "SysTrol@9999");
       expect(screen.getByText("Dashboard Home")).toBeInTheDocument();
     });
   });
@@ -85,9 +93,7 @@ describe("LoginPage", () => {
     );
 
     renderLoginPage();
-    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
-      target: { value: "SYS-0001" },
-    });
+    fillEmployeeCode("0001");
     fireEvent.change(screen.getByLabelText(/^Password/i), {
       target: { value: "wrongpassword" },
     });
@@ -108,9 +114,7 @@ describe("LoginPage", () => {
     );
 
     renderLoginPage();
-    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
-      target: { value: "SYS-0002" },
-    });
+    fillEmployeeCode("0002");
     fireEvent.change(screen.getByLabelText(/^Password/i), {
       target: { value: "anypassword" },
     });
@@ -131,9 +135,7 @@ describe("LoginPage", () => {
     );
 
     renderLoginPage();
-    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
-      target: { value: "SYS-0001" },
-    });
+    fillEmployeeCode("0001");
     fireEvent.change(screen.getByLabelText(/^Password/i), {
       target: { value: "badpass" },
     });
@@ -154,9 +156,7 @@ describe("LoginPage", () => {
     );
 
     renderLoginPage();
-    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
-      target: { value: "SYS-0001" },
-    });
+    fillEmployeeCode("0001");
     fireEvent.change(screen.getByLabelText(/^Password/i), {
       target: { value: "password123" },
     });
@@ -167,7 +167,7 @@ describe("LoginPage", () => {
 
     resolveLogin!({
       id: 1,
-      employee_code: "SYS-0001",
+      employee_code: "0001",
       email: "admin@systrol.com",
       full_name: "Admin User",
       role: "ADMIN",
@@ -209,9 +209,7 @@ describe("LoginPage", () => {
     );
 
     renderLoginPage();
-    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
-      target: { value: "SYS-0001" },
-    });
+    fillEmployeeCode("0001");
     fireEvent.change(screen.getByLabelText(/^Password/i), {
       target: { value: "wrongpassword" },
     });

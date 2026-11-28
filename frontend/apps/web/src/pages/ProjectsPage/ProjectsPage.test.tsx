@@ -434,6 +434,9 @@ describe("ProjectsPage", () => {
 
     expect(screen.getByRole("heading", { name: "Create Project" })).toBeInTheDocument();
 
+    const codeInput = screen.getByTestId("create-project-code-input");
+    fireEvent.change(codeInput, { target: { value: "PRJ001" } });
+
     const nameInput = screen.getByTestId("create-project-name-input");
     fireEvent.change(nameInput, { target: { value: "New Industrial Plant" } });
 
@@ -445,6 +448,7 @@ describe("ProjectsPage", () => {
 
     await waitFor(() => {
       expect(projectsApi.createProject).toHaveBeenCalledWith({
+        code: "PRJ001",
         name: "New Industrial Plant",
         client_name: "MegaCorp",
         description: "",

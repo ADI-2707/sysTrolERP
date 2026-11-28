@@ -63,6 +63,7 @@ def test_project_list_view_permissions_and_filtering():
     assert completed_resp.data["count"] == 0
 
     create_payload = {
+        "code": "PRJ003",
         "name": "New Project Via API",
         "client_name": "API Client",
     }
