@@ -45,6 +45,9 @@ class Project(TimestampedModel):
     slug = models.SlugField(max_length=220, unique=True, db_index=True)
     client_name = models.CharField(max_length=200, blank=True, default="")
     description = models.TextField(blank=True, default="")
+    site_country = models.CharField(max_length=100, blank=True, default="India")
+    site_city_or_plant = models.CharField(max_length=150, blank=True, default="")
+    site_timezone = models.CharField(max_length=50, default="Asia/Kolkata")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,

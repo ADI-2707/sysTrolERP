@@ -33,6 +33,9 @@ class ProjectListSerializer(serializers.ModelSerializer):
             "slug",
             "client_name",
             "description",
+            "site_country",
+            "site_city_or_plant",
+            "site_timezone",
             "is_active",
             "status",
             "total_steps",
@@ -124,6 +127,9 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
             "slug",
             "client_name",
             "description",
+            "site_country",
+            "site_city_or_plant",
+            "site_timezone",
             "is_active",
             "status",
             "creator",
@@ -180,6 +186,15 @@ class ProjectCreateSerializer(serializers.Serializer):
         max_length=200, required=False, allow_blank=True, default=""
     )
     description = serializers.CharField(required=False, allow_blank=True, default="")
+    site_country = serializers.CharField(
+        max_length=100, required=False, allow_blank=True, default="India"
+    )
+    site_city_or_plant = serializers.CharField(
+        max_length=150, required=False, allow_blank=True, default=""
+    )
+    site_timezone = serializers.CharField(
+        max_length=50, required=False, allow_blank=True, default="Asia/Kolkata"
+    )
     member_ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=False,
