@@ -181,6 +181,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
 
 class ProjectCreateSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=15, min_length=1, required=True)
     name = serializers.CharField(max_length=200, required=True)
     client_name = serializers.CharField(
         max_length=200, required=False, allow_blank=True, default=""
@@ -200,6 +201,18 @@ class ProjectCreateSerializer(serializers.Serializer):
         required=False,
         default=list,
     )
+
+    def validate_code(self, value):
+        val = value.strip().upper()
+        if not val.isalnum():
+            raise serializers.ValidationError(
+                "Project code must be alphanumeric (letters and numbers only)."
+            )
+        if len(val) > 15:
+            raise serializers.ValidationError("Project code must not exceed 15 characters.")
+        if Project.objects.filter(code__iexact=val).exists():
+            raise serializers.ValidationError("A project with this code already exists.")
+        return val
 
 
 class StepStatusUpdateSerializer(serializers.Serializer):

@@ -49,6 +49,7 @@ def create_project(
     *,
     name: str,
     creator: User | SuperAdminPrincipal,
+    code: str = "",
     client_name: str = "",
     description: str = "",
     site_country: str = "India",
@@ -61,6 +62,21 @@ def create_project(
     if not name:
         raise ValidationError({"name": ["Project name is required."]})
 
+    clean_code = code.strip().upper() if code else ""
+    if clean_code:
+        if len(clean_code) > 15:
+            raise ValidationError({"code": ["Project code must not exceed 15 characters."]})
+        if not clean_code.isalnum():
+            raise ValidationError(
+                {"code": ["Project code must be alphanumeric (letters and numbers only)."]}
+            )
+        if Project.objects.filter(code__iexact=clean_code).exists():
+            raise ValidationError({"code": ["A project with this code already exists."]})
+        slug = clean_code.lower()
+    else:
+        clean_code = generate_next_project_code()
+        slug = generate_unique_project_slug(name)
+
     created_by = creator if isinstance(creator, User) else None
     created_by_label = (
         f"SUPER:{creator.username}"
@@ -69,11 +85,8 @@ def create_project(
     )
 
     with transaction.atomic():
-        code = generate_next_project_code()
-        slug = generate_unique_project_slug(name)
-
         project = Project.objects.create(
-            code=code,
+            code=clean_code,
             name=name,
             slug=slug,
             client_name=client_name.strip(),

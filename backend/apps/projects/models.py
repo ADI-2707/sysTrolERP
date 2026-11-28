@@ -40,9 +40,9 @@ STEP_STATUS_ORDER = {
 
 
 class Project(TimestampedModel):
-    code = models.CharField(max_length=50, unique=True, db_index=True)
+    code = models.CharField(max_length=15, unique=True, db_index=True)
     name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=220, unique=True, db_index=True)
+    slug = models.SlugField(max_length=15, unique=True, db_index=True)
     client_name = models.CharField(max_length=200, blank=True, default="")
     description = models.TextField(blank=True, default="")
     site_country = models.CharField(max_length=100, blank=True, default="India")
