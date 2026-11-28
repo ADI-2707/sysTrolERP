@@ -38,6 +38,9 @@ class EmployeeListSerializer(serializers.ModelSerializer):
 
 
 class EmployeeCreateSerializer(serializers.Serializer):
+    employee_code = serializers.CharField(
+        max_length=4, min_length=4, required=False, allow_blank=True, default=""
+    )
     email = serializers.EmailField(required=False, allow_blank=True, default="")
     full_name = serializers.CharField(max_length=150, required=True)
     phone = serializers.CharField(max_length=30, required=False, allow_blank=True, default="")
@@ -46,6 +49,20 @@ class EmployeeCreateSerializer(serializers.Serializer):
     )
     department = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
     role = serializers.ChoiceField(choices=UserRole.choices, default=UserRole.EMPLOYEE)
+
+    def validate_employee_code(self, value):
+        val = value.strip()
+        if not val:
+            return ""
+        if not (val.isdigit() and len(val) == 4):
+            raise serializers.ValidationError("Employee ID must be a 4-digit numeric code.")
+        if val == "9999":
+            raise serializers.ValidationError(
+                "Employee ID 9999 is reserved for Super Administrator."
+            )
+        if User.objects.filter(employee_code=val).exists():
+            raise serializers.ValidationError("An employee with this Employee ID already exists.")
+        return val
 
 
 class EmployeeUpdateSerializer(serializers.Serializer):

@@ -17,6 +17,7 @@ export function CreateEmployeeModal({
   isSuperAdmin,
 }: CreateEmployeeModalProps) {
   const [fullName, setFullName] = useState("");
+  const [employeeCode, setEmployeeCode] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<EmployeeRole>("EMPLOYEE");
   const [designation, setDesignation] = useState("");
@@ -28,6 +29,7 @@ export function CreateEmployeeModal({
   useEffect(() => {
     if (isOpen) {
       setFullName("");
+      setEmployeeCode("");
       setEmail("");
       setRole("EMPLOYEE");
       setDesignation("");
@@ -41,11 +43,23 @@ export function CreateEmployeeModal({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const trimmedName = fullName.trim();
+    const trimmedCode = employeeCode.trim();
     const trimmedEmail = email.trim();
 
     if (!trimmedName) {
       setError("Full name is required.");
       return;
+    }
+
+    if (trimmedCode) {
+      if (!/^\d{4}$/.test(trimmedCode)) {
+        setError("Employee ID must be a 4-digit numeric code (e.g. 0001).");
+        return;
+      }
+      if (trimmedCode === "9999") {
+        setError("Employee ID 9999 is reserved for Super Administrator.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -54,6 +68,7 @@ export function CreateEmployeeModal({
     try {
       await onSubmit({
         full_name: trimmedName,
+        employee_code: trimmedCode || undefined,
         email: trimmedEmail || undefined,
         role,
         designation: designation.trim() || undefined,
@@ -94,6 +109,27 @@ export function CreateEmployeeModal({
             placeholder="e.g. Rahul Sharma"
             data-testid="create-emp-name-input"
             required
+          />
+        </div>
+
+        <div className={styles.fieldGroup}>
+          <label htmlFor="create-emp-code" className={styles.label}>
+            Employee ID (4-digit numeric code)
+          </label>
+          <input
+            id="create-emp-code"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={4}
+            className={styles.input}
+            value={employeeCode}
+            onChange={(e) => {
+              setEmployeeCode(e.target.value.replace(/\D/g, "").slice(0, 4));
+              if (error) setError(null);
+            }}
+            placeholder="e.g. 0001 (leave blank to auto-generate)"
+            data-testid="create-emp-code-input"
           />
         </div>
 

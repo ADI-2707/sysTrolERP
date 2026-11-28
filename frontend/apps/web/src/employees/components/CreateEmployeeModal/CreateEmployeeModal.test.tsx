@@ -23,6 +23,7 @@ describe("CreateEmployeeModal", () => {
 
     expect(screen.getByTestId("create-employee-form")).toBeInTheDocument();
     expect(screen.getByTestId("create-emp-name-input")).toBeInTheDocument();
+    expect(screen.getByTestId("create-emp-code-input")).toBeInTheDocument();
     expect(screen.getByTestId("create-emp-email-input")).toBeInTheDocument();
     expect(screen.getByTestId("create-emp-role-select")).toBeDisabled();
     expect(screen.getByTestId("create-emp-role-hint")).toHaveTextContent("Only Super Admin can create Administrators");
@@ -82,6 +83,7 @@ describe("CreateEmployeeModal", () => {
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith({
         full_name: "New User",
+        employee_code: undefined,
         email: "newuser@example.com",
         role: "EMPLOYEE",
         designation: "Tester",
@@ -90,6 +92,68 @@ describe("CreateEmployeeModal", () => {
       });
       expect(mockOnClose).toHaveBeenCalled();
     });
+  });
+
+  it("submits with custom 4-digit employee code", async () => {
+    mockOnSubmit.mockResolvedValueOnce({
+      id: 11,
+      employee_code: "0042",
+      full_name: "Custom Code User",
+      role: "EMPLOYEE",
+      temporary_password: "TempPass123!@#",
+      must_change_password: true,
+      date_joined: "2026-03-01T10:00:00Z",
+    });
+
+    render(
+      <CreateEmployeeModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onSubmit={mockOnSubmit}
+        isSuperAdmin={false}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId("create-emp-name-input"), { target: { value: "Custom Code User" } });
+    fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "0042" } });
+    fireEvent.click(screen.getByTestId("create-emp-submit-btn"));
+
+    await waitFor(() => {
+      expect(mockOnSubmit).toHaveBeenCalledWith({
+        full_name: "Custom Code User",
+        employee_code: "0042",
+        email: undefined,
+        role: "EMPLOYEE",
+        designation: undefined,
+        department: undefined,
+        phone: undefined,
+      });
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
+
+  it("validates 4-digit employee code and blocks reserved 9999", async () => {
+    render(
+      <CreateEmployeeModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onSubmit={mockOnSubmit}
+        isSuperAdmin={false}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId("create-emp-name-input"), { target: { value: "Test User" } });
+    fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "123" } });
+    fireEvent.click(screen.getByTestId("create-emp-submit-btn"));
+
+    expect(screen.getByTestId("create-employee-error")).toHaveTextContent("Employee ID must be a 4-digit numeric code");
+    expect(mockOnSubmit).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "9999" } });
+    fireEvent.click(screen.getByTestId("create-emp-submit-btn"));
+
+    expect(screen.getByTestId("create-employee-error")).toHaveTextContent("Employee ID 9999 is reserved for Super Administrator.");
+    expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
   it("displays error message on submission failure", async () => {

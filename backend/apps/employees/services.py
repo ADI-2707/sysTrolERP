@@ -5,7 +5,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from apps.accounts.models import User, UserRole
+from apps.accounts.models import EmployeeCodeSequence, User, UserRole
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.accounts.services import generate_next_employee_code, terminate_user_sessions
 from apps.audit import services as audit_services
@@ -28,6 +28,7 @@ def create_employee(
     *,
     full_name: str,
     creator: User | SuperAdminPrincipal,
+    employee_code: str = "",
     email: str = "",
     phone: str = "",
     designation: str = "",
@@ -42,10 +43,37 @@ def create_employee(
     if clean_email and User.objects.filter(email__iexact=clean_email).exists():
         raise ValidationError({"email": ["An account with this email already exists."]})
 
+    clean_code = employee_code.strip() if employee_code else ""
+    if clean_code:
+        if not (clean_code.isdigit() and len(clean_code) == 4):
+            raise ValidationError(
+                {"employee_code": ["Employee ID must be a 4-digit numeric code."]}
+            )
+        if clean_code == "9999":
+            raise ValidationError(
+                {"employee_code": ["Employee ID 9999 is reserved for Super Administrator."]}
+            )
+        if User.objects.filter(employee_code=clean_code).exists():
+            raise ValidationError(
+                {"employee_code": ["An employee with this Employee ID already exists."]}
+            )
+
     temp_password = generate_temporary_password()
 
     with transaction.atomic():
-        code = generate_next_employee_code()
+        if clean_code:
+            code = clean_code
+            seq, _ = EmployeeCodeSequence.objects.select_for_update().get_or_create(
+                name="employee_code",
+                defaults={"last_number": 0},
+            )
+            code_num = int(clean_code)
+            if code_num > seq.last_number and code_num < 9999:
+                seq.last_number = code_num
+                seq.save(update_fields=["last_number"])
+        else:
+            code = generate_next_employee_code()
+
         user = User.objects.create_user(
             email=clean_email or None,
             employee_code=code,
