@@ -39,6 +39,8 @@
   border-radius: var(--radius-sm, 4px);
   font-size: 11px;
   line-height: 1;
+  height: 24px;
+  min-height: 24px;
   transition: all 0.15s ease;
 }
 
@@ -60,6 +62,7 @@
 
 .selectBtn {
   width: 100%;
+  justify-content: flex-start;
   text-align: left;
   background: transparent;
   border: 1px dashed var(--color-neutral-60-border-strong);
@@ -67,6 +70,8 @@
   padding: var(--space-1, 4px) var(--space-2, 8px);
   border-radius: var(--radius-sm, 4px);
   font-size: var(--font-size-xs, 12px);
+  height: 26px;
+  min-height: 26px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -167,6 +172,8 @@
 }
 
 .diaryExportBtn {
+  display: inline-flex;
+  align-items: center;
   background: transparent;
   border: 1px solid var(--color-neutral-60-border-subtle);
   color: var(--color-neutral-60-text-secondary);
@@ -176,6 +183,8 @@
   font-size: 10px;
   font-weight: 500;
   line-height: 1.2;
+  height: 24px;
+  min-height: 24px;
   transition: all 0.15s ease;
   white-space: nowrap;
 }

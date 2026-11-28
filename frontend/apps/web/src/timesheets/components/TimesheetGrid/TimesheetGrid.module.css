@@ -170,6 +170,10 @@
   border-radius: var(--radius-sm, 4px);
 }
 
+.rowSearchWrapper {
+  width: 140px;
+}
+
 .rowSearchInput {
   padding: 4px 8px;
   font-size: 12px;

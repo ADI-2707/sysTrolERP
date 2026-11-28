@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { Button } from "@systrol/ui";
 import type { AssignedProject } from "../../types";
 import styles from "./ProjectDropdownCell.module.css";
 
@@ -79,8 +80,10 @@ export function ProjectDropdownCell({
         <div className={styles.rowActionsGroup}>
           {onExportSiteDiary && (
             <div className={styles.diaryMenuWrapper} ref={diaryMenuRef}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 className={styles.diaryExportBtn}
                 onClick={() => setIsDiaryMenuOpen((prev) => !prev)}
                 title="Site Diary Options"
@@ -88,7 +91,7 @@ export function ProjectDropdownCell({
                 data-testid={`export-site-diary-btn-${project.id}`}
               >
                 Diary ▾
-              </button>
+              </Button>
               {isDiaryMenuOpen && (
                 <div className={styles.diaryDropdownPopover} role="menu">
                   <button
@@ -120,15 +123,17 @@ export function ProjectDropdownCell({
             </div>
           )}
           {canEdit && onDeleteRow && isEmptyRow && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               className={styles.deleteBtn}
               onClick={onDeleteRow}
               title="Remove row"
               aria-label={`Remove row for ${project.code}`}
             >
               ✕
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -142,14 +147,16 @@ export function ProjectDropdownCell({
     >
       {canEdit ? (
         <>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             className={styles.selectBtn}
             onClick={() => setIsOpen((prev) => !prev)}
             data-testid="select-project-cell-btn"
           >
             + Select Project
-          </button>
+          </Button>
 
           {isOpen && (
             <div className={styles.dropdownPopover} role="dialog" aria-label="Select Project">

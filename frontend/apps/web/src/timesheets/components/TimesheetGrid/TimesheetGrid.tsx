@@ -3,7 +3,7 @@ import type { TimesheetData, AssignedProject } from "../../types";
 import type { CellSaveStatus } from "../../hooks/useTimesheetAutosave";
 import { getDayLabel, isCurrentWeek as checkIsCurrentWeek } from "../../utils/dateUtils";
 import { exportSiteDiary } from "../../../api/timesheets";
-import { Modal } from "../../../ui/components/Modal";
+import { Modal, Button, Input, RadioGroup, Radio } from "@systrol/ui";
 import { ProjectDropdownCell } from "./ProjectDropdownCell";
 import { TimesheetDescCell } from "./TimesheetDescCell";
 import { TimesheetHoursCell } from "./TimesheetHoursCell";
@@ -175,15 +175,17 @@ export function TimesheetGrid({
           <div className={styles.weekNavContent}>
             <div className={styles.weekControls}>
               {onPreviousWeek && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   className={styles.navArrowBtn}
                   onClick={onPreviousWeek}
                   aria-label="Previous week"
                   title="Go to previous week"
                 >
                   ‹
-                </button>
+                </Button>
               )}
 
               <span className={styles.weekDisplayRange}>
@@ -191,8 +193,10 @@ export function TimesheetGrid({
               </span>
 
               {onNextWeek && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   className={styles.navArrowBtn}
                   disabled={!allowNext || isCurrent}
                   onClick={onNextWeek}
@@ -200,7 +204,7 @@ export function TimesheetGrid({
                   title={!allowNext || isCurrent ? "Cannot navigate to future weeks" : "Go to next week"}
                 >
                   ›
-                </button>
+                </Button>
               )}
 
               <span className={[styles.statusBadge, styles[`status_${timesheet.status}`]].join(" ")}>
@@ -221,26 +225,32 @@ export function TimesheetGrid({
                 Week Total: <strong>{parseFloat(timesheet.total_week_hours || "0").toFixed(1)}h</strong>
               </span>
 
-              <input
-                type="text"
-                className={styles.rowSearchInput}
-                placeholder="Search projects..."
-                value={projectSearch}
-                onChange={(e) => setProjectSearch(e.target.value)}
-                data-testid="timesheet-row-search-input"
-              />
+              <div className={styles.rowSearchWrapper}>
+                <Input
+                  size="sm"
+                  className={styles.rowSearchInput}
+                  placeholder="Search projects..."
+                  value={projectSearch}
+                  onChange={(e) => setProjectSearch(e.target.value)}
+                  data-testid="timesheet-row-search-input"
+                />
+              </div>
 
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 className={[styles.filterToggleBtn, hideEmptyRows && styles.filterToggleActive].filter(Boolean).join(" ")}
                 onClick={() => setHideEmptyRows(!hideEmptyRows)}
                 data-testid="toggle-hide-empty-rows-btn"
               >
                 {hideEmptyRows ? "Show Empty Rows" : "Hide Empty Rows"}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 className={styles.exportDiaryHeaderBtn}
                 onClick={() => {
                   if (timesheet.rows.length > 0) {
@@ -256,17 +266,19 @@ export function TimesheetGrid({
                 title="Export site diary report (PDF or Excel)"
               >
                 Site Diary
-              </button>
+              </Button>
 
               {canEdit && timesheet.can_submit && onSubmitTimesheet && (
-                <button
+                <Button
                   type="button"
+                  variant="primary"
+                  size="sm"
                   className={styles.submitTimesheetBtn}
                   onClick={onSubmitTimesheet}
                   data-testid="submit-timesheet-btn"
                 >
                   Submit Timesheet
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -530,8 +542,10 @@ export function TimesheetGrid({
               <div className={styles.modalFieldGroup}>
                 <label className={styles.modalFieldLabel}>Date Range Period</label>
                 <div className={styles.rangePresetGroup}>
-                  <button
+                  <Button
                     type="button"
+                    variant={rangeMode === "week" ? "primary" : "secondary"}
+                    size="sm"
                     className={[
                       styles.rangePresetBtn,
                       rangeMode === "week" && styles.rangePresetActive,
@@ -540,9 +554,11 @@ export function TimesheetGrid({
                     data-testid="preset-week-btn"
                   >
                     Current Week
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant={rangeMode === "month" ? "primary" : "secondary"}
+                    size="sm"
                     className={[
                       styles.rangePresetBtn,
                       rangeMode === "month" && styles.rangePresetActive,
@@ -551,9 +567,11 @@ export function TimesheetGrid({
                     data-testid="preset-month-btn"
                   >
                     Full Month
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant={rangeMode === "custom" ? "primary" : "secondary"}
+                    size="sm"
                     className={[
                       styles.rangePresetBtn,
                       rangeMode === "custom" && styles.rangePresetActive,
@@ -562,14 +580,15 @@ export function TimesheetGrid({
                     data-testid="preset-custom-btn"
                   >
                     Custom Range
-                  </button>
+                  </Button>
                 </div>
 
                 <div className={styles.customDateRow}>
                   <div className={styles.dateInputWrapper}>
                     <span className={styles.dateInputSubLabel}>From Date</span>
-                    <input
+                    <Input
                       type="date"
+                      size="sm"
                       className={styles.rangeDateInput}
                       value={customStartDate}
                       onChange={(e) => {
@@ -582,8 +601,9 @@ export function TimesheetGrid({
                   </div>
                   <div className={styles.dateInputWrapper}>
                     <span className={styles.dateInputSubLabel}>To Date</span>
-                    <input
+                    <Input
                       type="date"
+                      size="sm"
                       className={styles.rangeDateInput}
                       value={customEndDate}
                       onChange={(e) => {
@@ -599,46 +619,46 @@ export function TimesheetGrid({
 
               <div className={styles.modalFieldGroup}>
                 <label className={styles.modalFieldLabel}>Export Format</label>
-                <div className={styles.formatRadioGroup}>
-                  <label className={styles.formatRadioLabel}>
-                    <input
-                      type="radio"
-                      name="exportFormat"
-                      value="pdf"
-                      checked={selectedExportFormat === "pdf"}
-                      onChange={() => setSelectedExportFormat("pdf")}
-                      disabled={isExporting}
-                      data-testid="format-radio-pdf"
-                    />
-                    <span>PDF Document (.pdf)</span>
-                  </label>
-                  <label className={styles.formatRadioLabel}>
-                    <input
-                      type="radio"
-                      name="exportFormat"
-                      value="excel"
-                      checked={selectedExportFormat === "excel"}
-                      onChange={() => setSelectedExportFormat("excel")}
-                      disabled={isExporting}
-                      data-testid="format-radio-excel"
-                    />
-                    <span>Excel Spreadsheet (.xlsx)</span>
-                  </label>
-                </div>
+                <RadioGroup
+                  name="exportFormat"
+                  value={selectedExportFormat}
+                  onChange={(val) => setSelectedExportFormat(val as "pdf" | "excel")}
+                  className={styles.formatRadioGroup}
+                  disabled={isExporting}
+                >
+                  <Radio
+                    value="pdf"
+                    label="PDF Document (.pdf)"
+                    disabled={isExporting}
+                    data-testid="format-radio-pdf"
+                  />
+                  <Radio
+                    value="excel"
+                    label="Excel Spreadsheet (.xlsx)"
+                    disabled={isExporting}
+                    data-testid="format-radio-excel"
+                  />
+                </RadioGroup>
               </div>
 
               <div className={styles.modalActionsRow}>
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   className={styles.modalCancelBtn}
                   onClick={() => setIsExportModalOpen(false)}
                   disabled={isExporting}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="primary"
+                  size="sm"
                   className={styles.modalDownloadBtn}
+                  loading={isExporting}
+                  disabled={isExporting}
                   onClick={() => {
                     const pid = selectedExportProjectId ?? timesheet.rows[0]?.project.id;
                     if (pid) {
@@ -652,11 +672,10 @@ export function TimesheetGrid({
                       }
                     }
                   }}
-                  disabled={isExporting}
                   data-testid="confirm-download-diary-btn"
                 >
-                  {isExporting ? "Exporting..." : "Download Diary"}
-                </button>
+                  Download Diary
+                </Button>
               </div>
             </>
           )}
