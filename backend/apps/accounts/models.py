@@ -95,13 +95,19 @@ class EmployeeCodeSequence(models.Model):
 class LoginAttempt(models.Model):
     identifier = models.CharField(max_length=255, db_index=True)
     ip_address = models.GenericIPAddressField(db_index=True)
+    device_id = models.CharField(max_length=64, db_index=True, blank=True, default="")
     attempted_at = models.DateTimeField(default=timezone.now, db_index=True)
     successful = models.BooleanField(default=False)
+    failure_reason = models.CharField(max_length=50, blank=True, default="")
 
     class Meta:
         verbose_name = "Login Attempt"
         verbose_name_plural = "Login Attempts"
         ordering = ["-attempted_at"]
+        indexes = [
+            models.Index(fields=["identifier", "device_id", "-attempted_at"]),
+            models.Index(fields=["ip_address", "-attempted_at"]),
+        ]
 
     def __str__(self):
         status_label = "Success" if self.successful else "Failed"
