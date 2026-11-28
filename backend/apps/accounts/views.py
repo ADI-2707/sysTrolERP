@@ -1,3 +1,7 @@
+import secrets
+import time
+
+from django.conf import settings
 from django.contrib.auth import login, logout
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
@@ -11,7 +15,8 @@ from apps.accounts.principals import SuperAdminPrincipal
 from apps.accounts.serializers import LoginSerializer, SuperAdminMeSerializer, UserMeSerializer
 from apps.accounts.services import (
     authenticate_principal,
-    is_login_locked,
+    evaluate_login_security,
+    get_device_id_from_request,
     record_login_attempt,
 )
 from apps.audit import services as audit_services
@@ -30,7 +35,17 @@ class CsrfCookieView(APIView):
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
-        return Response({"csrfToken": get_token(request)}, status=status.HTTP_200_OK)
+        device_id = get_device_id_from_request(request) or secrets.token_hex(16)
+        resp = Response({"csrfToken": get_token(request)}, status=status.HTTP_200_OK)
+        resp.set_cookie(
+            "sys_dev_id",
+            device_id,
+            max_age=31536000,
+            httponly=True,
+            samesite="Lax",
+            secure=getattr(settings, "SESSION_COOKIE_SECURE", False),
+        )
+        return resp
 
 
 class LoginView(APIView):
@@ -43,29 +58,96 @@ class LoginView(APIView):
 
         identifier = serializer.validated_data["identifier"]
         password = serializer.validated_data["password"]
+        incoming_dev_id = serializer.validated_data.get("device_id") or get_device_id_from_request(
+            request
+        )
+        company_tax_id = serializer.validated_data.get("company_tax_id", "")
         ip_address = get_client_ip(request)
 
-        if is_login_locked(identifier, ip_address):
+        eval_result = evaluate_login_security(
+            identifier=identifier,
+            ip_address=ip_address,
+            device_id=incoming_dev_id,
+            honeypot_value=company_tax_id,
+        )
+
+        device_id = incoming_dev_id or secrets.token_hex(16)
+
+        if eval_result["action"] == "reject_bot":
+            record_login_attempt(
+                identifier,
+                ip_address,
+                successful=False,
+                device_id=device_id,
+                failure_reason=eval_result.get("reason", "HONEYPOT_TRIGGERED"),
+            )
+            audit_services.record(
+                action="BOT_REJECTED",
+                entity_type="User",
+                entity_id=identifier,
+                summary=f"Automated submission rejected for identifier: {identifier} from IP {ip_address}",
+                request=request,
+            )
+            resp = Response(
+                {
+                    "code": "authentication_failed",
+                    "message": "Invalid credentials.",
+                    "fields": {},
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+            resp.set_cookie(
+                "sys_dev_id",
+                device_id,
+                max_age=31536000,
+                httponly=True,
+                samesite="Lax",
+                secure=getattr(settings, "SESSION_COOKIE_SECURE", False),
+            )
+            return resp
+
+        if eval_result["action"] == "lockout":
             audit_services.record(
                 action="LOGIN_LOCKOUT",
                 entity_type="User",
                 entity_id=identifier,
-                summary=f"Login locked out for identifier: {identifier} from IP {ip_address}",
+                summary=f"Login locked out for identifier: {identifier} from IP {ip_address} on device {device_id}",
                 request=request,
             )
-            return Response(
+            resp = Response(
                 {
                     "code": "account_locked",
-                    "message": "Too many failed login attempts. Account is temporarily locked for 15 minutes.",
+                    "message": eval_result["message"],
                     "fields": {},
                 },
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
+            resp["Retry-After"] = str(eval_result.get("retry_after", 120))
+            resp.set_cookie(
+                "sys_dev_id",
+                device_id,
+                max_age=31536000,
+                httponly=True,
+                samesite="Lax",
+                secure=getattr(settings, "SESSION_COOKIE_SECURE", False),
+            )
+            return resp
+
+        if eval_result["action"] == "tarpit":
+            tarpit_duration = eval_result.get("tarpit", 2.0)
+            if tarpit_duration > 0:
+                time.sleep(tarpit_duration)
 
         try:
             principal = authenticate_principal(identifier, password)
         except AuthenticationFailed:
-            record_login_attempt(identifier, ip_address, successful=False)
+            record_login_attempt(
+                identifier,
+                ip_address,
+                successful=False,
+                device_id=device_id,
+                failure_reason="INVALID_CREDENTIALS",
+            )
             audit_services.record(
                 action="LOGIN_FAILURE",
                 entity_type="User",
@@ -75,7 +157,12 @@ class LoginView(APIView):
             )
             raise
 
-        record_login_attempt(identifier, ip_address, successful=True)
+        record_login_attempt(
+            identifier,
+            ip_address,
+            successful=True,
+            device_id=device_id,
+        )
         entity_id = str(getattr(principal, "id", None) or getattr(principal, "username", ""))
         audit_services.record(
             action="LOGIN_SUCCESS",
@@ -92,12 +179,30 @@ class LoginView(APIView):
             request.session["super_admin_username"] = principal.username
             request.session.modified = True
             data = SuperAdminMeSerializer(principal).data
-            return Response(data, status=status.HTTP_200_OK)
+            resp = Response(data, status=status.HTTP_200_OK)
+            resp.set_cookie(
+                "sys_dev_id",
+                device_id,
+                max_age=31536000,
+                httponly=True,
+                samesite="Lax",
+                secure=getattr(settings, "SESSION_COOKIE_SECURE", False),
+            )
+            return resp
 
         login(request, principal)
         request.session.modified = True
         data = UserMeSerializer(principal).data
-        return Response(data, status=status.HTTP_200_OK)
+        resp = Response(data, status=status.HTTP_200_OK)
+        resp.set_cookie(
+            "sys_dev_id",
+            device_id,
+            max_age=31536000,
+            httponly=True,
+            samesite="Lax",
+            secure=getattr(settings, "SESSION_COOKIE_SECURE", False),
+        )
+        return resp
 
 
 class LogoutView(APIView):

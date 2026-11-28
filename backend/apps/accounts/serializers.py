@@ -6,6 +6,8 @@ from apps.accounts.models import User
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True, allow_blank=False)
     password = serializers.CharField(required=True, allow_blank=False, write_only=True)
+    device_id = serializers.CharField(required=False, allow_blank=True, default="")
+    company_tax_id = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class UserMeSerializer(serializers.ModelSerializer):

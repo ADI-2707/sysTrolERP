@@ -26,6 +26,7 @@ class SuperRestoreAccountSerializer(serializers.Serializer):
 class SuperClearLockoutSerializer(serializers.Serializer):
     identifier = serializers.CharField(required=True, allow_blank=False)
     ip_address = serializers.IPAddressField(required=False, allow_null=True)
+    device_id = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class SuperResetAdminPasswordView(APIView):
@@ -95,15 +96,16 @@ class SuperClearLockoutView(APIView):
 
         identifier = serializer.validated_data["identifier"]
         ip_address = serializer.validated_data.get("ip_address")
+        device_id = serializer.validated_data.get("device_id")
 
-        clear_login_lockout(identifier, ip_address)
+        clear_login_lockout(identifier, ip_address=ip_address, device_id=device_id)
 
         audit_services.record(
             action="SUPER_CLEAR_LOCKOUT",
             actor=request.user,
             entity_type="Lockout",
             entity_id=identifier,
-            summary=f"Super admin cleared login lockout for {identifier} (IP: {ip_address or 'all'})",
+            summary=f"Super admin cleared login lockout for {identifier} (IP: {ip_address or 'all'}, Device: {device_id or 'all'})",
             request=request,
             super_only=True,
         )
