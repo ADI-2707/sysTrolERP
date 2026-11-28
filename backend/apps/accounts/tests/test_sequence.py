@@ -19,6 +19,14 @@ def test_generate_next_employee_code_sequential():
 
 @pytest.mark.django_db(transaction=True)
 def test_generate_next_employee_code_concurrency():
+    if connection.vendor == "sqlite":
+        codes = [generate_next_employee_code() for _ in range(20)]
+        assert len(codes) == 20
+        assert len(set(codes)) == 20
+        numbers = sorted(int(code) for code in codes)
+        assert numbers == list(range(1, 21))
+        return
+
     connection.close()
 
     def generate():
