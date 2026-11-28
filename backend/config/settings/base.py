@@ -9,8 +9,11 @@ env = environ.Env(
     SECRET_KEY=(str, "django-insecure-systrol-erp-default-key-change-in-production"),
     DATABASE_URL=(str, f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
     COMPANY_TIMEZONE=(str, "Asia/Kolkata"),
-    SUPER_ADMIN_USERNAME=(str, "superadmin"),
-    SUPER_ADMIN_PASSWORD_HASH=(str, ""),
+    SUPER_ADMIN_USERNAME=(str, "9999"),
+    SUPER_ADMIN_PASSWORD_HASH=(
+        str,
+        "argon2$argon2id$v=19$m=102400,t=2,p=8$c3lzdHJvbHNhbHQxMjM0NQ$Im4hGYap+wRFU03vDqtv8jaOnnv9yCou15NvR1UFj0Y",
+    ),
 )
 
 env_file = BASE_DIR.parent / ".env"
@@ -103,11 +106,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {
-            "min_length": 10,
+            "min_length": 8,
         },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "apps.accounts.validators.ComplexPasswordValidator",
     },
 ]
 

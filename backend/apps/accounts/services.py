@@ -233,7 +233,7 @@ def generate_next_employee_code(prefix: str = "SYS-", padding: int = 4) -> str:
 
 def authenticate_principal(identifier: str, password: str) -> User | SuperAdminPrincipal:
     identifier = identifier.strip()
-    super_username = getattr(settings, "SUPER_ADMIN_USERNAME", "superadmin")
+    super_username = str(getattr(settings, "SUPER_ADMIN_USERNAME", "9999")).strip()
     super_hash = getattr(settings, "SUPER_ADMIN_PASSWORD_HASH", "")
 
     if hmac.compare_digest(identifier.lower(), super_username.lower()):

@@ -32,8 +32,8 @@ services:
       SESSION_COOKIE_SECURE: "False"
       CSRF_COOKIE_SECURE: "False"
       COMPANY_TIMEZONE: Asia/Kolkata
-      SUPER_ADMIN_USERNAME: superadmin
-      SUPER_ADMIN_PASSWORD_HASH: "argon2$$argon2id$$v=19$$m=102400,t=2,p=8$$SzhVeTRramxkcTl0a0hCNVQ5OUdVTQ$$CovgJGvdmtNXdK9GBNaiVQNJqsmiFO5tjS4npyawDJo"
+      SUPER_ADMIN_USERNAME: "9999"
+      SUPER_ADMIN_PASSWORD_HASH: "argon2$$argon2id$$v=19$$m=102400,t=2,p=8$$c3lzdHJvbHNhbHQxMjM0NQ$$Im4hGYap+wRFU03vDqtv8jaOnnv9yCou15NvR1UFj0Y"
     depends_on:
       postgres:
         condition: service_healthy
