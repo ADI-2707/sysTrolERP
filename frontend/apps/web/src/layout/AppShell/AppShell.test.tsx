@@ -170,4 +170,27 @@ describe("AppShell", () => {
       expect(mockLogout).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("toggles mobile navigation drawer and closes on backdrop click", () => {
+    const user: CurrentUser = {
+      id: 1,
+      employee_code: "SYS-0001",
+      email: "admin@systrol.com",
+      full_name: "Admin User",
+      role: "ADMIN",
+      must_change_password: false,
+    };
+
+    renderShell(user);
+
+    expect(screen.queryByTestId("mobile-nav-backdrop")).not.toBeInTheDocument();
+
+    const menuBtn = screen.getByRole("button", { name: /open navigation drawer/i });
+    fireEvent.click(menuBtn);
+
+    expect(screen.getByTestId("mobile-nav-backdrop")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("mobile-nav-backdrop"));
+    expect(screen.queryByTestId("mobile-nav-backdrop")).not.toBeInTheDocument();
+  });
 });

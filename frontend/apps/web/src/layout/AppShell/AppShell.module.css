@@ -82,6 +82,10 @@
   gap: var(--space-3);
 }
 
+.mobileBackdrop {
+  display: none;
+}
+
 .sidebarLogoutBtn {
   display: flex;
   align-items: center;
@@ -108,10 +112,33 @@
 
 @media (max-width: 768px) {
   .contentArea {
-    padding: var(--space-3);
+    padding: var(--space-4);
   }
 
   .userInfo {
     display: none;
+  }
+
+  .actionsGroup {
+    gap: var(--space-2);
+  }
+
+  .mobileBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 45;
+  }
+
+  .sidebarMobileOpen {
+    transform: translateX(0) !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .contentArea {
+    padding: var(--space-8);
   }
 }

@@ -37,6 +37,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       return false;
     }
   });
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const { user, isSuperAdmin, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
@@ -48,7 +49,16 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     } catch {}
   }, [collapsed]);
 
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+
   const toggleCollapse = () => setCollapsed((prev) => !prev);
+
+  const navigateTo = (path: string) => {
+    setMobileNavOpen(false);
+    navigate(path);
+  };
 
   const segments = location.pathname.split("/").filter(Boolean);
   const defaultBreadcrumbs = (() => {
@@ -96,7 +106,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     label: "Dashboard",
     icon: <IconDashboard size={17} />,
     isActive: location.pathname === "/" || location.pathname.startsWith("/timesheets"),
-    onClick: () => navigate("/timesheets"),
+    onClick: () => navigateTo("/timesheets"),
   });
 
   navItems.push({
@@ -104,7 +114,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     label: "Project Management",
     icon: <IconBriefcase size={17} />,
     isActive: location.pathname.startsWith("/projects"),
-    onClick: () => navigate("/projects"),
+    onClick: () => navigateTo("/projects"),
   });
 
   if (isAdmin || isSuperAdmin) {
@@ -113,7 +123,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       label: "Employee Management",
       icon: <IconUsers size={17} />,
       isActive: location.pathname.startsWith("/employees"),
-      onClick: () => navigate("/employees"),
+      onClick: () => navigateTo("/employees"),
     });
 
     navItems.push({
@@ -121,7 +131,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       label: "System Logs",
       icon: <IconShieldAlert size={17} />,
       isActive: location.pathname.startsWith("/audit"),
-      onClick: () => navigate("/audit"),
+      onClick: () => navigateTo("/audit"),
     });
   }
 
@@ -130,7 +140,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     label: "Settings",
     icon: <IconSettings size={17} />,
     isActive: location.pathname.startsWith("/settings"),
-    onClick: () => navigate("/settings"),
+    onClick: () => navigateTo("/settings"),
   });
 
   const handleLogout = async () => {
@@ -146,7 +156,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
     key: "settings",
     label: "Settings",
     icon: <IconSettings size={16} />,
-    onClick: () => navigate("/settings"),
+    onClick: () => navigateTo("/settings"),
   });
 
   if (!isSuperAdmin) {
@@ -154,7 +164,7 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
       key: "change-password",
       label: "Change Password",
       icon: <IconSettings size={16} />,
-      onClick: () => navigate("/change-password"),
+      onClick: () => navigateTo("/change-password"),
     });
   }
 
@@ -180,10 +190,21 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
         onLogout={handleLogout}
         version={`v${packageJson.version}`}
         items={navItems}
+        className={mobileNavOpen ? styles.sidebarMobileOpen : undefined}
       />
+
+      {mobileNavOpen && (
+        <div
+          className={styles.mobileBackdrop}
+          onClick={() => setMobileNavOpen(false)}
+          data-testid="mobile-nav-backdrop"
+          aria-hidden="true"
+        />
+      )}
 
       <div className={styles.mainWrapper}>
         <Topbar
+          onMenuClick={() => setMobileNavOpen((prev) => !prev)}
           breadcrumbs={breadcrumbs || defaultBreadcrumbs}
           actions={
             <div className={styles.actionsGroup}>
