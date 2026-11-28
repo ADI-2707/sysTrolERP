@@ -1,11 +1,18 @@
+from datetime import timedelta
+
+from django.http import HttpResponse
 from rest_framework import status
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdminOrSuper, IsAuthenticatedPrincipal, IsSuper
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.core.pagination import StandardPageNumberPagination
+from apps.projects.models import Project
 from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
+from apps.timesheets.reports.excel_generator import generate_site_diary_excel
+from apps.timesheets.reports.pdf_generator import generate_site_diary_pdf
 from apps.timesheets.selectors import (
     build_timesheet_detail_for_admin,
     get_own_timesheet,
@@ -283,3 +290,75 @@ class SuperAdminTimesheetOverrideView(APIView):
         )
         data = build_timesheet_detail_for_admin(timesheet, current_user=request.user)
         return Response(data, status=status.HTTP_200_OK)
+
+
+class SiteDiaryExportView(APIView):
+    permission_classes = [IsAuthenticatedPrincipal]
+
+    def perform_content_negotiation(self, request, force=False):
+        renderers = self.get_renderers()
+        return (renderers[0], renderers[0].media_type)
+
+    def get(self, request, timesheet_id=None):
+        ts_id = timesheet_id or request.query_params.get("timesheet_id")
+        if not ts_id:
+            raise ValidationError({"timesheet_id": ["Timesheet ID is required."]})
+
+        try:
+            timesheet = (
+                Timesheet.objects.select_related("employee")
+                .prefetch_related("rows__entries", "rows__project")
+                .get(pk=ts_id)
+            )
+        except (ValueError, Timesheet.DoesNotExist):
+            raise NotFound("Timesheet not found.")
+
+        role = getattr(request.user, "role", "")
+        if role == "EMPLOYEE" and timesheet.employee_id != request.user.id:
+            raise PermissionDenied("You can only export your own site diary.")
+
+        project_id_param = request.query_params.get("project_id")
+        if not project_id_param:
+            raise ValidationError({"project_id": ["project_id query parameter is required."]})
+
+        try:
+            project_id = int(project_id_param)
+            project = Project.objects.prefetch_related("steps").get(pk=project_id)
+        except (ValueError, Project.DoesNotExist):
+            raise NotFound("Project not found.")
+
+        project_rows = [r for r in timesheet.rows.all() if r.project_id == project.id]
+        if not project_rows:
+            raise ValidationError(
+                {"project_id": ["No recorded entries for this project in the selected timesheet."]}
+            )
+
+        format_type = request.query_params.get("format", "pdf").lower()
+        monday = timesheet.week_start_date
+        week_days = [monday + timedelta(days=i) for i in range(7)]
+        policy = TimesheetPolicy.get_current()
+
+        if format_type in ("excel", "xlsx"):
+            content = generate_site_diary_excel(
+                timesheet=timesheet,
+                project=project,
+                rows=project_rows,
+                week_days=week_days,
+                policy=policy,
+            )
+            content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            filename = f"Site_Diary_{project.code}_{timesheet.employee.employee_code}_{monday.strftime('%Y%m%d')}.xlsx"
+        else:
+            content = generate_site_diary_pdf(
+                timesheet=timesheet,
+                project=project,
+                rows=project_rows,
+                week_days=week_days,
+                policy=policy,
+            )
+            content_type = "application/pdf"
+            filename = f"Site_Diary_{project.code}_{timesheet.employee.employee_code}_{monday.strftime('%Y%m%d')}.pdf"
+
+        resp = HttpResponse(content, content_type=content_type)
+        resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return resp
