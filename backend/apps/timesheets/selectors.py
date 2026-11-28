@@ -8,7 +8,12 @@ from apps.accounts.models import User
 from apps.accounts.principals import SuperAdminPrincipal
 from apps.core.timezone import company_today, get_effective_today, week_bounds
 from apps.projects.models import Project
-from apps.timesheets.models import Timesheet, TimesheetPolicy, TimesheetWeekStatus
+from apps.timesheets.models import (
+    Timesheet,
+    TimesheetEntry,
+    TimesheetPolicy,
+    TimesheetWeekStatus,
+)
 from apps.timesheets.rules import can_edit_week, is_cell_editable
 
 
@@ -439,4 +444,103 @@ def get_timesheet_dashboard_summary(week_str: str | None = None) -> dict:
         "total_hours": str(total_hours),
         "total_regular_hours": str(total_regular),
         "total_overtime_hours": str(total_overtime),
+    }
+
+
+def get_site_diary_range_data(
+    *,
+    employee_id: int,
+    project_id: int,
+    start_date: datetime.date,
+    end_date: datetime.date,
+) -> dict:
+    if start_date > end_date:
+        raise ValidationError({"date_range": ["start_date must be before or equal to end_date."]})
+
+    if (end_date - start_date).days > 366:
+        raise ValidationError({"date_range": ["Date range cannot exceed 366 days."]})
+
+    user = User.objects.filter(pk=employee_id).first()
+    if not user:
+        raise NotFound("Employee not found.")
+
+    project = Project.objects.prefetch_related("steps").filter(pk=project_id).first()
+    if not project:
+        raise NotFound("Project not found.")
+
+    policy = TimesheetPolicy.get_current()
+
+    entries_qs = (
+        TimesheetEntry.objects.filter(
+            row__timesheet__employee_id=employee_id,
+            row__project_id=project_id,
+            date__gte=start_date,
+            date__lte=end_date,
+        )
+        .select_related("row__timesheet")
+        .order_by("date")
+    )
+
+    entries_by_date: dict[datetime.date, list[TimesheetEntry]] = {}
+    for entry in entries_qs:
+        entries_by_date.setdefault(entry.date, []).append(entry)
+
+    total_days_count = (end_date - start_date).days + 1
+    days_data = []
+
+    total_hours = Decimal("0.00")
+    total_regular = Decimal("0.00")
+    total_overtime = Decimal("0.00")
+    days_worked_count = 0
+    rest_days_worked_count = 0
+
+    for i in range(total_days_count):
+        current_date = start_date + datetime.timedelta(days=i)
+        day_entries = entries_by_date.get(current_date, [])
+
+        day_hours = sum((e.hours for e in day_entries), Decimal("0.00"))
+        day_notes = " | ".join(e.note.strip() for e in day_entries if e.note and e.note.strip())
+
+        if current_date.weekday() == 6:
+            reg = Decimal("0.00")
+            ot = day_hours
+            if day_hours > Decimal("0.00"):
+                rest_days_worked_count += 1
+        else:
+            reg = min(day_hours, policy.daily_regular_hours)
+            ot = max(Decimal("0.00"), day_hours - policy.daily_regular_hours)
+
+        if day_hours > Decimal("0.00"):
+            days_worked_count += 1
+
+        total_hours += day_hours
+        total_regular += reg
+        total_overtime += ot
+
+        days_data.append(
+            {
+                "date": current_date,
+                "date_str": current_date.isoformat(),
+                "day_name": current_date.strftime("%a"),
+                "hours": day_hours,
+                "regular_hours": reg,
+                "overtime_hours": ot,
+                "note": day_notes,
+            }
+        )
+
+    return {
+        "employee": user,
+        "project": project,
+        "policy": policy,
+        "start_date": start_date,
+        "end_date": end_date,
+        "total_days": total_days_count,
+        "days_worked": days_worked_count,
+        "rest_days_worked": rest_days_worked_count,
+        "total_hours": total_hours,
+        "total_regular_hours": total_regular,
+        "total_overtime_hours": total_overtime,
+        "days": days_data,
+        "has_entries": len(entries_qs) > 0,
     }
