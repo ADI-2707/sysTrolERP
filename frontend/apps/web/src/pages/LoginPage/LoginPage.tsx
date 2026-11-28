@@ -17,6 +17,7 @@ import styles from "./LoginPage.module.css";
 export function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -51,13 +52,20 @@ export function LoginPage() {
     setErrorType(null);
 
     try {
-      await login(identifier.trim(), password);
+      if (honeypot) {
+        await login(identifier.trim(), password, honeypot);
+      } else {
+        await login(identifier.trim(), password);
+      }
       navigate(fromPath, { replace: true });
     } catch (err) {
       if (err instanceof ApiClientError) {
         if (err.status === 429 || err.code === "account_locked") {
           setErrorType("lockout");
-          setErrorMessage("Too many failed login attempts. Account is temporarily locked for 15 minutes.");
+          setErrorMessage(
+            err.message ||
+              "Too many failed login attempts. Account is temporarily locked."
+          );
         } else if (
           err.message.toLowerCase().includes("revoked") ||
           err.message.toLowerCase().includes("deactivated") ||
@@ -126,6 +134,16 @@ export function LoginPage() {
             )}
 
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
+              <div className={styles.trapField} aria-hidden="true">
+                <input
+                  type="text"
+                  name="company_tax_id"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
               <div className={styles.fieldGroup}>
                 <label htmlFor="identifier" className={styles.label}>
                   Email<span className={styles.srOnly}> (Employee Code or Email)</span>

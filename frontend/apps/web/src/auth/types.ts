@@ -20,7 +20,7 @@ export interface AuthContextValue {
   isAdmin: boolean;
   isEmployee: boolean;
   mustChangePassword: boolean;
-  login: (identifier: string, password: string) => Promise<CurrentUser>;
+  login: (identifier: string, password: string, companyTaxId?: string) => Promise<CurrentUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<CurrentUser | null>;
 }

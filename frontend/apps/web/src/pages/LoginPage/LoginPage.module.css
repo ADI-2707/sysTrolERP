@@ -300,6 +300,14 @@
   border: 0;
 }
 
+.trapField {
+  display: none;
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 @media (max-width: 900px) {
   .lockup {
     flex-direction: column;

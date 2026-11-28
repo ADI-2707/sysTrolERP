@@ -44,8 +44,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return unsubscribe;
   }, [queryClient]);
 
-  const login = async (identifier: string, password: string): Promise<CurrentUser> => {
-    await apiClient.post("/api/auth/login/", { identifier, password });
+  const login = async (
+    identifier: string,
+    password: string,
+    companyTaxId?: string
+  ): Promise<CurrentUser> => {
+    await apiClient.post("/api/auth/login/", {
+      identifier,
+      password,
+      ...(companyTaxId ? { company_tax_id: companyTaxId } : {}),
+    });
     const freshUser = await apiClient.get<CurrentUser>("/api/auth/me/");
     queryClient.setQueryData(["auth", "me"], freshUser);
     return freshUser;
