@@ -26,7 +26,11 @@ export interface TimesheetGridProps {
   globalStatus?: CellSaveStatus;
   className?: string;
   readOnly?: boolean;
-  onExportSiteDiary?: (projectId: number, format: "pdf" | "excel") => Promise<void> | void;
+  onExportSiteDiary?: (
+    projectId: number,
+    format: "pdf" | "excel",
+    range?: { startDate: string; endDate: string }
+  ) => Promise<void> | void;
 }
 
 export function TimesheetGrid({
@@ -54,17 +58,50 @@ export function TimesheetGrid({
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedExportProjectId, setSelectedExportProjectId] = useState<number | null>(null);
   const [selectedExportFormat, setSelectedExportFormat] = useState<"pdf" | "excel">("pdf");
+  const [rangeMode, setRangeMode] = useState<"week" | "month" | "custom">("week");
+  const [customStartDate, setCustomStartDate] = useState(timesheet.week_start_date);
+  const [customEndDate, setCustomEndDate] = useState(timesheet.week_end_date);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  const handleExportSiteDiary = async (projectId: number, format: "pdf" | "excel") => {
+  const handleRangeModeChange = (mode: "week" | "month" | "custom") => {
+    setRangeMode(mode);
+    if (mode === "week") {
+      setCustomStartDate(timesheet.week_start_date);
+      setCustomEndDate(timesheet.week_end_date);
+    } else if (mode === "month") {
+      const parts = timesheet.week_start_date.split("-");
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const start = `${year}-${String(month).padStart(2, "0")}-01`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+      setCustomStartDate(start);
+      setCustomEndDate(end);
+    }
+  };
+
+  const handleExportSiteDiary = async (
+    projectId: number,
+    format: "pdf" | "excel",
+    range?: { startDate: string; endDate: string }
+  ) => {
     try {
       setIsExporting(true);
       setExportError(null);
       if (onExportSiteDiary) {
-        await onExportSiteDiary(projectId, format);
+        await onExportSiteDiary(projectId, format, range);
       } else {
-        await exportSiteDiary(timesheet.id, projectId, format);
+        if (range) {
+          await exportSiteDiary({
+            projectId,
+            startDate: range.startDate,
+            endDate: range.endDate,
+            format,
+          });
+        } else {
+          await exportSiteDiary(timesheet.id, projectId, format);
+        }
       }
       setIsExportModalOpen(false);
     } catch (err: unknown) {
@@ -205,6 +242,9 @@ export function TimesheetGrid({
                   if (timesheet.rows.length > 0) {
                     setSelectedExportProjectId(timesheet.rows[0].project.id);
                   }
+                  setRangeMode("week");
+                  setCustomStartDate(timesheet.week_start_date);
+                  setCustomEndDate(timesheet.week_end_date);
                   setExportError(null);
                   setIsExportModalOpen(true);
                 }}
@@ -484,6 +524,76 @@ export function TimesheetGrid({
               </div>
 
               <div className={styles.modalFieldGroup}>
+                <label className={styles.modalFieldLabel}>Date Range Period</label>
+                <div className={styles.rangePresetGroup}>
+                  <button
+                    type="button"
+                    className={[
+                      styles.rangePresetBtn,
+                      rangeMode === "week" && styles.rangePresetActive,
+                    ].filter(Boolean).join(" ")}
+                    onClick={() => handleRangeModeChange("week")}
+                    data-testid="preset-week-btn"
+                  >
+                    Current Week
+                  </button>
+                  <button
+                    type="button"
+                    className={[
+                      styles.rangePresetBtn,
+                      rangeMode === "month" && styles.rangePresetActive,
+                    ].filter(Boolean).join(" ")}
+                    onClick={() => handleRangeModeChange("month")}
+                    data-testid="preset-month-btn"
+                  >
+                    Full Month
+                  </button>
+                  <button
+                    type="button"
+                    className={[
+                      styles.rangePresetBtn,
+                      rangeMode === "custom" && styles.rangePresetActive,
+                    ].filter(Boolean).join(" ")}
+                    onClick={() => handleRangeModeChange("custom")}
+                    data-testid="preset-custom-btn"
+                  >
+                    Custom Range
+                  </button>
+                </div>
+
+                <div className={styles.customDateRow}>
+                  <div className={styles.dateInputWrapper}>
+                    <span className={styles.dateInputSubLabel}>From Date</span>
+                    <input
+                      type="date"
+                      className={styles.rangeDateInput}
+                      value={customStartDate}
+                      onChange={(e) => {
+                        setCustomStartDate(e.target.value);
+                        setRangeMode("custom");
+                      }}
+                      disabled={isExporting}
+                      data-testid="range-start-date"
+                    />
+                  </div>
+                  <div className={styles.dateInputWrapper}>
+                    <span className={styles.dateInputSubLabel}>To Date</span>
+                    <input
+                      type="date"
+                      className={styles.rangeDateInput}
+                      value={customEndDate}
+                      onChange={(e) => {
+                        setCustomEndDate(e.target.value);
+                        setRangeMode("custom");
+                      }}
+                      disabled={isExporting}
+                      data-testid="range-end-date"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.modalFieldGroup}>
                 <label className={styles.modalFieldLabel}>Export Format</label>
                 <div className={styles.formatRadioGroup}>
                   <label className={styles.formatRadioLabel}>
@@ -528,7 +638,14 @@ export function TimesheetGrid({
                   onClick={() => {
                     const pid = selectedExportProjectId ?? timesheet.rows[0]?.project.id;
                     if (pid) {
-                      handleExportSiteDiary(pid, selectedExportFormat);
+                      if (rangeMode === "week") {
+                        handleExportSiteDiary(pid, selectedExportFormat);
+                      } else {
+                        handleExportSiteDiary(pid, selectedExportFormat, {
+                          startDate: customStartDate,
+                          endDate: customEndDate,
+                        });
+                      }
                     }
                   }}
                   disabled={isExporting}

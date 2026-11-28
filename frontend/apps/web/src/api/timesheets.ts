@@ -123,20 +123,45 @@ export async function submitOwnTimesheet(weekDate?: string): Promise<unknown> {
   return apiClient.post("/api/timesheets/me/submit/", { week: weekDate });
 }
 
+export interface ExportSiteDiaryParams {
+  timesheetId?: number;
+  projectId: number;
+  format?: "pdf" | "excel";
+  startDate?: string;
+  endDate?: string;
+  employeeId?: number;
+}
+
 export async function exportSiteDiary(
-  timesheetId: number,
-  projectId: number,
+  timesheetIdOrParams: number | ExportSiteDiaryParams,
+  projectId?: number,
   format: "pdf" | "excel" = "pdf"
 ): Promise<void> {
-  const { blob, filename } = await apiClient.downloadFile(
-    `/api/timesheets/${timesheetId}/site-diary/`,
-    {
-      params: {
-        project_id: projectId,
-        format,
-      },
+  let endpoint = "/api/timesheets/site-diary/";
+  const queryParams: Record<string, string | number> = {
+    format,
+  };
+
+  if (typeof timesheetIdOrParams === "number") {
+    endpoint = `/api/timesheets/${timesheetIdOrParams}/site-diary/`;
+    if (projectId) {
+      queryParams.project_id = projectId;
     }
-  );
+  } else {
+    const p = timesheetIdOrParams;
+    if (p.timesheetId && !p.startDate && !p.endDate) {
+      endpoint = `/api/timesheets/${p.timesheetId}/site-diary/`;
+    }
+    queryParams.project_id = p.projectId;
+    queryParams.format = p.format || "pdf";
+    if (p.startDate) queryParams.start_date = p.startDate;
+    if (p.endDate) queryParams.end_date = p.endDate;
+    if (p.employeeId) queryParams.employee_id = p.employeeId;
+  }
+
+  const { blob, filename } = await apiClient.downloadFile(endpoint, {
+    params: queryParams,
+  });
 
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
