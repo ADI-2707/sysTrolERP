@@ -214,4 +214,115 @@ describe("NotificationBell", () => {
       expect(screen.queryByTestId("notification-popover")).not.toBeInTheDocument();
     });
   });
+
+  it("shows skeleton while loading initial notifications", async () => {
+    vi.spyOn(notificationsApi, "fetchUnreadCount").mockResolvedValue({
+      unread_count: 1,
+      has_unread: true,
+    });
+
+    let resolvePromise: (value: any) => void = () => {};
+    vi.spyOn(notificationsApi, "fetchNotifications").mockReturnValue(
+      new Promise((resolve) => {
+        resolvePromise = resolve;
+      })
+    );
+
+    render(
+      <MemoryRouter>
+        <NotificationBell />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByTestId("notification-bell-button"));
+
+    expect(screen.getByTestId("notification-skeleton-list")).toBeInTheDocument();
+
+    resolvePromise({
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("notification-skeleton-list")).not.toBeInTheDocument();
+    });
+  });
+
+  it("loads more notifications on scroll when next page is available", async () => {
+    vi.spyOn(notificationsApi, "fetchUnreadCount").mockResolvedValue({
+      unread_count: 2,
+      has_unread: true,
+    });
+
+    const fetchSpy = vi.spyOn(notificationsApi, "fetchNotifications");
+    fetchSpy
+      .mockResolvedValueOnce({
+        count: 2,
+        next: "http://testserver/api/notifications/?page=2",
+        previous: null,
+        results: [
+          {
+            id: 1,
+            actor_label: "ADM-001",
+            event_type: "TIMESHEET_SUBMITTED",
+            category: "TIMESHEET",
+            priority: "NORMAL",
+            title: "First Notification",
+            body: "First page content",
+            action_url: "",
+            is_read: true,
+            read_at: null,
+            metadata: {},
+            created_at: new Date().toISOString(),
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        count: 2,
+        next: null,
+        previous: null,
+        results: [
+          {
+            id: 2,
+            actor_label: "ADM-001",
+            event_type: "TIMESHEET_APPROVED",
+            category: "TIMESHEET",
+            priority: "NORMAL",
+            title: "Second Notification",
+            body: "Second page content",
+            action_url: "",
+            is_read: true,
+            read_at: null,
+            metadata: {},
+            created_at: new Date().toISOString(),
+          },
+        ],
+      });
+
+    render(
+      <MemoryRouter>
+        <NotificationBell />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByTestId("notification-bell-button"));
+
+    await waitFor(() => {
+      expect(screen.getByText("First Notification")).toBeInTheDocument();
+    });
+
+    const listElement = screen.getByTestId("notification-list");
+    Object.defineProperty(listElement, "scrollHeight", { value: 500, configurable: true });
+    Object.defineProperty(listElement, "scrollTop", { value: 480, configurable: true });
+    Object.defineProperty(listElement, "clientHeight", { value: 100, configurable: true });
+
+    fireEvent.scroll(listElement);
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith({ page: 2 });
+      expect(screen.getByText("Second Notification")).toBeInTheDocument();
+    });
+  });
 });

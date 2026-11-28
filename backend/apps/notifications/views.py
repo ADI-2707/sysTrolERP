@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.models import User
 from apps.accounts.permissions import IsAuthenticatedPrincipal
 from apps.core.pagination import StandardPageNumberPagination
 from apps.notifications.models import Notification
@@ -46,6 +47,12 @@ class NotificationMarkReadView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
 
     def post(self, request, pk):
+        if not isinstance(request.user, User):
+            return Response(
+                {"detail": "Notification not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         try:
             notification = Notification.objects.get(pk=pk, recipient=request.user)
         except Notification.DoesNotExist:
@@ -67,6 +74,9 @@ class NotificationMarkAllReadView(APIView):
     permission_classes = [IsAuthenticatedPrincipal]
 
     def post(self, request):
+        if not isinstance(request.user, User):
+            return Response({"marked_read": 0}, status=status.HTTP_200_OK)
+
         now = timezone.now()
         count = Notification.objects.filter(recipient=request.user, is_read=False).update(
             is_read=True, read_at=now, updated_at=now

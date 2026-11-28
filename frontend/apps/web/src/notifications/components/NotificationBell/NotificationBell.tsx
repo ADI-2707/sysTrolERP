@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, type UIEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { IconBell } from "@systrol/ui";
+import { IconBell, Skeleton } from "@systrol/ui";
 import {
   fetchNotifications,
   fetchUnreadCount,
@@ -35,6 +35,9 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -56,11 +59,15 @@ export function NotificationBell() {
 
     let isMounted = true;
     setIsLoading(true);
+    setPage(1);
+    setHasMore(false);
+    setIsLoadingMore(false);
 
     fetchNotifications({ page: 1 })
       .then((res) => {
         if (isMounted) {
           setNotifications(res.results);
+          setHasMore(Boolean(res.next));
           const computedUnread = res.results.filter((n) => !n.is_read).length;
           setUnreadCount(computedUnread);
         }
@@ -100,6 +107,36 @@ export function NotificationBell() {
 
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
+  };
+
+  const handleScroll = (e: UIEvent<HTMLUListElement>) => {
+    const target = e.currentTarget;
+    if (
+      hasMore &&
+      !isLoadingMore &&
+      target.scrollHeight - target.scrollTop - target.clientHeight < 40
+    ) {
+      loadMore();
+    }
+  };
+
+  const loadMore = async () => {
+    if (!hasMore || isLoadingMore) return;
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await fetchNotifications({ page: nextPage });
+      setNotifications((prev) => {
+        const existingIds = new Set(prev.map((n) => n.id));
+        const newItems = res.results.filter((n) => !existingIds.has(n.id));
+        return [...prev, ...newItems];
+      });
+      setPage(nextPage);
+      setHasMore(Boolean(res.next));
+    } catch {
+    } finally {
+      setIsLoadingMore(false);
+    }
   };
 
   const handleItemClick = async (item: NotificationItem) => {
@@ -169,11 +206,25 @@ export function NotificationBell() {
           </div>
 
           {isLoading ? (
-            <div className={styles.loadingState}>Loading notifications...</div>
+            <div className={styles.skeletonList} data-testid="notification-skeleton-list">
+              {[1, 2, 3].map((idx) => (
+                <div key={idx} className={styles.skeletonItem}>
+                  <div className={styles.skeletonHeader}>
+                    <Skeleton width="60%" height={14} />
+                    <Skeleton width={40} height={10} />
+                  </div>
+                  <Skeleton width="90%" height={12} />
+                </div>
+              ))}
+            </div>
           ) : notifications.length === 0 ? (
             <div className={styles.emptyState}>No notifications</div>
           ) : (
-            <ul className={styles.list}>
+            <ul
+              className={styles.list}
+              onScroll={handleScroll}
+              data-testid="notification-list"
+            >
               {notifications.map((item) => (
                 <li
                   key={item.id}
@@ -195,6 +246,20 @@ export function NotificationBell() {
                   <p className={styles.itemBody}>{item.body}</p>
                 </li>
               ))}
+              {isLoadingMore && (
+                <li
+                  className={styles.skeletonMore}
+                  data-testid="notification-skeleton-more"
+                >
+                  <div className={styles.skeletonItem}>
+                    <div className={styles.skeletonHeader}>
+                      <Skeleton width="55%" height={14} />
+                      <Skeleton width={35} height={10} />
+                    </div>
+                    <Skeleton width="85%" height={12} />
+                  </div>
+                </li>
+              )}
             </ul>
           )}
         </div>

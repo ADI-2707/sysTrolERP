@@ -138,3 +138,28 @@ def test_mark_read_and_mark_all_read():
 
     count_res = client.get("/api/notifications/unread-count/")
     assert count_res.data["unread_count"] == 0
+
+
+@pytest.mark.django_db
+def test_super_admin_notification_endpoints():
+    from apps.accounts.authentication import SuperAdminPrincipal
+
+    super_admin = SuperAdminPrincipal(username="9999")
+    client = APIClient()
+    client.force_authenticate(user=super_admin)
+
+    res = client.get("/api/notifications/unread-count/")
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data == {"unread_count": 0, "has_unread": False}
+
+    res = client.get("/api/notifications/")
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data["count"] == 0
+    assert res.data["results"] == []
+
+    res = client.post("/api/notifications/999/mark-read/")
+    assert res.status_code == status.HTTP_404_NOT_FOUND
+
+    res = client.post("/api/notifications/mark-all-read/")
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data == {"marked_read": 0}
