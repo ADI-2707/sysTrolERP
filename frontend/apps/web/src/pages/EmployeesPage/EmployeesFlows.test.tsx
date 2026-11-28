@@ -216,6 +216,7 @@ describe("EmployeesFlows", () => {
     });
 
     fireEvent.change(screen.getByTestId("create-emp-name-input"), { target: { value: "Charlie Welder" } });
+    fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "0012" } });
     fireEvent.change(screen.getByTestId("create-emp-email-input"), { target: { value: "charlie@systrol.local" } });
     fireEvent.change(screen.getByTestId("create-emp-designation-input"), { target: { value: "Welder" } });
     fireEvent.change(screen.getByTestId("create-emp-department-input"), { target: { value: "Fabrication" } });

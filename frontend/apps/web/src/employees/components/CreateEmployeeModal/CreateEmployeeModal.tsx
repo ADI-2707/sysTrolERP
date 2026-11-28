@@ -10,6 +10,12 @@ export interface CreateEmployeeModalProps {
   isSuperAdmin: boolean;
 }
 
+interface FieldErrors {
+  fullName?: string;
+  employeeCode?: string;
+  role?: string;
+}
+
 export function CreateEmployeeModal({
   isOpen,
   onClose,
@@ -25,6 +31,8 @@ export function CreateEmployeeModal({
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [shake, setShake] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,6 +44,8 @@ export function CreateEmployeeModal({
       setDepartment("");
       setPhone("");
       setError(null);
+      setFieldErrors({});
+      setShake(false);
       setIsSubmitting(false);
     }
   }, [isOpen]);
@@ -46,20 +56,29 @@ export function CreateEmployeeModal({
     const trimmedCode = employeeCode.trim();
     const trimmedEmail = email.trim();
 
+    const errors: FieldErrors = {};
+
     if (!trimmedName) {
-      setError("Full name is required.");
-      return;
+      errors.fullName = "Please enter employee's full name.";
     }
 
-    if (trimmedCode) {
-      if (!/^\d{4}$/.test(trimmedCode)) {
-        setError("Employee ID must be a 4-digit numeric code (e.g. 0001).");
-        return;
-      }
-      if (trimmedCode === "9999") {
-        setError("Employee ID 9999 is reserved for Super Administrator.");
-        return;
-      }
+    if (!trimmedCode) {
+      errors.employeeCode = "Please enter employee's 4-digit ID.";
+    } else if (!/^\d{4}$/.test(trimmedCode)) {
+      errors.employeeCode = "Employee ID must be a 4-digit numeric code (e.g. 0001).";
+    } else if (trimmedCode === "9999") {
+      errors.employeeCode = "Employee ID 9999 is reserved for Super Administrator.";
+    }
+
+    if (!role) {
+      errors.role = "Please select a role.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      return;
     }
 
     setIsSubmitting(true);
@@ -68,7 +87,7 @@ export function CreateEmployeeModal({
     try {
       await onSubmit({
         full_name: trimmedName,
-        employee_code: trimmedCode || undefined,
+        employee_code: trimmedCode,
         email: trimmedEmail || undefined,
         role,
         designation: designation.trim() || undefined,
@@ -97,38 +116,58 @@ export function CreateEmployeeModal({
         )}
 
         <div className={styles.fieldGroup}>
-          <label htmlFor="create-emp-name" className={styles.label}>
-            Full Name <span className={styles.required}>*</span>
-          </label>
+          <div className={styles.labelRow}>
+            <label htmlFor="create-emp-name" className={styles.label}>
+              Full Name <span className={styles.required}>*</span>
+            </label>
+            {fieldErrors.fullName && (
+              <span className={styles.fieldErrorText} data-testid="error-name" role="alert">
+                {fieldErrors.fullName}
+              </span>
+            )}
+          </div>
           <input
             id="create-emp-name"
             type="text"
-            className={styles.input}
+            className={`${styles.input} ${fieldErrors.fullName ? styles.inputError : ""}`}
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={(e) => {
+              setFullName(e.target.value);
+              if (fieldErrors.fullName) {
+                setFieldErrors((prev) => ({ ...prev, fullName: undefined }));
+              }
+            }}
             placeholder="e.g. Rahul Sharma"
             data-testid="create-emp-name-input"
-            required
           />
         </div>
 
         <div className={styles.fieldGroup}>
-          <label htmlFor="create-emp-code" className={styles.label}>
-            Employee ID (4-digit numeric code)
-          </label>
+          <div className={styles.labelRow}>
+            <label htmlFor="create-emp-code" className={styles.label}>
+              Employee ID (4-digit numeric code) <span className={styles.required}>*</span>
+            </label>
+            {fieldErrors.employeeCode && (
+              <span className={styles.fieldErrorText} data-testid="error-code" role="alert">
+                {fieldErrors.employeeCode}
+              </span>
+            )}
+          </div>
           <input
             id="create-emp-code"
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
             maxLength={4}
-            className={styles.input}
+            className={`${styles.input} ${fieldErrors.employeeCode ? styles.inputError : ""}`}
             value={employeeCode}
             onChange={(e) => {
               setEmployeeCode(e.target.value.replace(/\D/g, "").slice(0, 4));
-              if (error) setError(null);
+              if (fieldErrors.employeeCode) {
+                setFieldErrors((prev) => ({ ...prev, employeeCode: undefined }));
+              }
             }}
-            placeholder="e.g. 0001 (leave blank to auto-generate)"
+            placeholder="e.g. 0001"
             data-testid="create-emp-code-input"
           />
         </div>
@@ -149,14 +188,26 @@ export function CreateEmployeeModal({
         </div>
 
         <div className={styles.fieldGroup}>
-          <label htmlFor="create-emp-role" className={styles.label}>
-            Role <span className={styles.required}>*</span>
-          </label>
+          <div className={styles.labelRow}>
+            <label htmlFor="create-emp-role" className={styles.label}>
+              Role <span className={styles.required}>*</span>
+            </label>
+            {fieldErrors.role && (
+              <span className={styles.fieldErrorText} data-testid="error-role" role="alert">
+                {fieldErrors.role}
+              </span>
+            )}
+          </div>
           <select
             id="create-emp-role"
-            className={styles.select}
+            className={`${styles.select} ${fieldErrors.role ? styles.inputError : ""}`}
             value={role}
-            onChange={(e) => setRole(e.target.value as EmployeeRole)}
+            onChange={(e) => {
+              setRole(e.target.value as EmployeeRole);
+              if (fieldErrors.role) {
+                setFieldErrors((prev) => ({ ...prev, role: undefined }));
+              }
+            }}
             disabled={!isSuperAdmin}
             data-testid="create-emp-role-select"
           >
@@ -231,6 +282,7 @@ export function CreateEmployeeModal({
             type="submit"
             variant="primary"
             loading={isSubmitting}
+            className={shake ? styles.shakeBtn : ""}
             data-testid="create-emp-submit-btn"
           >
             Create Account

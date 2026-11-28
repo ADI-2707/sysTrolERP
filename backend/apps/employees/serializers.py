@@ -39,7 +39,7 @@ class EmployeeListSerializer(serializers.ModelSerializer):
 
 class EmployeeCreateSerializer(serializers.Serializer):
     employee_code = serializers.CharField(
-        max_length=4, min_length=4, required=False, allow_blank=True, default=""
+        max_length=4, min_length=4, required=True, allow_blank=False
     )
     email = serializers.EmailField(required=False, allow_blank=True, default="")
     full_name = serializers.CharField(max_length=150, required=True)
@@ -53,7 +53,7 @@ class EmployeeCreateSerializer(serializers.Serializer):
     def validate_employee_code(self, value):
         val = value.strip()
         if not val:
-            return ""
+            raise serializers.ValidationError("Employee ID is required.")
         if not (val.isdigit() and len(val) == 4):
             raise serializers.ValidationError("Employee ID must be a 4-digit numeric code.")
         if val == "9999":

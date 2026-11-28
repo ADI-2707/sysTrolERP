@@ -19,6 +19,7 @@ def test_admin_create_employee_success():
     client.force_authenticate(user=admin)
 
     payload = {
+        "employee_code": "0001",
         "email": "new.hire@example.com",
         "full_name": "New Hire",
         "phone": "+919876543210",
@@ -49,6 +50,7 @@ def test_admin_cannot_create_admin():
     client.force_authenticate(user=admin)
 
     payload = {
+        "employee_code": "0002",
         "email": "another.admin@example.com",
         "full_name": "Another Admin",
         "role": "ADMIN",
@@ -65,6 +67,7 @@ def test_super_admin_can_create_admin():
     client.force_authenticate(user=super_admin)
 
     payload = {
+        "employee_code": "0003",
         "email": "approved.admin@example.com",
         "full_name": "Approved Admin",
         "role": "ADMIN",
@@ -94,6 +97,7 @@ def test_create_employee_duplicate_email():
     client.force_authenticate(user=admin)
 
     payload = {
+        "employee_code": "0004",
         "email": "existing@example.com",
         "full_name": "Duplicate User",
         "role": "EMPLOYEE",
@@ -164,3 +168,10 @@ def test_create_employee_code_validation():
         format="json",
     )
     assert res_dup.status_code == 400
+
+    res_missing = client.post(
+        reverse("employee_list_create"),
+        {"full_name": "No Code"},
+        format="json",
+    )
+    assert res_missing.status_code == 400

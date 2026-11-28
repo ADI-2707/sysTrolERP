@@ -72,6 +72,7 @@ def test_employee_mutations_and_permissions_audit_edges():
     create_emp_resp = admin1_client.post(
         reverse("employee_list_create"),
         {
+            "employee_code": "0050",
             "email": "edge.new@example.com",
             "full_name": "New Edge User",
             "designation": "Technician",

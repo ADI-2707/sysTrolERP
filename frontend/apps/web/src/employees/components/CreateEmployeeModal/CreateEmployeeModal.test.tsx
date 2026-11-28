@@ -30,6 +30,8 @@ describe("CreateEmployeeModal", () => {
 
     fireEvent.click(screen.getByTestId("create-emp-submit-btn"));
 
+    expect(screen.getByTestId("error-name")).toHaveTextContent("Please enter employee's full name.");
+    expect(screen.getByTestId("error-code")).toHaveTextContent("Please enter employee's 4-digit ID.");
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
@@ -73,6 +75,7 @@ describe("CreateEmployeeModal", () => {
     );
 
     fireEvent.change(screen.getByTestId("create-emp-name-input"), { target: { value: "New User" } });
+    fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "0010" } });
     fireEvent.change(screen.getByTestId("create-emp-email-input"), { target: { value: "newuser@example.com" } });
     fireEvent.change(screen.getByTestId("create-emp-designation-input"), { target: { value: "Tester" } });
     fireEvent.change(screen.getByTestId("create-emp-department-input"), { target: { value: "QA" } });
@@ -83,7 +86,7 @@ describe("CreateEmployeeModal", () => {
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith({
         full_name: "New User",
-        employee_code: undefined,
+        employee_code: "0010",
         email: "newuser@example.com",
         role: "EMPLOYEE",
         designation: "Tester",
@@ -146,13 +149,13 @@ describe("CreateEmployeeModal", () => {
     fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "123" } });
     fireEvent.click(screen.getByTestId("create-emp-submit-btn"));
 
-    expect(screen.getByTestId("create-employee-error")).toHaveTextContent("Employee ID must be a 4-digit numeric code");
+    expect(screen.getByTestId("error-code")).toHaveTextContent("Employee ID must be a 4-digit numeric code");
     expect(mockOnSubmit).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "9999" } });
     fireEvent.click(screen.getByTestId("create-emp-submit-btn"));
 
-    expect(screen.getByTestId("create-employee-error")).toHaveTextContent("Employee ID 9999 is reserved for Super Administrator.");
+    expect(screen.getByTestId("error-code")).toHaveTextContent("Employee ID 9999 is reserved for Super Administrator.");
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
@@ -169,6 +172,7 @@ describe("CreateEmployeeModal", () => {
     );
 
     fireEvent.change(screen.getByTestId("create-emp-name-input"), { target: { value: "Duplicate User" } });
+    fireEvent.change(screen.getByTestId("create-emp-code-input"), { target: { value: "0015" } });
     fireEvent.change(screen.getByTestId("create-emp-email-input"), { target: { value: "existing@example.com" } });
 
     fireEvent.click(screen.getByTestId("create-emp-submit-btn"));
