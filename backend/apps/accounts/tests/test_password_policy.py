@@ -60,5 +60,6 @@ def test_password_similarity():
 
 
 def test_password_valid():
+    validate_password("Systrol@9999")
     validate_password("SysTrol@9999")
     validate_password("ValidPassword123!")

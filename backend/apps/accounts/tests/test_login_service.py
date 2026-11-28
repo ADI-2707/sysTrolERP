@@ -21,6 +21,17 @@ def test_authenticate_super_admin(settings):
 
 
 @pytest.mark.django_db
+def test_authenticate_super_admin_both_casings():
+    p1 = authenticate_principal("9999", "Systrol@9999")
+    assert isinstance(p1, SuperAdminPrincipal)
+    assert p1.employee_code == "9999"
+
+    p2 = authenticate_principal("9999", "SysTrol@9999")
+    assert isinstance(p2, SuperAdminPrincipal)
+    assert p2.employee_code == "9999"
+
+
+@pytest.mark.django_db
 def test_authenticate_super_admin_invalid_password(settings):
     hasher = Argon2PasswordHasher()
     hashed = hasher.encode("SuperSecret123!", hasher.salt())

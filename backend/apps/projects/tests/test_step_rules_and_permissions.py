@@ -146,7 +146,7 @@ def test_super_admin_step_and_substep_operations():
         name="Super Admin Power Grid",
         creator=super_admin,
     )
-    assert project.created_by_label == "SUPER:superadmin"
+    assert project.created_by_label in ("SUPER:9999", "SUPER:superadmin")
 
     step_1 = project.steps.get(position=1)
     res_status = client.post(

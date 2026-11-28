@@ -12,7 +12,7 @@ env = environ.Env(
     SUPER_ADMIN_USERNAME=(str, "9999"),
     SUPER_ADMIN_PASSWORD_HASH=(
         str,
-        "argon2$argon2id$v=19$m=102400,t=2,p=8$c3lzdHJvbHNhbHQxMjM0NQ$Im4hGYap+wRFU03vDqtv8jaOnnv9yCou15NvR1UFj0Y",
+        "argon2$argon2id$v=19$m=102400,t=2,p=8$WkllcHJ0eXJTRDdvcGtPY0FHWmY4dQ$grNiQGj6X77dIuMVRrrWPiNz5ijZiktN1dxApY9I0TM",
     ),
 )
 
