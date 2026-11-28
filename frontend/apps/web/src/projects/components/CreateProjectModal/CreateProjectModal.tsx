@@ -1,11 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { Modal, Button, Spinner } from "@systrol/ui";
-import {
-  fetchActiveEmployees,
-  fetchEmployeeLookup,
-  type EmployeeSummary,
-  type CreateProjectPayload,
-} from "../../../api/projects";
+import { Modal, Button } from "@systrol/ui";
+import type { CreateProjectPayload } from "../../../api/projects";
 import styles from "./CreateProjectModal.module.css";
 
 export interface CreateProjectModalProps {
@@ -13,6 +8,11 @@ export interface CreateProjectModalProps {
   onClose: () => void;
   onSubmit: (payload: CreateProjectPayload) => Promise<void> | void;
   isLoading?: boolean;
+}
+
+interface FieldErrors {
+  code?: string;
+  name?: string;
 }
 
 export function CreateProjectModal({
@@ -25,34 +25,9 @@ export function CreateProjectModal({
   const [name, setName] = useState("");
   const [clientName, setClientName] = useState("");
   const [description, setDescription] = useState("");
-  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
-  const [employees, setEmployees] = useState<EmployeeSummary[]>([]);
-  const [employeeSearch, setEmployeeSearch] = useState("");
-  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const loadEmployees = async (query = "") => {
-    setIsLoadingEmployees(true);
-    try {
-      if (typeof fetchEmployeeLookup === "function") {
-        const res = await fetchEmployeeLookup(query);
-        if (Array.isArray(res)) {
-          setEmployees(res);
-          return;
-        }
-      }
-      const fallback = await fetchActiveEmployees();
-      setEmployees(fallback.results || []);
-    } catch {
-      try {
-        const fallback = await fetchActiveEmployees();
-        setEmployees(fallback.results || []);
-      } catch {
-      }
-    } finally {
-      setIsLoadingEmployees(false);
-    }
-  };
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [shake, setShake] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -60,37 +35,35 @@ export function CreateProjectModal({
       setName("");
       setClientName("");
       setDescription("");
-      setSelectedMemberIds([]);
-      setEmployeeSearch("");
       setError(null);
-      loadEmployees();
+      setFieldErrors({});
+      setShake(false);
     }
   }, [isOpen]);
-
-  const handleToggleMember = (id: number) => {
-    setSelectedMemberIds((prev) =>
-      prev.includes(id) ? prev.filter((mId) => mId !== id) : [...prev, id]
-    );
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const trimmedCode = code.trim().toUpperCase();
     const trimmedName = name.trim();
+
+    const errors: FieldErrors = {};
+
     if (!trimmedCode) {
-      setError("Project ID / Code is required.");
-      return;
+      errors.code = "Please enter Project ID / Code.";
+    } else if (!/^[a-zA-Z0-9]+$/.test(trimmedCode)) {
+      errors.code = "Project ID / Code must be alphanumeric with no spaces or special characters.";
+    } else if (trimmedCode.length > 15) {
+      errors.code = "Project ID / Code cannot exceed 15 characters.";
     }
-    if (!/^[a-zA-Z0-9]+$/.test(trimmedCode)) {
-      setError("Project ID / Code must be alphanumeric with no spaces or special characters.");
-      return;
-    }
-    if (trimmedCode.length > 15) {
-      setError("Project ID / Code cannot exceed 15 characters.");
-      return;
-    }
+
     if (!trimmedName) {
-      setError("Project name is required.");
+      errors.name = "Please enter project name.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
       return;
     }
 
@@ -101,7 +74,7 @@ export function CreateProjectModal({
         name: trimmedName,
         client_name: clientName.trim(),
         description: description.trim(),
-        member_ids: selectedMemberIds,
+        member_ids: [],
       });
       onClose();
     } catch (err: unknown) {
@@ -129,37 +102,55 @@ export function CreateProjectModal({
         )}
 
         <div className={styles.fieldGroup}>
-          <label htmlFor="project-code" className={styles.label}>
-            Project ID / Code (Required, Alphanumeric, max 15 chars)
-          </label>
+          <div className={styles.labelRow}>
+            <label htmlFor="project-code" className={styles.label}>
+              Project ID / Code <span className={styles.required}>*</span>
+            </label>
+            {fieldErrors.code && (
+              <span className={styles.fieldErrorText} data-testid="error-code" role="alert">
+                {fieldErrors.code}
+              </span>
+            )}
+          </div>
           <input
             id="project-code"
             type="text"
-            className={styles.input}
+            className={`${styles.input} ${fieldErrors.code ? styles.inputError : ""}`}
             placeholder="e.g. PRJ001 or GTU2026"
             maxLength={15}
             value={code}
             onChange={(e) => {
               setCode(e.target.value);
-              if (error) setError(null);
+              if (fieldErrors.code) {
+                setFieldErrors((prev) => ({ ...prev, code: undefined }));
+              }
             }}
             data-testid="create-project-code-input"
           />
         </div>
 
         <div className={styles.fieldGroup}>
-          <label htmlFor="project-name" className={styles.label}>
-            Project Name (Required)
-          </label>
+          <div className={styles.labelRow}>
+            <label htmlFor="project-name" className={styles.label}>
+              Project Name <span className={styles.required}>*</span>
+            </label>
+            {fieldErrors.name && (
+              <span className={styles.fieldErrorText} data-testid="error-name" role="alert">
+                {fieldErrors.name}
+              </span>
+            )}
+          </div>
           <input
             id="project-name"
             type="text"
-            className={styles.input}
+            className={`${styles.input} ${fieldErrors.name ? styles.inputError : ""}`}
             placeholder="e.g. 500kW Gas Turbine Upgrade"
             value={name}
             onChange={(e) => {
               setName(e.target.value);
-              if (error) setError(null);
+              if (fieldErrors.name) {
+                setFieldErrors((prev) => ({ ...prev, name: undefined }));
+              }
             }}
             data-testid="create-project-name-input"
           />
@@ -194,54 +185,6 @@ export function CreateProjectModal({
           />
         </div>
 
-        <div className={styles.fieldGroup}>
-          <span className={styles.label}>Initial Assigned Members</span>
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Search employees by name or code..."
-            value={employeeSearch}
-            onChange={(e) => {
-              const q = e.target.value;
-              setEmployeeSearch(q);
-              loadEmployees(q);
-            }}
-            data-testid="create-project-employee-search"
-            style={{ marginBottom: "var(--space-2)" }}
-          />
-          <div className={styles.membersBox} data-testid="initial-members-list">
-            {isLoadingEmployees ? (
-              <div className={styles.emptyMembers}>
-                <Spinner size="sm" /> Loading employees...
-              </div>
-            ) : employees.length === 0 ? (
-              <div className={styles.emptyMembers}>No active employees found</div>
-            ) : (
-              employees.map((emp) => {
-                const isSelected = selectedMemberIds.includes(emp.id);
-                return (
-                  <label key={emp.id} className={styles.memberOption}>
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleToggleMember(emp.id)}
-                      className={styles.memberCheckbox}
-                      data-testid={`member-checkbox-${emp.id}`}
-                    />
-                    <div className={styles.memberInfo}>
-                      <span className={styles.memberCode}>{emp.employee_code}</span>
-                      <span className={styles.memberName}>{emp.full_name}</span>
-                      {emp.designation && (
-                        <span className={styles.memberRole}>{emp.designation}</span>
-                      )}
-                    </div>
-                  </label>
-                );
-              })
-            )}
-          </div>
-        </div>
-
         <div className={styles.actions}>
           <Button
             type="button"
@@ -251,15 +194,17 @@ export function CreateProjectModal({
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            loading={isLoading}
-            disabled={!name.trim() || !code.trim() || isLoading}
-            data-testid="submit-create-project-btn"
-          >
-            Create Project
-          </Button>
+          <div className={shake ? styles.shakeBtn : undefined}>
+            <Button
+              type="submit"
+              variant="primary"
+              loading={isLoading}
+              disabled={isLoading}
+              data-testid="submit-create-project-btn"
+            >
+              Create Project
+            </Button>
+          </div>
         </div>
       </form>
     </Modal>
