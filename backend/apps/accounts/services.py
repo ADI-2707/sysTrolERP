@@ -1,5 +1,4 @@
 import hmac
-import secrets
 import time
 from datetime import timedelta
 
@@ -50,14 +49,7 @@ def get_device_id_from_request(request) -> str:
     dev_id = dev_id.strip()
     if dev_id and len(dev_id) <= 64:
         return dev_id
-    new_id = getattr(request, "_generated_device_id", None)
-    if not new_id:
-        new_id = secrets.token_hex(16)
-        try:
-            request._generated_device_id = new_id
-        except Exception:
-            pass
-    return new_id
+    return ""
 
 
 def evaluate_login_security(
@@ -126,10 +118,10 @@ def evaluate_login_security(
     )
     fail_count = len(failures)
 
-    if fail_count < 4:
+    if fail_count < 3:
         return {"action": "allow", "tarpit": 0.0, "failures": fail_count}
 
-    if fail_count == 4:
+    if fail_count in (3, 4):
         return {"action": "tarpit", "tarpit": 2.0, "failures": fail_count}
 
     most_recent = failures[0].attempted_at
@@ -152,7 +144,7 @@ def evaluate_login_security(
         duration = 900
         if elapsed < duration:
             remaining = int(duration - elapsed)
-            remaining_mins = max(1, int(remaining // 60))
+            remaining_mins = max(1, int((remaining + 59) // 60))
             return {
                 "action": "lockout",
                 "lock_seconds": remaining,
@@ -165,7 +157,7 @@ def evaluate_login_security(
     duration = 3600
     if elapsed < duration:
         remaining = int(duration - elapsed)
-        remaining_mins = max(1, int(remaining // 60))
+        remaining_mins = max(1, int((remaining + 59) // 60))
         return {
             "action": "lockout",
             "lock_seconds": remaining,

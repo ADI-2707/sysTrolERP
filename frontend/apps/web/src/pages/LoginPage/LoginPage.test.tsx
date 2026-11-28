@@ -192,4 +192,34 @@ describe("LoginPage", () => {
 
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
   });
+
+  it("renders hidden honeypot trap field for bot mitigation", () => {
+    const { container } = renderLoginPage();
+    const trapInput = container.querySelector('input[name="company_tax_id"]');
+    expect(trapInput).toBeInTheDocument();
+    expect(trapInput).toHaveAttribute("tabIndex", "-1");
+  });
+
+  it("displays dynamic lockout durations such as 2 minutes", async () => {
+    mockLogin.mockRejectedValueOnce(
+      new ApiClientError(429, {
+        code: "account_locked",
+        message: "Too many failed login attempts. Account is temporarily locked for 2 minutes.",
+      })
+    );
+
+    renderLoginPage();
+    fireEvent.change(screen.getByLabelText(/Employee Code or Email/i), {
+      target: { value: "SYS-0001" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Password/i), {
+      target: { value: "wrongpassword" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("banner-lockout")).toBeInTheDocument();
+      expect(screen.getByText(/Account is temporarily locked for 2 minutes/i)).toBeInTheDocument();
+    });
+  });
 });
