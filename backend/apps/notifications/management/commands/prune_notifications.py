@@ -10,20 +10,20 @@ class Command(BaseCommand):
         parser.add_argument(
             "--days",
             type=int,
-            default=60,
-            help="Prune read notifications older than this many days (default 60)",
+            default=14,
+            help="Prune read notifications older than this many days (default 14)",
         )
         parser.add_argument(
             "--unread-days",
             type=int,
-            default=180,
-            help="Prune unread notifications older than this many days (default 180)",
+            default=30,
+            help="Prune unread notifications older than this many days (default 30)",
         )
         parser.add_argument(
             "--max-per-user",
             type=int,
-            default=300,
-            help="Maximum allowed notifications per user (default 300)",
+            default=50,
+            help="Maximum allowed notifications per user (default 50)",
         )
         parser.add_argument(
             "--batch-size",

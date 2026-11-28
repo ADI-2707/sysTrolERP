@@ -62,9 +62,9 @@ def bulk_create_notifications(records: list[dict[str, Any]]) -> list[Notificatio
 
 def prune_old_notifications(
     *,
-    read_days: int = 60,
-    unread_days: int = 180,
-    max_per_user: int = 300,
+    read_days: int = 14,
+    unread_days: int = 30,
+    max_per_user: int = 50,
     batch_size: int = 1000,
     dry_run: bool = False,
 ) -> dict[str, int]:

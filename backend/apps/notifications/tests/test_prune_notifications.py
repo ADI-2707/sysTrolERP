@@ -23,7 +23,7 @@ def test_prune_read_and_unread_notifications():
 
     base_time = datetime.datetime(2026, 11, 25, 12, 0, tzinfo=datetime.timezone.utc)
 
-    with time_machine.travel(base_time - datetime.timedelta(days=70)):
+    with time_machine.travel(base_time - datetime.timedelta(days=20)):
         old_read = Notification.objects.create(
             recipient=user,
             event_type="TEST",
@@ -33,7 +33,7 @@ def test_prune_read_and_unread_notifications():
             read_at=timezone.now(),
         )
 
-    with time_machine.travel(base_time - datetime.timedelta(days=200)):
+    with time_machine.travel(base_time - datetime.timedelta(days=40)):
         old_unread = Notification.objects.create(
             recipient=user,
             event_type="TEST",
@@ -42,7 +42,7 @@ def test_prune_read_and_unread_notifications():
             is_read=False,
         )
 
-    with time_machine.travel(base_time - datetime.timedelta(days=10)):
+    with time_machine.travel(base_time - datetime.timedelta(days=5)):
         recent_read = Notification.objects.create(
             recipient=user,
             event_type="TEST",
@@ -62,7 +62,7 @@ def test_prune_read_and_unread_notifications():
         )
 
     with time_machine.travel(base_time):
-        res = prune_old_notifications(read_days=60, unread_days=180, dry_run=False)
+        res = prune_old_notifications(dry_run=False)
         assert res["pruned_read"] == 1
         assert res["pruned_unread"] == 1
         assert res["total"] == 2
@@ -85,7 +85,7 @@ def test_prune_dry_run_and_management_command():
 
     base_time = datetime.datetime(2026, 11, 25, 12, 0, tzinfo=datetime.timezone.utc)
 
-    with time_machine.travel(base_time - datetime.timedelta(days=70)):
+    with time_machine.travel(base_time - datetime.timedelta(days=20)):
         old_read = Notification.objects.create(
             recipient=user,
             event_type="TEST",
@@ -96,12 +96,12 @@ def test_prune_dry_run_and_management_command():
         )
 
     with time_machine.travel(base_time):
-        dry_res = prune_old_notifications(read_days=60, dry_run=True)
+        dry_res = prune_old_notifications(dry_run=True)
         assert dry_res["total"] == 1
         assert Notification.objects.filter(id=old_read.id).exists()
 
         out = StringIO()
-        call_command("prune_notifications", "--days=60", stdout=out)
+        call_command("prune_notifications", stdout=out)
         output = out.getvalue()
         assert "Pruned 1 notifications" in output
         assert not Notification.objects.filter(id=old_read.id).exists()
