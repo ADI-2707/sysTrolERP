@@ -90,13 +90,13 @@ def test_project_list_granular_status_filters():
     )
 
     p_not_started = create_project(
-        name="Project Not Started",
+        name="Project Alpha",
         creator=admin,
         client_name="Client Alpha",
     )
 
     p_initiated = create_project(
-        name="Project Initiated",
+        name="Project Beta",
         creator=admin,
         client_name="Client Beta",
     )
@@ -105,7 +105,7 @@ def test_project_list_granular_status_filters():
     s_init.save()
 
     p_in_prog = create_project(
-        name="Project In Progress",
+        name="Project Gamma",
         creator=admin,
         client_name="Client Gamma",
     )
@@ -114,7 +114,7 @@ def test_project_list_granular_status_filters():
     s_prog.save()
 
     p_completed = create_project(
-        name="Project Completed",
+        name="Project Delta",
         creator=admin,
         client_name="Client Delta",
     )
