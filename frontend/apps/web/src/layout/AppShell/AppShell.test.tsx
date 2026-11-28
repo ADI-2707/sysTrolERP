@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@systrol/ui";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -192,5 +192,33 @@ describe("AppShell", () => {
 
     fireEvent.click(screen.getByTestId("mobile-nav-backdrop"));
     expect(screen.queryByTestId("mobile-nav-backdrop")).not.toBeInTheDocument();
+  });
+
+  it("renders page names alongside icons in mobile sidebar drawer even when collapsed", () => {
+    localStorage.setItem("systrol_sidebar_collapsed", "true");
+
+    const user: CurrentUser = {
+      id: 1,
+      employee_code: "SYS-0001",
+      email: "admin@systrol.com",
+      full_name: "Admin User",
+      role: "ADMIN",
+      must_change_password: false,
+    };
+
+    renderShell(user);
+
+    const sidebar = screen.getByRole("complementary", { name: "Application Sidebar" });
+    expect(within(sidebar).queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(within(sidebar).queryByText("Project Management")).not.toBeInTheDocument();
+
+    const menuBtn = screen.getByRole("button", { name: /open navigation drawer/i });
+    fireEvent.click(menuBtn);
+
+    expect(within(sidebar).getByText("Dashboard")).toBeInTheDocument();
+    expect(within(sidebar).getByText("Project Management")).toBeInTheDocument();
+    expect(within(sidebar).getByText("Employee Management")).toBeInTheDocument();
+    expect(within(sidebar).getByText("System Logs")).toBeInTheDocument();
+    expect(within(sidebar).getByText("Settings")).toBeInTheDocument();
   });
 });

@@ -185,12 +185,12 @@ export function AppShell({ breadcrumbs }: AppShellProps) {
   return (
     <div className={styles.shell} data-testid="app-shell">
       <Sidebar
-        collapsed={collapsed}
+        collapsed={mobileNavOpen ? false : collapsed}
         onToggleCollapse={toggleCollapse}
         onLogout={handleLogout}
         version={`v${packageJson.version}`}
         items={navItems}
-        className={mobileNavOpen ? styles.sidebarMobileOpen : undefined}
+        className={[mobileNavOpen ? styles.sidebarMobileOpen : undefined, mobileNavOpen ? "is-mobile-open" : undefined].filter(Boolean).join(" ")}
       />
 
       {mobileNavOpen && (

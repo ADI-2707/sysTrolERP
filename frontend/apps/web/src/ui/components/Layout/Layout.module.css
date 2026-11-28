@@ -544,6 +544,10 @@
     transform: translateX(0);
   }
 
+  .collapse-toggle-btn-top {
+    display: none;
+  }
+
   .topbar {
     padding: 0 var(--space-4);
   }
